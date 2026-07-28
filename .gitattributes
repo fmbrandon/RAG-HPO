@@ -6,3 +6,6 @@
 *.ipynb text eol=lf
 *.pptx binary
 *.xlsx binary
+
+# Preserve literal workbook exports, including source-cell whitespace.
+benchmarks/references/*.csv whitespace=-trailing-space,-space-before-tab

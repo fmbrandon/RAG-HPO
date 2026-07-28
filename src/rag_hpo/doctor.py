@@ -28,6 +28,11 @@ def run_doctor(
             name="python",
             status="pass" if (3, 11) <= version < (3, 14) else "fail",
             detail=f"{platform.python_implementation()} {platform.python_version()}",
+            action=(
+                None
+                if (3, 11) <= version < (3, 14)
+                else "Install Python 3.12, then run: python3.12 setup_environment.py"
+            ),
         )
     )
 
@@ -43,7 +48,16 @@ def run_doctor(
             )
         )
     except OSError as exc:
-        checks.append(DoctorCheck(name="output-directory", status="fail", detail=str(exc)))
+        checks.append(
+            DoctorCheck(
+                name="output-directory",
+                status="fail",
+                detail=str(exc),
+                action=(
+                    f"Create a writable private directory and retry with --output-dir {output_dir}"
+                ),
+            )
+        )
 
     if vector_dir is None:
         checks.append(
@@ -51,6 +65,10 @@ def run_doctor(
                 name="vector-artifacts",
                 status="warn",
                 detail="no vector directory supplied",
+                action=(
+                    "Pass --vector-dir PATH, or build one with: rag-hpo vectorize "
+                    "--output-dir vectors --hpo-addons HPO_addons.csv"
+                ),
             )
         )
     else:
@@ -67,7 +85,17 @@ def run_doctor(
                 )
             )
         except (FileNotFoundError, ValueError) as exc:
-            checks.append(DoctorCheck(name="vector-artifacts", status="fail", detail=str(exc)))
+            checks.append(
+                DoctorCheck(
+                    name="vector-artifacts",
+                    status="fail",
+                    detail=str(exc),
+                    action=(
+                        "Re-download the release bundle or rebuild it with: rag-hpo vectorize "
+                        "--output-dir vectors --hpo-addons HPO_addons.csv --refresh"
+                    ),
+                )
+            )
 
     if "RAG_HPO_API_KEY" not in os.environ:
         checks.append(
@@ -75,6 +103,10 @@ def run_doctor(
                 name="provider-configuration",
                 status="warn" if not check_provider else "fail",
                 detail="RAG_HPO_API_KEY is not set",
+                action=(
+                    'Run: read -s "RAG_HPO_API_KEY?Paste Groq key: " && '
+                    "export RAG_HPO_API_KEY && echo"
+                ),
             )
         )
     else:
@@ -103,6 +135,10 @@ def run_doctor(
                     name="provider-connectivity",
                     status="fail",
                     detail=str(exc),
+                    action=(
+                        "Verify the key and model with: rag-hpo doctor --skip-provider, "
+                        "then retry rag-hpo doctor"
+                    ),
                 )
             )
     return DoctorReport(

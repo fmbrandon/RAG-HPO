@@ -1,0 +1,3 @@
+.[benchmark,dev,fastembed,notebook,test,vectorize]
+win32-setctime>=1; sys_platform == "win32"
+pywinpty>=2; sys_platform == "win32"

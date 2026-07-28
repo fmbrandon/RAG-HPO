@@ -21,3 +21,8 @@ use and confirm that the configured endpoint is approved for the data.
 Raw provider responses are disabled by default. Resume databases and outputs may
 still contain derived phenotype information and must be handled as sensitive.
 Successful runs delete resume state unless `--keep-state` is selected.
+
+On POSIX systems, RAG-HPO applies owner-only directory and file modes. On
+experimental Windows systems, files inherit the ACL of the user's cache or
+chosen output directory; users must choose a private location and verify its ACL
+before processing restricted data.

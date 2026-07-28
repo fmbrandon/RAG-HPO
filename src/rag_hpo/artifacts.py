@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 
-from rag_hpo.privacy import ensure_private_directory
+from rag_hpo.privacy import ensure_private_directory, restrict_owner
 
 SCHEMA_VERSION = "2.0"
 META_NAME = "hpo_meta.json"
@@ -70,7 +70,7 @@ def _atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
-        os.chmod(temporary_path, mode)
+        restrict_owner(temporary_path, directory=mode == 0o700)
         os.replace(temporary_path, path)
     finally:
         temporary_path.unlink(missing_ok=True)

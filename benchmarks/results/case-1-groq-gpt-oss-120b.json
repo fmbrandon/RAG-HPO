@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "corpus": "CSC",
+  "case_id": "1",
+  "functional_result": {
+    "runtime_seconds": 15.11,
+    "extracted_rows": 17,
+    "mapped_rows": 8,
+    "unique_predicted_ids": 7,
+    "row_errors": 0
+  },
+  "scientific_result": {
+    "predicted_ids": [
+      "HP:0001513",
+      "HP:0012183",
+      "HP:0025501",
+      "HP:0030451",
+      "HP:0033769",
+      "HP:0100580",
+      "HP:0200063"
+    ],
+    "reference_ids": [
+      "HP:0001513",
+      "HP:0004394",
+      "HP:0005227",
+      "HP:0012183",
+      "HP:0025501",
+      "HP:0031500",
+      "HP:0033769",
+      "HP:0100580"
+    ],
+    "true_positive_ids": [
+      "HP:0001513",
+      "HP:0012183",
+      "HP:0025501",
+      "HP:0033769",
+      "HP:0100580"
+    ],
+    "false_positive_ids": [
+      "HP:0030451",
+      "HP:0200063"
+    ],
+    "false_negative_ids": [
+      "HP:0004394",
+      "HP:0005227",
+      "HP:0031500"
+    ],
+    "tp": 5,
+    "fp": 2,
+    "fn": 3,
+    "precision": 0.7142857142857143,
+    "recall": 0.625,
+    "f1": 0.6666666666666666
+  },
+  "historical_baseline": {
+    "label": "LLaMa 4-Scout CSC Case 1",
+    "tp": 3,
+    "fp": 8,
+    "fn": 5,
+    "precision": 0.2727272727272727,
+    "recall": 0.375,
+    "f1": 0.3157894736842105,
+    "comparison_note": "Historical labeled baseline, not a required performance guarantee."
+  },
+  "configuration": {
+    "provider": "Groq OpenAI-compatible API",
+    "model": "openai/gpt-oss-120b",
+    "response_mode": "strict",
+    "prompt_version": "1.0",
+    "embedding_backend": "sapbert",
+    "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+    "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "addons_sha256": "f5a62a07ff66b4def2de5a6c86b90bf6c6ee6f846abd6f2e26ab0c01a9fe915c",
+    "artifact_manifest_sha256": "7597671887574360eb737f6c8e43b9fdb433734f8c13ce4c72da828891ecbac2",
+    "artifact_metadata_sha256": "73f8436d30f5a8b31f0169386930cc871c49c82322b34d15798f18db996f881b",
+    "artifact_vectors_sha256": "3e13050c7e0287714083181a29855e5a50033366627805938a53b727ddc6dbb7",
+    "artifact_vector_count": 48444,
+    "artifact_dimension": 768
+  },
+  "provenance": {
+    "input_sha256": "83e8f63b4a862f12972dd647d2caa382fe578e1717813fefb44322f798c67fa9",
+    "predictions_sha256": "ca3b9836b3706c77b751c9cc4fa09a4050b12fafeff30467e5b5bba7048547fd",
+    "reference_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a",
+    "prompts_sha256": "9001b7d70d8a9c8d784e1cb4b4ed5a12650f3b761ef3caf58fe800c60d02bf81"
+  }
+}

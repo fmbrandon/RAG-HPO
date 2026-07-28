@@ -16,6 +16,7 @@ dist/
 *.egg-info/
 .coverage
 coverage.xml
+coverage.json
 htmlcov/
 .cache/
 model-cache/
@@ -25,6 +26,7 @@ hpo_embedded.npz
 hpo_manifest.json
 hpo_terms*.csv
 rag_hpo_output/
+rag_hpo_demo_output/
 rag_hpo_results*.csv
 rag_hpo_results*.json
 *.rag-hpo-state.sqlite3

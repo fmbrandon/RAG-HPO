@@ -1,0 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+.[benchmark,dev,fastembed,notebook,test,vectorize]
+torch>=2.2,<3

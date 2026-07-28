@@ -79,6 +79,7 @@ class DoctorCheck(StrictModel):
     name: str
     status: Literal["pass", "warn", "fail"]
     detail: str
+    action: str | None = None
 
 
 class DoctorReport(StrictModel):

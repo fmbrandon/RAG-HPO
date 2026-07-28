@@ -9,6 +9,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from rag_hpo.config import DEFAULT_BASE_URL, DEFAULT_MODEL, ProviderConfig, ResponseMode
+from rag_hpo.demo import run_demo
 from rag_hpo.doctor import run_doctor
 from rag_hpo.models import AnnotationInput, AnnotationResult
 from rag_hpo.ontology import DEFAULT_HPO_URL, vectorize
@@ -31,6 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--model")
     doctor.add_argument("--skip-provider", action="store_true")
     doctor.add_argument("--json", action="store_true", dest="as_json")
+
+    demo = commands.add_parser("demo", help="Run the beginner-safe synthetic demonstration.")
+    demo.add_argument("--vector-dir", type=Path)
+    demo.add_argument("--output-dir", type=Path, default=Path("rag_hpo_demo_output"))
+    demo.add_argument("--json", action="store_true", dest="as_json")
 
     vector = commands.add_parser("vectorize", help="Build reproducible HPO vectors.")
     vector.add_argument("--obo-file", type=Path)
@@ -87,6 +93,8 @@ def _doctor(args: argparse.Namespace) -> int:
     else:
         for check in report.checks:
             print(f"{check.status.upper():4} {check.name}: {check.detail}")
+            if check.action and check.status != "pass":
+                print(f"     Fix: {check.action}")
     return 0 if report.ok else 1
 
 
@@ -174,6 +182,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "doctor":
             return _doctor(args)
+        if args.command == "demo":
+            return run_demo(
+                vector_dir=args.vector_dir,
+                output_dir=args.output_dir,
+                as_json=args.as_json,
+            )
         if args.command == "vectorize":
             return _vectorize(args)
         if args.command == "annotate":

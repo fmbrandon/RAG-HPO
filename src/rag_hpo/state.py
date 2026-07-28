@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
 from rag_hpo.models import AnnotationResult
-from rag_hpo.privacy import ensure_private_directory
+from rag_hpo.privacy import ensure_private_directory, restrict_owner
 
 STATE_SCHEMA_VERSION = "1.0"
 
@@ -31,7 +30,7 @@ class PipelineState:
             path.unlink()
         self.path = path
         self.connection = sqlite3.connect(path)
-        os.chmod(path, 0o600)
+        restrict_owner(path)
         self.connection.execute(
             """
             CREATE TABLE IF NOT EXISTS metadata (

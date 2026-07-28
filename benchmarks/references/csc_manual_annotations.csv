@@ -1,0 +1,1790 @@
+Patient ID,hpo_description,hpo_term
+1,obesity ,HP:0001513
+1,innumerable polyps,HP:0004394
+1,colonic tubular adenoma,HP:0005227
+1,colonic polyp hyperplasia ,HP:0012183
+1,super-morbid obesity,HP:0025501
+1,mesenteric mass ,HP:0031500
+1,multiple adenomatous fundic gland polyps,HP:0033769
+1,Barret's esophagus,HP:0100580
+2,stromal oedema,HP:0000969
+2,telangiectasia,HP:0001009
+2,epilepsy,HP:0001250
+2,anemia,HP:0001903
+2,C5 nerve root compression,HP:0003406
+2,foveolar hyperplasia ,HP:0004295
+2,gastointestinal inflammation,HP:0004386
+2,carpet-like polyps,HP:0004394
+2,doudenal polyposis,HP:0004783
+2,inflammatory juvenile polyposis,HP:0004784
+2,positive helicobacter IgG serology,HP:0005202
+2,chronic gastritis ,HP:0005231
+2,gastric stromal edema ,HP:0005263
+2,stomach mass ,HP:0006753
+2,heart arrhythmia,HP:0011675
+2,colon polyps,HP:0200063
+2,carpal tunnel syndrome,HP:0012185
+2,small bowel polyps ,HP:0012737
+2,haemoglobin dropped,HP:0020062
+2,irregular microvasculature ,HP:0025016
+2,fundic polyps,HP:0033769
+3,blurred vision,HP:0000622
+3,goiter,HP:0000853
+3,invasive carcinoma of the breast ,HP:0003002
+3,vitreous haemorrhages,HP:0007902
+3,bilateral active retinal neovascularisation,HP:0030666
+3,painless breast lump,HP:0032408
+4,constipation,HP:0002019
+4,chronic abdominal pain ,HP:0002027
+4,reddish-blue prolapsed polyp,HP:0002035
+4,rectal bleeding,HP:0002573
+4,hamartomatous polyps,HP:0004390
+4,multilobulated polyps,HP:0005266
+4,papillary surface,HP:0007482
+4,hyperchromic spots on mucosal pallete,HP:0010284
+4,abnormality of intestinal smooth muscle ,HP:0030935
+4,multiple sessile polypoid lesions,HP:0032222
+4,hyperchromic spots on the lips ,HP:0100816
+4,rectal polyps,HP:0100896
+4,severe anal pain,HP:0500005
+5,walking difficulty,HP:0002355
+5,generalized amyloid deposition,HP:0003216
+5,elevated serum creatine kinase,HP:0003236
+5,elevated erythrocyte sedimentation rate,HP:0003565
+5,spontaneous bruising ,HP:0007420
+5,systemic al amyloidosis,HP:0011034
+5,muscle infiltration,HP:0012548
+5,increased plasma cells ,HP:0030150
+5,elevated lambda light chain ,HP:0032295
+5,bence-jones proteinuria ,HP:0032303
+5,symmetrical myositis ,HP:0100614
+6,early-onset cataracts,HP:0001118
+6,cerebellar ataxia,HP:0001251
+6,cognitive-developmental delay,HP:0001263
+6,cerebellar atrophy,HP:0001272
+6,pes cavus,HP:0001761
+6,ankle swelling,HP:0001785
+6,chronic diarrhea ,HP:0002028
+6,ataxic gait ,HP:0002066
+6,appendicular ataxia,HP:0002070
+6,broad based gait,HP:0002136
+6,falls,HP:0002527
+6,low stature ,HP:0004322
+6,progressive gait impairment,HP:0007240
+6,pyramidal signs,HP:0007256
+6,tendon xanthomas,HP:0010874
+6,clawing of the toes,HP:0034397
+6,cognitive impairment,HP:0100543
+6,hyperintensities within the dentate nuclei,HP:6000416
+6,elevated serum cholestanol,HP:6000527
+7,nocturia,HP:0000017
+7,edema,HP:0000969
+7,rash,HP:0000988
+7,itching,HP:0000989
+7,blue hands,HP:0001063
+7,orthostatic lightheadedness,HP:0001278
+7,syncope,HP:0001279
+7,tachycardia,HP:0001649
+7,Terry's fingernails,HP:0001820
+7,nausea,HP:0002018
+7,constipation,HP:0002019
+7,dizziness,HP:0002321
+7,postprandial bloating,HP:0003270
+7,weakness,HP:0003324
+7,parasthesia,HP:0003401
+7,leg edema,HP:0010741
+7,dermatographism ,HP:0011971
+7,orthostatic tachycardia,HP:0012173
+7,fatigue,HP:0012378
+7,restless leg syndrome,HP:0012452
+7,general pain ,HP:0012531
+7,cold,HP:0025143
+7,facial rash,HP:0025300
+7,wheezing,HP:0030828
+7,Flushing,HP:0031284
+7,body pain,HP:0033047
+7,early satiety,HP:0033842
+7,angioedema,HP:0100665
+7,pressure-induced hives,HP:0410134
+8,renal agenesis ,HP:0000104
+8,left renal agenesis,HP:0000122
+8,Intrauterine growth restriction ,HP:0001511
+8,polyhydraminios,HP:0001561
+8,patent ductus arteriosus,HP:0001643
+8,esophageal atresia,HP:0002032
+8,difficulty breathing ,"HP:0002094, HP:0002098"
+8,tracheo-esophageal fistula,HP:0002575
+8,abdominal distention,HP:0003270
+8,increased oral secretions,HP:0003781
+8,microcolon,HP:0004388
+8,intestinal obstruction,HP:0005214
+8,persistent superior vena cava,HP:0005301
+8,intestinal atresia,HP:0011100
+8,ileal atresia,HP:0011102
+8,interventricular communication ,HP:0011621
+8,intestinal perforation,HP:0031368
+8,tracheo-esophageal atresia,HP:0100682
+9,periorbital sclerosis ,HP:0000606
+9,ectropion,HP:0000656
+9,joint contractures,HP:0001371
+9,"""anemia""",HP:0001903
+9,"""gastroesophageal reflux""",HP:0002020
+9,inability to walk ,HP:0002355
+9,thrombosis of right doralis pedis artery,HP:0002641
+9,joint contractures,HP:0002828
+9,"""positive anti-nuclear antibody""",HP:0003493
+9,"""elevated erythrocyte sedimentation rate""",HP:0003565
+9,"""cicatricial alopecia""",HP:0004552
+9,chest wall sclerosis ,"HP:0006596, HP:0000765"
+9,autoamputation of toe,HP:0007460
+9,skin adnexae,"HP:0011138, HP:0025276"
+9,"""sclerosis involving the deeper layers of subcutaneous tissue and fascia""",HP:0012344
+9,lagopthalmos,HP:0030001
+9,lymphohistocytic inflammatory infiltrate,HP:0031190
+9,dyspigmented sclerotic plaques,HP:0031359
+9,peripheral cyanosis ,HP:0034033
+9,skin sclerosis ,"HP:0100324, HP:0012344"
+9,skin tightness,HP:0100679
+9,scars from healed ulcers,HP:0100699
+9,gangrene,HP:0100758
+9,septicemia,HP:0100806
+9,crusted plaques,HP:0200035
+9,"""recalcitrant cutaneous ulcers""",HP:0200042
+10,"""myopia"",",HP:0000545
+10,ectropion,HP:0000656
+10,yellow skin,HP:0000952
+10,hyperkeratosis,HP:0000962
+10,minimal sweating ,HP:0000966
+10,erythematous skin ,HP:0001019
+10,Thick skin,HP:0001072
+10,heat intolerance ,HP:0002046
+10,scarring alopecia,HP:0004552
+10,harlequin icthyosis ,HP:0007431
+10,hypoplastic pinnae,HP:0008551
+10,rudimentary nose ,HP:0009924
+10,epiphora,HP:0009926
+10,chemosis,HP:0012375
+10,eversion of lips ,HP:0012472
+10,flexed digits,HP:0030044
+10,deep skin fissures,HP:0031057
+10,scaling skin ,HP:0040189
+10,fused digits,HP:0100262
+10,rudimentary ears ,HP:0100720
+11,chronic suppurative otitis media ,HP:0000389
+11,osteopenia,HP:0000938
+11,negligible sweating,HP:0000966
+11,generalized erythema,HP:0001019
+11,dandruff,HP:0001051
+11,difficulty walking,HP:0002355
+11,progressive knee deformity ,HP:0002857
+11,high alkaline phosphatase,HP:0003155
+11,short stature,HP:0003508
+11,progressive knee deformity,HP:0006409
+11,large fine grey scales on trunk and limbs,HP:0007438
+11,collodion membrane,HP:0007479
+11,conductive hearing loss,HP:0008513
+11,collodion membrane at birth,HP:0011409
+11,bilateral madrosis,HP:0011457
+11,superficial punctuate keratitis ,HP:0011859
+11,mild difficulty in hearing,HP:0012712
+11,epidermal acanthosis,HP:0025092
+11,bilateral knee pain,HP:0030839
+11,perforated eardrum,HP:0040090
+11,fish-like scales,HP:0040189
+11,large fine grey scales,HP:0040190
+11,low BMI,HP:0045082
+11,grittiness of the eyes,HP:0200026
+11,ear discharge,HP:0410017
+11,mild burning sensation of the eyes,HP:6000420
+12,bilateral decreased hearing ,HP:0000365
+12,edematous ear canal,HP:0000372
+12,hypertension,HP:0000822
+12,postspinal tumour,HP:0006751
+12,bleeding on touch,HP:0011889
+12,granular mass in EAC ,HP:0012780
+12,right ear pain ,HP:0030766
+12,"""non-visible tympanic membrane""",HP:0040090
+12,left-sided hemiplegia,HP:0040292
+12,otitis externa,HP:0410017
+13,esotropia,HP:0000565
+13,diplopia,HP:0000651
+13,optic disk edema,HP:0001085
+13,angiomyolipomas,HP:0006772
+13,right abducens nerve palsy,HP:0006897
+13,reduced visual acuity,HP:0007663
+13,bilateral retinal hamartomas,HP:0009594
+13,SEGA,HP:0009718
+13,facial angiofibroma,HP:0009720
+13,subungal fibroma,HP:0009724
+13,lymphangioleiomyomatosis,HP:0012798
+14,neurofibroma,HP:0001067
+14,subcutaneous right cervical nodule,HP:0001482
+14,long standing dyspnea,HP:0002094
+14,right cervical neurofibroma,HP:0006751
+14,dry cough ,HP:0031246
+14,multiple bilateral round and noncompressive nodules in mediastinum,HP:0033823
+14,upper mediastinum enlargement,HP:0034501
+14,mediastinal lymphadenopathaties.,HP:0100721
+15,proptosis,HP:0000520
+15,firm swellings in right paraorbital region,HP:0000629
+15,corneal opacity,HP:0007957
+15,irregular hard lesion of left inferior orbital region,HP:0011355
+15,Severe pain,HP:0012531
+15,hard swelling in lower lid ,HP:0012568
+15,discharge from left eye ,HP:0034427
+15,parapalillary atrophy ,HP:0500087
+15,swelling of right forearm,HP:6000840
+16,diabetes mellitus                    ,HP:0000819
+16,hyperpigmented skin                 ,HP:0000953
+16,palmoplantar hyperkeratosis ,HP:0000972
+16,asymptomatic pigmentary alterations,HP:0001000
+16,mild anemia,HP:0001903
+16,bowen's disease,HP:0006739
+16,guttate hypopigmented macules,HP:0020073
+16,chronic arsenicosis  ,HP:0032450
+16,keratotic papules over palms and soles ,HP:0045059
+16,brownish scaly plaques with irregular border,HP:0200035
+17,multiple basal cell carcinomas,HP:0002671
+17,odontogenic keratocysts,HP:0010603
+17,multiple cysts in long bones ,HP:0012065
+17,multiple large mesenteric cysts,HP:0030451
+18,diabetes,HP:0000819
+18,hereditary non-polyposis colorectal cancer (hnpcc),HP:0006716
+18,ulcerated tumour,HP:0008069
+18,uterine cancer,HP:0010784
+18,clear cell endometrial carcinoma ,HP:0012114
+18,low-grade sebaceous carcinoma,HP:0030410
+18,mucinous adenocarcinoma of the bowel,HP:0031497
+18,"""bowel mass""",HP:0031500
+18,postoperative wound infection ,HP:0100658
+19,limited range of motion,HP:0001376
+19,"""joint effusion""",HP:0001386
+19,"""collateral medial ligament laxity and stiffness""",HP:0001388
+19,obesity,HP:0001513
+19,"""valgus deformity of the left knee""",HP:0002857
+19,flared metaphysis,HP:0003015
+19,severe osteoarthritis,HP:0003088
+19,dwarfism,HP:0003510
+19,"""severe left Knee Osteoarthritis (KOA)""",HP:0005086
+19,valgus deformity,HP:0008081
+19,pain,HP:0012531
+19,knee stiffness,HP:0025263
+20,delayed motor developmental milestones,HP:0001270
+20,weakness,HP:0001324
+20,"""flaccid quadriparesis with wasting and contractures""",HP:0002273
+20,inability to walk,HP:0002540
+20,"""scoliosis""",HP:0002650
+20,chest infections,HP:0002783
+20,"""muscle biopsy showing rounded small muscle fibres with degeneration""",HP:0003202
+20,"""elevated creatine kinase (2600 IU/L)""",HP:0003236
+20,"""progressive proximal weakness of the lower limbs""",HP:0003391
+20,upper limb weakness,HP:0003484
+20,"""Duchenne muscular dystrophy""",HP:0003560
+20,wasting ,HP:0003700 
+20,chest infections,HP:0006532
+20,lower limb weakness,HP:0007340
+20,spinal deformities,HP:0008443
+20,progressive proximal weakness,HP:0009073
+20,"""absence of dystrophin protein""",HP:0030097
+20,bed bound,HP:0031062
+20,contractures,HP:0034392
+20,muscle fibre degeneration,HP:0100295
+21,"""precocious puberty""",HP:0000826
+21,"""irregular menses starting at age 3 years""",HP:0000858
+21,"""café-au-lait skin spots on the back and lower abdomen""",HP:0000957
+21,"""short stature""",HP:0004322
+21,"""early breast development""",HP:0010314
+23,"""diagnosis with NIDCM""",HP:0001644
+23,"""progressively worsening shortness of breath""",HP:0002094
+23,exertional dyspnea,HP:0002875
+23,"""left ventricular ejection fraction (LVEF) of 25%""",HP:0012666
+23,"""orthopnoea""",HP:0012764
+23,"""paroxysmal nocturnal dyspnea""",HP:0034807
+24,"""bilateral hearing impairment""",HP:0000365
+24,"""alopecia""",HP:0001596
+24,"""waddling gait""",HP:0002515
+24,hip arthalgia,HP:0003365
+24,"""soft tissues calcifications of hips and thighs""",HP:0003761
+24,limited hip mobility,HP:0008800
+24,Hip pain,HP:0030838
+26,"""gingivitis""",HP:0000230
+26,"""dental carries""",HP:0000670
+26,"""poor oral hygiene""",HP:0000704
+26,"""difficulty walking""",HP:0002355
+26,"""waddling gate""",HP:0002515
+26,deformity of upper and lower limbs,HP:0002813
+26,"""valgus left knee 20°""",HP:0002857
+26,"""varus right knee 12°""",HP:0002970
+26,"""bilateral bowing of both femurs""",HP:0002980
+26,stress fracture of upper and lower limbs,HP:0003084
+26,"""paresthesia in both lower limbs""",HP:0003401
+26,"""disproportionate short stature""",HP:0003498
+26,"""coronal deformity""",HP:0004487
+26,"""missing teeth""",HP:0006349
+26,"""de-papillated tongue""",HP:0010298
+26,"""bilateral lower limb pain""",HP:0012514
+26,mild pain,HP:0012533
+26,severe pain,HP:0032149
+26,"""windswept deformity""",HP:0100531
+26,"""nodular swelling”",HP:6000840
+27,"""numerous cavities as a child""",HP:0000670 
+27," ""anxiety treated with buspirone""",HP:0000739 
+27,"""multiple recurrent stress fractures""",HP:0002757 
+27,"""left proximal femoral shaft stress fracture”",HP:0031846 
+27,"""delayed healing of fractures (8-12 weeks)""",HP:0032537
+27,"“periosteal oedema""",HP:0040165 
+27,"""rib fracture""",HP:0041159 
+27,"""metatarsal stress fracture""",HP:0041162 
+28,"""penile length <10 cm""",HP:0000054
+28,"""round face""",HP:0000311
+28,"""hypothyroidism """,HP:0000821
+28,"""generalized osteopenia""",HP:0000938
+28,"""Café au lait spots on back and right thigh""",HP:0000957
+28,"""episodes of seizures”",HP:0001250
+28,"""thickened calvarium""",HP:0002684
+28,"“hypocalcaemia""",HP:0002901
+28,"""short stature""",HP:0004322
+28,Short metacarpals,HP:0005720
+28,"""severe degree of osteoporosis""",HP:0005897
+28,short 4th toe,HP:0008093
+28,"""testicular volume <12-20 ml""",HP:0008734
+28,"""short stubby fingers""",HP:0009381
+28,brachymetatarsia,HP:0009816
+28,"""bilateral short metacarpals""",HP:0010049
+28,"short 3rd, 4th, 5th metatarsals",HP:0010743
+28,"""open bite""",HP:0010807
+28,"""positive Chvostek’s sign”",HP:0031990
+29,Pale,HP:0000980
+29,"""lethargy""",HP:0001254
+29,"""mildly tachycardic""",HP:0001649
+29,"""tender palpable spleen”",HP:0001744
+29,"""significant anaemia""",HP:0001903
+29,"""elevated serum bilirubin""",HP:0002904
+29,"""low-grade fever""",HP:0011134
+29,"Positive cold agglutinin disease""",HP:0031484
+29,left-sided chest pain,HP:0032141
+29,"""positive antiglobulin test",HP:0032366
+29,"""splenic infarct""",HP:0034336
+29,"""chest pain radiating to shoulder tip""",HP:0100749
+30,left hydronephrosis,HP:0000126
+30,cholelithiasis,HP:0001081
+30,pancreatic inflammatory changes,HP:0001733
+30,non-specific abdominal pain,HP:0002027
+30,asymptomatic hyperkalaemia,HP:0002153
+30,bilateral pleural effusions,HP:0002202
+30,localized lymphadenopathy,HP:0002716
+30,low serum sodium levels,HP:0002902
+30,abnormal liver biochemistry profile,HP:0002910
+30,small bowel obstruction,HP:0005214
+30,left diaphragmatic hernia,HP:0009112
+30,elevated inflammatory markers,"HP:0011227, HP:0003565"
+30,liposarcoma,HP:0012034
+30,bibasal atelectasis,HP:0100750
+30,small bowel herniation,HP:0100790
+31,"""intermittent haematuria""",HP:0000790
+31,splenomegaly,HP:0001744
+31,Decreased platelets,HP:0001873
+31,leucopenia,HP:0001882
+31,"autoimmune haemolytic anaemia""",HP:0001890
+31,Iron deficiency,HP:0001891
+31,anemia,HP:0001903
+31,"""elevated reticulocyte count”",HP:0001923
+31,Fever,HP:0001945
+31,"“Paroxysmal Nocturnal Hemoglobinuria (PNH)""",HP:0004818
+31,Tiredness,HP:0012378
+31,"""positive for haemosiderin in urine""",HP:0012543
+31,elevated serum lactate dehydrogenase,HP:0025435
+31,"""hypercellular marrow ",HP:0031020
+31,"""partial deficiency of CD59 antigen”",HP:0031555
+31,Scleral icterus,HP:0032106
+31,"""dark coloured urine""",HP:0040319
+31,"""steroid facies""",HP:0500011
+32,"""epistaxis""",HP:0000421
+32,"""osteoporosis (T-score 3.1)""",HP:0000939
+32,"""quick bruising""",HP:0000978
+32,lame gait,HP:0001288
+32,"""splenomegaly""",HP:0001744
+32,"""low platelet count (26,000/mm^3)""",HP:0001873
+32,leucopenia,HP:0001882
+32,"""anemia (haemoglobin 9.6 g/dL)""",HP:0001903
+32,Abdominal pain,HP:0002027
+32,High alkaline phosphatase,HP:0003155
+32,"""right hip joint pain""",HP:0003365
+32,"""low back pain""",HP:0003419
+32,"""avascular necrosis of the femoral head and neck""",HP:0010885
+32,"""limping""",HP:0031955
+32,"""femoral neck fracture""",HP:6000655
+32,"""Gaucher cells""",HP:6000893
+33,"""mild hemolysis""",HP:0001878
+33,"""increase in reticulocyte count""",HP:0001923
+33,"""low HbA1c concentration""",HP:0001943
+33,"""fragmented RBCs""",HP:0001981
+33,"""slight increase in direct bilirubin""",HP:0002908
+33,"""oval-shaped red blood cells""",HP:0004445
+33,variation in RBC size,HP:0011273
+33,"""decrease in red blood cells""",HP:0020060
+33,"""decrease in hemoglobin concentration""",HP:0020062
+33,"""teardrop cells""",HP:0032563
+34,reticulocytosis,HP:0001923
+34,"""schistocytes""",HP:0001981
+34,"""recurrent abdominal pain""",HP:0002574
+34,"""spherocytes""",HP:0004444
+34,"""ovalocytes""",HP:0004445
+34,"""stomatocytes""",HP:0004446
+34,compensated hemolysis,HP:0004863
+34,chronic hemolytic anemia,HP:0004870
+34,neonatal jaundice,HP:0006579
+34,indirect hyperbilirubinemia,HP:0008282
+34,"""anisocytosis""",HP:0011273
+35,hemolysis,HP:0001878
+35,anemia,HP:0001903
+35,Fever,HP:0001945
+35,"""severe chronic hemolytic anemia""",HP:0004870
+35,Chills,HP:0025143
+35,"""auto-antibody interference""",HP:0030057
+35,fya antigen,HP:0032374
+35,fyb antigen,HP:0032375
+35,ovarian cancer,HP:0100615
+36,fissured tongue ,HP:0000221
+36,pallor,HP:0000980
+36,skin rash,HP:0000988
+36,pruritic rash,HP:0000989
+36,"""high grade fever""",HP:0001945
+36,"""difficulty in swallowing solids and liquids with pain in throat""",HP:0002015
+36,"""anorexia""",HP:0002039
+36,Increased respiratory rate,HP:0002789
+36,"""arthralgia""",HP:0002829
+36,watering of eyes,HP:0009926
+36,"""swelling on both sides of throat with reddening and watering of eyes""",HP:0011855
+36,non-tender cervical lymphadenopathy,HP:0025289
+36,reddening of eyes,HP:0025337
+36,"""bilateral conjunctival injection""",HP:0030953
+36,reddish-white spots on tongue,HP:0031042
+36,loud first heart sound,HP:0031660
+36,pain in throat,HP:0033050
+36,"""malaise""",HP:0033834
+36,erythematous tongue,HP:0034418
+36,"""desquamated macular rash over front of torso and back, forearms and thighs""",HP:0040186
+36,"""peeling off of skin after 5 days of onset of rash""",HP:0040189
+37,rheumatic heart disease,HP:0001654
+37,Ventricular fibrillation ,HP:0001663
+37,Small fibrous scars in the left and right ventricle,HP:0001685
+37,pericarditis ,HP:0001701
+37,Eccentric left ventricular hypertrophy,HP:0001712
+37,rheumatic fever,HP:0001945
+37,Pericardial fibrosis,HP:0002563
+37,Arrhythmias,HP:0011675
+37,myocarditis,HP:0012819
+37,papillary muscle hypertrophy,HP:0025445
+37,Thickening and fusion of the chordae tendineae of the mitral valve,HP:0025523
+37,Thoracic pain,HP:0100749
+37,Left ventricular dilation,HP:4000141
+38,Heart failure,HP:0001635
+38,Sparkling myocardium,HP:0001637
+38,Hypertensive cardiomyopathy ,HP:0001639
+38,aortic stenosis,HP:0001650
+38,Left ventricle hypertrophy,HP:0001712
+38,Exertional dyspnea ,HP:0002875
+38,left ventricular concentric hypertrophy,HP:0005157
+38,1st degree A-V block,HP:0011705
+38,reduced ejection fraction,HP:0012663
+38,diastolic dysfunction,HP:0025168
+38,atrial dilatation,HP:0030718
+38,bibasilar crackles,HP:0030830
+38,Elevated NTproBNP ,HP:0031185
+38,Attenuated cardiac tones ,HP:0031657
+38,Raised troponin,HP:0410173
+39,Undescended testes,HP:0000028
+39,Epicanthal folds,HP:0000286
+39,triangular facies,HP:0000325
+39,Low-set ears,HP:0000369
+39,Webbed neck,HP:0000465
+39,Ptosis,HP:0000508
+39,Poor scholastic performance,HP:0001249
+39,cognitive delay,HP:0001263
+39,Congenital heart disease,HP:0001627
+39,Heart failure,HP:0001635
+39,Syndactyly of toes,HP:0001770
+39,Low hairline,HP:0002162
+39,Exertional dyspnea,HP:0002875
+39,Widely spaced nipples,HP:0006610
+39,Underdeveloped testes,HP:0010468
+40,Prolonged QT interval,HP:0001657
+40,Sinus bradycardia,HP:0001688
+40,Supraventricular tachycardia,HP:0004755
+41,small for gestational age,HP:0001518
+41,premature birth,HP:0001622
+41,bradycardia,HP:0001662
+41,torsade de points,HP:0001664
+41,Non-sustained ventricular tachycardia,HP:0004756
+41,Prolonged QTc interval,HP:0005184
+41,Ventricular extrasystolic beats,HP:0006682
+41,arrythmia,HP:0011675
+41,Second-degree AV block,HP:0011706
+41,T wave alternans,HP:0012266
+41,Polymorphic ventricular tachycardia,HP:0031677
+41,2:1 AV block,HP:0034305
+42,hypertension ,HP:0000822
+42,fever ,HP:0001945
+42,Palpitations,HP:0001962
+42,Dizziness,HP:0002321
+42,Elevated creatine kinase,HP:0003236
+42,Mild distress,HP:0033834
+42,Myocardial infarction pattern on cardiac biomarkers,HP:0001658
+42,severe central chest pain,HP:0100749
+42,Elevated troponin I,HP:0410173
+43,Ventricular fibrillation,HP:0001663
+43,Cardiac arrest,HP:0001695
+43,Breathlessness,HP:0002094
+43,episodic ventricular tachycardia,HP:0004751
+43,High ventricular rates,HP:0004756
+43,Atrial fibrillation,HP:0005110
+43,Presyncope,HP:0031972
+45,Episodes of otitis media,HP:0000403
+45,Dextrocardia,HP:0001651
+45,pneumonia,HP:0002090
+45,Breathing difficulties,HP:0002098
+45,Respiratory distress on exertion,HP:0002875
+45,Reduced exercise tolerance,HP:0003546
+45,respiratory infection,HP:0011947
+45,Wheezing,HP:0030828
+45,Dry coughing ,HP:0031246
+45,lung volume loss,HP:0033169
+45,Mediastinal shift ,HP:6000012
+46,Azoospermia,HP:0000027
+46,Bilateral paranasal sinusitis,HP:0000246
+46,Sweating,HP:0000975
+46,Seizure attacks in infancy,HP:0001250
+46,gastro-esophageal reflux,HP:0002020
+46,Blood-streaked sputum,HP:0002105
+46,Bronchiectasus,HP:0002110
+46,Recurrent abdominal pain,HP:0002574
+46,Elevated erythrocyte sedimentation rate,HP:0003565
+46,Mild obstructive pattern on spirometry,HP:0006536
+46,Low-grade fever,HP:0011134
+46,Elevated C-reactive protein,HP:0011227
+46,Fatigue,HP:0012378
+46,Coarse crackles on lung auscultation,HP:0030830
+46,Productive cough,HP:0031245
+46,Rhinorrhea,HP:0031417
+46,Tree in bud pattern on HRCT scan,HP:0032174
+46,Bilateral peribronchial thickening on chest X-ray,HP:0033542
+46,Cyanosis at birth,HP:0034032
+46,Bilateral nasal polyps,HP:0100582
+46,Sepsis in infancy,HP:0100806
+47,Significant weight loss,HP:0001824
+47,pulmonary infiltrates,HP:0002113
+47,Recurrent lower respiratory tract infections,HP:0002783
+47,Cachexia,HP:0004326
+47,reduced max inspiration,HP:0012496
+47,History of smoking,HP:0032500
+47,Pulmonary nodules,HP:0033608
+47,Cavitating lung lesions,HP:0034015
+48,Polycystic ovaries,HP:0000147
+48,infertility,HP:0000789
+48,atrial-septal defect,HP:0001631
+48,Acute onset of shortness of breath,HP:0002094
+48,skin tag,HP:0010609
+48,Papilloma on the skin near the nipple,HP:0012740
+48,White sputum production,HP:0032016
+48,Central pleuritic chest pain,HP:0033771
+49,Increasing shortness of breath,HP:0002094
+49,Elevated respiratory rate,HP:0002789
+49,chest infection,HP:0011947
+49,Pansystolic murmur loudest over the apex,HP:0031667
+49,Low oxygen saturation,HP:0500165
+50,weak voice ,HP:0001621
+50,Shortness of breath ,HP:0002094
+50,Emphysema and apical subpleural blebs on thoracic CT scan,HP:0002097
+50,Bilateral pneumothorax on chest radiograph,HP:0002107
+50,Elevated respiratory rate,HP:0002789
+50,Decreased bilateral chest expansion,HP:0006596
+50,Hypocapnia,HP:0012417
+50,Hypoxaemia,HP:0012418
+50,pulmonary bleb,HP:0032447
+50,Bilateral pleuritic chest pain,HP:0033771
+50,Absence of breath sounds and whispered voice sounds on auscultation,HP:4000214
+51,azoospermia,HP:0000027
+51,epistaxis,HP:0000421
+51,dextrocardia,HP:0001651
+51,situs inversus,HP:0001696
+51,"nasal stuffiness, nasal obstruction",HP:0001742
+51,peripheral blood eosinophilia,HP:0001880
+51,breathlessness since childhood,HP:0002094
+51,episodic haemoptysis ,HP:0002105
+51,bronchiectasis,HP:0002110
+51,elevated total ige,HP:0003212
+51,ultrastructural  defect in the respiratory cilia (absent dynein in the outer ring arm of the microtubule),HP:0012256
+51,mucus impaction,HP:0025695
+51,wheezing since childhood,HP:0030828
+51,crackles,HP:0030830
+51,cough with mucoid expectoration,HP:0031245
+51,Spirometry showed an obstructive pattern without bronchodilator reversibility,HP:0033541
+51,cough since childhood,HP:0034315
+51,episodic purulent expectoration,HP:0034777
+51,"elevated total and A. fumigatus-specific IgE,",HP:0410232
+51,cutaneous hyper-reactivity against A. fumigatus antigen,HP:0410334
+51,mucosal thickening,HP:6000099
+52,diabetic,HP:0000819
+52,hypertensive,HP:0000822
+52,fever,HP:0001945
+52,pulmonary function test...restrictive pattern,HP:0002091
+52,progressive breathlessness,HP:0002094
+52,chest X-ray showed bilateral reticular shadows affecting the lower zones,HP:0002207
+52,type I respiratory failure,HP:0002878
+52,pulmonary alveolar proteinosis,HP:0006517
+52,interstitial lung disease,HP:0006530
+52,hypoxia,HP:0012418
+52,CT chest...crazy-paving pattern,HP:0025391
+52,bilateral basal crepitations,HP:0030830
+52,dry cough,HP:0031246
+53,3(+) proteinuria,HP:0000093
+53,focal segmental glomerulonephritis (FSGS),HP:0000097
+53,bilateral hearing loss,HP:0000365
+53,severe bilateral sensorineural hearing loss,HP:0000407
+53,hypertension,HP:0000822
+53,pallor (in setting of anemia),HP:0000980
+53,cardiomegaly,HP:0001640
+53,mild mitral regurgitation,HP:0001653
+53,left ventricular hypertrophy,HP:0001712
+53,progressive hearing loss,HP:0001730
+53,normochromic anaemia,HP:0001895
+53,normocytic anaemia,HP:0001897
+53,anemia ,HP:0001903
+53,vomiting,HP:0002013
+53,suprapubic tenderness,HP:0002027
+53,breathlessness/dyspneic,HP:0002094
+53,elevated uric acid,HP:0002149
+53,elevated serum calcium,HP:0002901
+53,elevated blood urea,HP:0003138
+53,serum creatinine 11.2 mg/dL,HP:0003259
+53,loss of appetite,HP:0004396
+53,loss of corticomedullary differentiation,HP:0005564
+53,bilateral sensorineural hearing loss,HP:0008625
+53,pedal oedema,HP:0010741
+53,low-grade fever,HP:0011134
+53,mild anisocytosis,HP:0011273
+53,bilateral anterior lentiglobus,HP:0011501
+53,posterior lenticonus,HP:0011502
+53,bilateral anterior lentiglobus,HP:0011527
+53,sinus tachycardia,HP:0011703
+53,82% polymorphs,HP:0011897
+53,pyuria ,HP:0012085
+53,bacteriuria,HP:0012461
+53,bilateral contracted kidneys,HP:0012586
+53,haematuria,HP:0012587
+53,pus cells in urine,HP:0012614
+53,diffuse thickening of glomerular basement ,HP:0025005
+53,blot haemorrhages in retina,HP:0025242
+53,peripheral retina revealed multiple yellowish white lesion-like flecks in the mid-periphery,HP:0012045
+53,bibasilar end-inspiratory crepitations in lungs,HP:0031998
+53,visual impairment,HP:0032037
+53,increased cortical echogenecity,HP:0033132
+53,disruption of glomerular basement membrane,HP:0033485
+53,discontinuity of lamina densa,HP:0033803
+53,dysuria,HP:0100518
+53,anuria,HP:0100519
+53,dilated left ventricular cavity,HP:4000141
+53,oil droplet sign,HP:6000027
+54,nocturia,HP:0000017
+54,polyuria,HP:0000103
+54,hypertension,HP:0000822
+54,left ventricle hypertrophy,HP:0001712
+54,haemoglobin (9.1 g/dl),HP:0001903
+54,polydipsia,HP:0001959
+54,increased size of the cerebral ventricles,HP:0002119
+54,intracranial haemorrhage,HP:0002170
+54,liver edge palpable 2 cm below the costal ribs,HP:0002240
+54,multiple aneurysmal dilations,HP:0002617
+54,urinalysis with trace of red blood cells without cellular casts in microscopic examination,HP:0002907
+54,high levels of  urea (105 mg/dl),HP:0003138
+54,high levels of serum creatinine,HP:0003259
+54,distended abdomen,HP:0003270
+54,aneurysm arising from the left anterior descenting aorta,HP:0004959
+54,abdominal aortic aneurysm,HP:0005112
+54,multiple cysts of variable sizes in both kidneys,HP:0005562
+54,generalized edema,HP:0007430
+54,prostate hyperplasia,HP:0008711
+54,massive proteinuria of 4200 mg/dl,HP:0012597
+54,aneurysm arisive from the left circumflex and the right coronary artery,HP:0030882
+54,MRI showed...multiple hypertensive lesions of 2–24 mm on Fluid-Attenuated Inversion Recovery and T2-Weighted Image,HP:0030890
+54,hypertensive lesions,HP:0031678
+54,left axis deviation by ECG,HP:0033568
+54,refractory hypertension...though receiving multiple antihypertensive drugs,HP:0430034
+55,proteinuria,HP:0000093
+55,enlarged kidneys,HP:0000105
+55,periorbital puffiness,HP:0000629
+55,haematuria,HP:0000790
+55,blood pressure of 130/80 mm Hg (>99th percentile,HP:0000822
+55,ascites,HP:0001541
+55,tachycardia,HP:0001649
+55,thrombocytopenia,HP:0001873
+55,evidence of haemolysis ,HP:0001878
+55,reduced haemoglobin,HP:0001903
+55,reticulocyte count were high,HP:0001923
+55,haemolysis in the form of schistocytes,HP:0001981
+55,abdominal pain,HP:0002027
+55,tachypnoea,HP:0002789
+55,dyselectrolytaemia,HP:0003111
+55,hyperechogenic kidneys,HP:0004719
+55,low complement c3 level,HP:0005421
+55,pitting pedal oedema,HP:0010741
+55,deranged renal parameters,HP:0012211
+55,acute dysentery,HP:0025085
+55,lactate dehydrogenase high,HP:0025435
+55,anuria,HP:0100519
+56,proteinuria,HP:0000093
+56,mild hydronephrosis,HP:0000126
+56,potassium wasting ,HP:0000128
+56,micocephaly,HP:0000252
+56,primary hypothyroidism,HP:0000832
+56,poor growth since early infancy,HP:0001510
+56,small for gestational age ,HP:0001518
+56,increased thirst,HP:0001959
+56,elevated urine calcium:creatinine ratio,HP:0002150
+56,mild hepatomegaly,HP:0002240
+56,hypokalaemia,HP:0002900
+56,hyponatraemia,HP:0002902
+56,increased urine chloride ,HP:0002914
+56,elevated thyroid stimulating hormone (TSH) level,HP:0002925
+56,increased urine potassium,HP:0003081
+56,hypochloremia,HP:0003113
+56,urine osmolality was low,HP:0003158
+56,"stunting (height 75 cm, −6.16 z score),",HP:0004322
+56,wasting,HP:0004326
+56,increased urine sodium ,HP:0012605
+56,frequency of micturition,HP:0100515
+56,anion gap metabolic alkalosis,HP:0200114
+57,proteinuria,HP:0000093
+57,mild renal parenchymal disease on ultrasound,HP:0000112
+57,splenomegaly,HP:0001744
+57,leucoerythroblastic peripheral blood smear,HP:0001881
+57,platelet count of 842×109/L,HP:0001894
+57,white cell count—28×109/L,HP:0001974
+57,serum creatinine was 2.1 mg/dL,HP:0003259
+57,globally sclerosed glomeruli,HP:0004737
+57,myeloproliferative disorder,HP:0005547
+57,primary myelofibrosis,HP:0011974
+57,persistent nephrotic range proteinuria,HP:0012593
+57,progressive renal dysfunction (onset 6+ months),HP:0012622
+57,Serum lactate dehydrogenase (LDH) was raised,HP:0025435
+57,frothy urine,HP:0031504
+57,tear drop cells,HP:0032563
+57,bilateral pedal oedema,HP:0033045
+57,glomeruli shows ischemic wrinking,HP:0033289
+57,glomeruli shows segmental sclerosis,HP:0033495
+57,medium-sized (renal) vessels and arterioles...with hyaline arteriosclerosis,HP:0033904
+57,medium-sized (renal) vessels and arterioles show medial thickening,HP:0033918
+57,medium-sized (renal) vessels and arterioles show...luminal narrowing ,HP:0100545
+58,proteinuria,HP:0000093
+58,concentric left ventricular hypertrophy,HP:0001712
+58,dyslipidaemia,HP:0003119
+58,non-sustained ventricular tachycardia,HP:0004756
+58, ECG...repolarisation abnormalities,HP:0005135
+58,concentric ventricular cardiomyopathy,HP:0005157
+58,left ventricle diastolic dysfunction,HP:0025168
+58,reduced plasma -galactosidase A activity,HP:0034864
+58,chest pain,HP:0100749
+59,proteinuria,HP:0000093
+59,glomeruli deposits with focal and segmental parietal pattern,HP:0000097
+59,haematuria,HP:0000790
+59,acute renal injury,HP:0001919
+59,triglycerides were moderately elevated,HP:0002155
+59,hypoalbuminaemia,HP:0003073
+59,"antinuclear antibodies (positive, titre of 1/160—dense thin granular pattern),",HP:0003493
+59,IgG decrease in serum ,HP:0004315
+59,glomeruli sclerosis,HP:0004737
+59,interstitial fibrosis,HP:0006530
+59,progressive swelling of his legs,HP:0010741
+59,glomeruli...C3 (+) deposits,HP:0012576
+59,massive proteinuria (11 g on 24-hour urine collection),HP:0012597
+59,erythrocyte casts,HP:0012617
+59,endocapillary proliferation,HP:0025363
+59,extracapillary proliferation,HP:0025364
+59,renal biopsy...slight interstitial fibrosis ,HP:0032948
+59,glomeruli deposits with granular mesangial pattern,HP:0033295
+59,glomerular crescents,HP:0033316
+59,non-selective glomerular proteinuria,HP:4000058
+60,renal tubular atrophy,HP:0000092
+60,proteinuria,HP:0000093
+60,cystine crystals in the cornea,HP:0000531
+60,fanconi syndrome,HP:0001994
+60,glycosuria,HP:0003076
+60,aminoaciduria,HP:0003355
+60,Renal biopsy...Cystine crystals were detected by electron microscopy,HP:0003358
+60,low serum uric acid,HP:0003537
+60,high urinary β-2 microglobulin level,HP:0025466
+60,high free cystine content in granulocytes,HP:0032639
+60,renal interstitial fibrosis,HP:0032948
+60,renal multinucleated podocytes,HP:0033297
+61,renal potassium wasting,HP:0000128
+61,increased renin-angiotensin-aldosterone activity,HP:0000841
+61,thin man,HP:0001533
+61,hypokalemia,HP:0002900
+61,hypomagnesemia,HP:0002917
+61,urinary potassium excretion was increased,HP:0003081
+61,low serum chlorine,HP:0003113
+61,hypocalciuria,HP:0003127
+61,weakness...relieved after rest,HP:0003473
+61,limb weakness,HP:0003690
+61,calcification of the diverticulum in the right renal pelvis,HP:0004724
+61,electrocardiogam...low T wave level,HP:0005135
+61,repeated limb weakness especially in the lower limbs,HP:0007340
+61,adrenal hyperplasia,HP:0008221
+61,Secondary hyperreninemic hyperaldosteronism,HP:0011741
+61,fatigue,HP:0012378
+61,diverticulum in the right renal pelvis,HP:0100877
+61,metabolic alkalosis,HP:0200114
+62,kidney failure...sudden and severe,HP:0000083
+62,small kidneys,HP:0000089
+62,urinary protein level of 1.05 g/24 h.,HP:0000093
+62,hematuria ,HP:0000790
+62,hypertension,HP:0000822
+62,moderate anemia,HP:0001903
+62,vomiting,HP:0002013
+62,headache,HP:0002315
+62,"his serum creatinine level was 1,026.2 μmol/L",HP:0003259
+62,diffuse kidney lesions,HP:0012210
+62,estimated glomerular filtration rate of 5.8 ml/min/1.73 mm2,HP:0012213
+63,mandibular prognathism,HP:0000303
+63,strabismus,HP:0000486
+63,speech disability,HP:0000750
+63,hyperactivity,HP:0000752
+63,hypothyroidism,HP:0000821
+63,neonatal icterus and phototherapy,HP:0000952
+63,seizure attacks,HP:0001250
+63,developmental delay,HP:0001263
+63,tonic-clonic seizures,HP:0002069
+63,walking was unsteady,HP:0002317
+63,restricted communicative abilities,HP:0002474
+63,severe mental retardation,HP:0010864
+63,walk independently at 4 yr old,HP:0031936
+63,happy face/unusual laughing facial expression,HP:0100024
+64,incontinent of urine,HP:0000020
+64,progressive visual loss,HP:0000529
+64,bilateral pallor of the optic discs,HP:0000543
+64,behavioural disturbance,HP:0000708
+64,generalised apathy,HP:0000741
+64,spasticity of all four limbs,HP:0001285
+64,hyper-reflexic,HP:0001347
+64,sustained clonus in the lower limbs,HP:0002169
+64,medically retired nurse...unable to follow 1 stage commands consistently.,HP:0002344
+64,declining mobility,HP:0002355
+64,plantar responses were extensor,HP:0003487
+64,elevated phenylalanine,HP:0004923
+64,frontal cortical atrophy ,HP:0006913
+64,extensive diffuse white matter changes,HP:0007204
+64,pyramidal weakness,HP:0007256
+64,reduced visual acuity,HP:0007663
+64,gradual deterioration in vision,HP:0007924
+64,parietal cortical atrophy ,HP:0012104
+64,visual evoked potentials...small amplitude,HP:0030457
+64,visual evoked potentials were delayed,HP:0030458
+64,abnormal T2 high signal affecting subcortical white matter,HP:0030892
+64,excoriated skin,HP:0040189
+64,borderline low vitamin B12,HP:0100502
+64,low folate,HP:0100507
+65,renal disease,HP:0000112
+65,skin yellowing,HP:0000952
+65,lethargic,HP:0001254
+65,confused,HP:0001289
+65,cirrhosis,HP:0001394
+65,large volume ascites,HP:0001541
+65,haemolytic anaemia,HP:0001878
+65,anemia,HP:0001903
+65,White blood cell count was 21.24×109/L (reference 4.22–10.33×109/ L),HP:0001974
+65,worsening encephalopathy,HP:0002448
+65,liver profile - cholestatic pattern,HP:0002611
+65,direct bilirubin >20 mg/dL (reference 0.0–0.3 mg/dL),HP:0002908
+65,alkaline phosphatase (ALP) 153 U/L (reference 40–129 U/L,HP:0003155
+65,creatinine of 6.7 mg/dL (baseline 0.5 mg/dL during prior admission),HP:0003259
+65,abdominal distension,HP:0003270
+65,Total bilirubin was 38.5 mg/dL (reference 0.2–1.3 mg/dL,HP:0003573
+65,macrocytosis,HP:0005518
+65,icteric sclera,HP:0032106
+65,bilateral pitting oedema,HP:0010741
+65,low ceruloplasmin,HP:0010837
+65,urine copper was elevated,HP:0010839
+65,decrease in urine volume,HP:0011037
+65,asterixis,HP:0012164
+65,alcoholic ,HP:0030955
+65,aspartate aminotransferase (AST) 113 U/L (reference 10–50 U/L),HP:0031956
+65,elevated alanine transaminase,HP:0031964
+65,Kayser-Fleischer rings,HP:0200032
+65,serum to ascites albumin gradient was 2.1 g/dL,HP:6000863
+66,multifibroid uterus,HP:0000131
+66,ovarian nodule ,HP:0000137
+66,unintentional weight loss,HP:0001824
+66,Lower limb reflexes were absent,HP:0002522
+66,abdominal bloating,HP:0003270
+66,paraesthesia,HP:0003401
+66,positive for hepatitis B core antigen,HP:0006562
+66,impaired proprioception to the ankles,HP:0006858
+66,pinprick sensory level to T4,HP:0007328
+66,progressive bilateral lower limb weakness,HP:0007340
+66,para-aortic and pelvic side wall lymphadenopathy,HP:0008940
+66,transverse myelitis extending from C2 to T5,HP:0012486
+66,reduced power at hip flexion,HP:0012515
+66,abnormal hemoglobin,HP:0020061
+66,lymphoid cells arranged in a vague nodular pattern.,HP:0020236
+66,"Positive for CD79a, CD10 and BCL-6",HP:0020288
+66,positive for CD20,HP:0020291
+66,positive for C19,HP:0020294
+66,positive for BCL-2,HP:0020296
+66,low-grade follicular lymphoma,HP:0033125
+66,positive for anti-AQP4 antibodies,HP:0033342
+66,numbness spreading proximally,HP:0033748
+66,FDG (fluorodeoxyglucose)-avid conglomerate of lymph nodes,HP:0034582
+66,cord expansion at t2 level,HP:0040272
+66,bulky uterus ,HP:0100878
+67,hydrocephalus,HP:0000238
+67,involvement of corpus callosum,HP:0001273
+67,fever,HP:0001945
+67,large cavum septum pellucidum,HP:0002389
+67,involvement of midbrain,HP:0002418
+67,hyponatremia,HP:0002902
+67,high protein level in cvc,HP:0002922
+67,altered sensorium,HP:0004372
+67,involvement of pons,HP:0007361
+67,generalized skin hyperpigmentation,HP:0007440
+67,primary adrenal insufficiency,HP:0008207
+67,enlarged cyst of the cavum vergi,HP:0010576
+67,involvement of thalami,HP:0010663
+67,obstructive hydrocephalus,HP:0010953
+67,abnormal ratios of other VLCFAs (C26: C22 and C24: C22),HP:0010966
+67,involvement of cerebral peduncles,HP:0010993
+67,increased T2-weighted/fluid-attenuated inversion recovery (FLAIR) signal changes in the periventricular white matter,HP:0030891
+67,inappropriate antidiuretic hormone secretion (SIADH),HP:0031218
+67,transependymal seepage of cerebrospinal fluid (CSF,HP:0032934
+67,high concentration of hexacosanoic acid (C26),HP:0034298
+68,small external (male) genitalia,HP:0000050
+68,poor vision,HP:0000505
+68,severe rod-cone dystrophy,HP:0000510
+68,hypermetropia (+6.5 Dioptres OU),HP:0000540
+68,nystagmus,HP:0000639
+68,binocular conjugate jerky horizontal nystagmus,HP:0007286
+68,mild granularity to the peripheral retina,HP:0007703
+68,mild expressive language developmental delay,HP:0011346
+68,achromatopsia,HP:0011516
+68,overweight,HP:0025502
+69,recurrent nephrolithiasis,HP:0000787
+69,hypertension,HP:0000822
+69,muscle weakness,HP:0001324
+69,chronic gout,HP:0001997
+69,hyperuricaemia,HP:0002149
+69,psoriasis,HP:0003765
+69,"joint deformity...in the hands at the third proximal interphalangeal joints, the left second distal interphalangeal and the right fifth proximal and distal interphalangeal joints",HP:0006261
+69,generalised hyperreflexia...in all muscle groups of upper and lower limbs,HP:0007034
+69,Scaling plaques,HP:0025526
+69,HGPRT deficiency,HP:0031823
+69,gout tophus/tophi,HP:0033073
+69,scaling plaques,HP:0040190
+70,Head circumference...below third percentile,HP:0000252
+70,irritability,HP:0000737
+70,hypotonic,HP:0001252
+70,cerebellar atrophy,HP:0001272
+70,fever,HP:0001945
+70,cerebral atrophy,HP:0002059
+70,kinky hair,HP:0002224
+70,developmental regression,HP:0002376
+70,tortuous intracranial vessels,HP:0004938
+70,tortuous extracranial and intracranial vessels,HP:0004955
+70,fair complexion,HP:0007513
+70,sparse hair,HP:0008070
+70,low ceruloplasmin,HP:0010837
+70,hypopigmented hair,HP:0011358
+70,low serum copper,HP:0011967
+70,white matter lesion...affecting both sides,HP:0030890
+70,myoclonic seizures,HP:0032794
+70,hair with easy pluckability,HP:0040169
+70,bilateral subdural hygromas,HP:0410263
+71,photophobia,HP:0000613
+71,left-sided weakness,HP:0001269
+71,vomiting,HP:0002013
+71,nausea,HP:0002018
+71,headache occurred every 1–2 months,HP:0002076
+71,migraine with aura,HP:0002077
+71,left hemicranial headache,HP:0002315
+71,Moyamoya disease,HP:0011834
+71,"transient weakness of the left side of her body,",HP:0012194
+71,narrowing of the mcas,HP:0012492
+71,tiny flow voids in the basal ganglia region,HP:0012751
+71,narrowing of the acas,HP:0100545
+72,"Plasma renin activity (46.5 ng/ml/h, normal range 0.9–1.9 ng/ml/h)",HP:0000841
+72,adrenal insufficiency,HP:0000846
+72,skin hyperpigmentation,HP:0000953
+72,involvement of the splenium of the corpus callosum,HP:0001273
+72,muscle weakness,HP:0001324
+72,learning disabilities,HP:0001328
+72,hyperkalemia,HP:0002153
+72,absent pubic hair growth,HP:0002225
+72,hyponatremia,HP:0002902
+72,"cortisol (2.9 μg/dl, normal range 5.0–11.0 μg/dl)",HP:0003118
+72,"aldosterone (15 pg/ml, normal range 40–760 pg/ml)/ mineralocorticoid deficiency ",HP:0004319
+72,generalised skin hyperpigmentation,HP:0007440
+72,small testicular volume,HP:0008734
+72,buccal mucosa hyperpigmentation,HP:0010284
+72,"ACTH levels (9279.0 pg/ml, normal range 0.0–46.0 pg/ml)",HP:0011749
+72,progressive fatigue...beginning at 2 years old,HP:0012432
+72,adynamia,HP:0025406
+72,T2-weighted signal intensities of the posterior peritrigonal regions,HP:0030891
+72,increased VLCFA,HP:0033643
+72,T2-weighted signal intensities of the splenium of the corpus callosum,HP:0040328
+73,syncope,HP:0001279
+73,heterogeneous splenomegaly,HP:0001744
+73,weight loss,HP:0001824
+73,thrombocytopenia,HP:0001873
+73,pancytopenia,HP:0001876
+73,haemoglobin was 7.9 g/dL,HP:0001903
+73,sea-blue histiocytosis of bone marrow,HP:0001982
+73,anorexia,HP:0002039
+73,dyslipidemia,HP:0003119
+73,splenic rupture,HP:0012223
+73,hypoxemia,HP:0012418
+73,CT of the lungs showed a generalised interstitial pattern,HP:0025389
+73,asthenia,HP:0025406
+73,hypodense spleen nodules,HP:0025408
+73,"acute, sharp left flank abdominal pain",HP:0030157
+73,residual activity of ASM in peripheral blood leucocytes and cultured skin fibroblasts of less than 10% of that of controls,HP:0034300
+73,low diffusing capacity of carbon monoxide,HP:0045051
+73,diffuse histiocytosis of spleen,HP:0100727
+74,restriction of gaze...vertical ,HP:0000511
+74,slow saccades,HP:0000514
+74,pallor,HP:0000980
+74,mixed dysarthria ,HP:0001260
+74,having cerebellar features,HP:0001317 
+74,slurring of her speech,HP:0001350
+74,mild splenomegaly,HP:0001744
+74,difficulty in swallowing,HP:0002015
+74,gait ataxia (progressive),HP:0002066
+74,minimal limb ataxia,HP:0002070
+74,imbalance,HP:0002172
+74,having...pseudobulbar features,HP:0002200
+74,tendency to fall while walking,HP:0002527
+74,Babinski sign,HP:0003487
+74,foamy histiocytes,HP:0003651
+74,microcytic hypochromic anaemia,HP:0004840
+74,restriction of gaze...horizontal ,HP:0007817
+74,decreased palatal movements,HP:0031815
+75,head circumference was <−3SD,HP:0000252
+75,daily seizures,HP:0001250
+75,loss of...cognitive skills,HP:0001268
+75,brisk deep tendon reflexes,HP:0001348
+75,convulsions,HP:0002069
+75,paucity of movement,HP:0002374
+75,increased tone in right upper limb and lower limb,HP:0002509
+75,cluster of flexor spasms on awakening from sleep.,HP:0003394
+75,extensor plantar response,HP:0003487
+75,proximal muscle weakness,HP:0003701
+75,loss of attained language,HP:0007064
+75,tonic drop attacks/head drops,HP:0010819
+75,generalized paroxysmal fast activity on EEG,HP:0010846
+75,"generalized spike and slow wave complex EEG (1–1.5 Hz, 200–300 uV) ",HP:0010847
+75,moyamoya disease,HP:0011834
+75,occlusion of the bilateral distal internal carotid artery,HP:0012474
+75,diurnal,HP:0025302
+75,weakness,HP:0025406
+75,bilateral asymmetric chronic infarcts,HP:0025722
+75,nocturnal tonic seizure,HP:0031951
+75,paucity of movement of the right side,HP:0040293
+75,paucity of sleep markers on EEG,HP:5200298
+76,fisting of the hands,HP:0001188
+76,dystonia,HP:0001332
+76,difficulty with weight gain,HP:0001508
+76,bradycardia,HP:0001662
+76,lower limb spasticity,HP:0002061
+76,peripheral spasticity,HP:0001257
+76,loss of head control,HP:0002421
+76,progressive white matter disease,HP:0002500
+76,gastric motility slowed,HP:0002578
+76,aspiration of thin liquids,HP:0002835
+76,loss of fine motor skills,HP:0007010
+76,diffuse hyperreflexia,HP:0007034
+76,speech and language skills declined,HP:0007064
+76,oromotor dysfunction,HP:0007301
+76,left-sided ptosis,HP:0007687
+76,plantar flexion of the feet,HP:0008112
+76,progressive truncal hypotonia,HP:0008936
+76,pain with minimal passive movement of the limbs,HP:0009763
+76,Pain...particularly the legs,HP:0012531
+76,facial weakness,HP:0030319
+76,T2 hyperintense periventricular lesions,HP:0030891
+76,Regression in motor skills,HP:0033044
+76,apnea (premature infant),HP:0034236
+76,"arylsulfatase A activity in leukocytes showed levels of 4.5, 7.8 and 8.1...versus a normal mean of about 80",HP:0034863
+76,iron deficiency,HP:0040303
+76,neuropathic-enteral pain,HP:6000040
+76,urine...increased in sulfatides,HP:6000120
+77,autosomal dominant inheritance,HP:0000006
+77,cerebellar atrophy,HP:0001272
+77,cerebellar signs in both upper and lower limbs,HP:0001317
+77,ataxic gait,HP:0002066
+77,imbalance while walking,HP:0002141
+77,tendency to reel and fall,HP:0002172
+77,poor coordination of hands,HP:0007057
+77,difficulty writing,HP:0010526
+77,difficulty eating,HP:0011968
+77,difficulty operating appliances,HP:0031058
+78,apathy,HP:0000741
+78,refractory generalized epilepsy,HP:0001250
+78,Ataxia,HP:0001251
+78,hyperreflexia,HP:0001347
+78,absence seizures,HP:0002121
+78,clonus,HP:0002169
+78,tetraparesis,HP:0002273
+78,lack of speech (loss of speech,HP:0002371
+78,Babinski sign,HP:0003487
+78,bilateral signs of pyramidal release,HP:0007256
+78,axial-predominant hypotonia,HP:0008936
+78,epileptiform discharges with a multifocal pattern,HP:0010841
+78,spike-wave discharges on EEG,HP:0010850
+78,focal motor seizures,HP:0011153
+78,myoclonic-atonic seizures,HP:0011170
+78,generalized spike-waves,HP:0012000
+78,generalized tonic-clonic seizures,HP:0025190
+78,neuropsychomotor regression of development,HP:0002376
+78,absence of sleep spindles on EEG,HP:5200298
+78,reduced enzymatic activity of TTP1,HP:6000571
+78,mild reduction in PTT1,HP:6000783
+79,wide anterior fontanelle,HP:0000239
+79,long philtrum,HP:0000343
+79,low set ears,HP:0000369
+79,strabismus,HP:0000486
+79,developmental cataract formation,HP:0000519
+79,hypotelorism,HP:0000601
+79,pectus excavatum,HP:0000767
+79,thin skin,HP:0000963
+79,laxity of skin,HP:0000973
+79,visible veins,HP:0001015
+79,generalized hypotonia,HP:0001290
+79,immobility of the right lower limb,HP:0001376
+79,Intrauterine growth retardation,HP:0001511
+79,thin body stature,HP:0001533
+79,dysmorphic facies,HP:0001999
+79,frontal bossing,HP:0002007
+79,mild respiratory distress,HP:0002643
+79,reduced subcutaneous fat,HP:0003758
+79,atrophic skin,HP:0004334
+79,wide posterior fontanelle,HP:0004491
+79,progeroid feature,HP:0005328
+79,hyper-extensible metacarpophalangeal joints,HP:0006099
+79,excessive skin folds,HP:0007522
+79,microphthalmia,HP:0007633
+79,bilateral corneal opacities,HP:0007957
+79,clitoromegaly,HP:0008665
+79,large earlobes,HP:0009748
+79,transparent skin ,HP:0010648
+79,cold,HP:0011947
+79,flexion deformity of the wrists,HP:0012453
+79,cough,HP:0012735
+79,"scanty, tiny, and fragmented elastic fibers",HP:0025167
+79,incomplete Moro’s reflexes,HP:0031826
+79,claw-like hands,HP:0034337
+79,reduced amount of elastic tissue fibres,HP:0034837
+79,wrinkled skin,HP:0100678
+80,bumpy lips,HP:0000159
+80,thyromegaly,HP:0000853
+80,medullary thyroid carcinoma,HP:0002865
+80,plasma-free metaphrine was 1318.2 pmol/l [normal value <456 pmol/l]) values were elevated,HP:0003334
+80,Serum calcitonin level was grossly elevated,HP:0003528
+80,phaeochromocytoma,HP:0006748
+80,hypertrophic medullated corneal nerves.,HP:0010726
+80,thick lips,HP:0012471
+80,mucosal neuroma,HP:0031023
+80,swelling in front of the neck,HP:6000176
+80,labile hypertension,HP:6000321
+81,height 166 cm (>99th centile),HP:0000098
+81,polycystic ovaries,HP:0000147
+81,anxiety,HP:0000739
+81,hypertension,HP:0000822
+81,Menarche occurred at age 10 years and 11 months,HP:0000826
+81,acanthosis nigricans,HP:0000956
+81,hirsutism,HP:0001007
+81,acne ,HP:0001061
+81,learning disability,HP:0001328
+81,chronic bronchitis,HP:0004469
+81,attention-deficient hyperactivity disorder,HP:0007018
+81,Fasting insulin levels were grossly elevated,HP:0008283
+81,deepening of the voice,HP:0010300
+81,11 years...Breast development to Tanner Stage 4,HP:0010314
+81,early puberty,HP:0010465
+81,urine steroid profile...high...cortisone,HP:0012029
+81,11 years...Pubic Hair Stage 5,HP:0012411
+81,premature adrenarche,HP:0012412
+81,androstenedione 10 nmol/L (range 0.8–6.1),HP:0025380
+81,obesity; body mass index (BMI) 35.3 kg/m2,HP:0025500
+81,Serum testosterone and free testosterone...markedly elevated,HP:0030088
+81,Insulin-like Growth Hormone 1 (IGF1) was slightly elevated,HP:0030269
+81,hyperandrogenism,HP:0030348
+81,low sex hormone-binding globulin,HP:0031419
+81,elevated dehydroepiandrosterone sulfate,HP:0034589
+81,elevated haemoglobin a1c,HP:0040217
+82,dislocation of the crystalline lens,HP:0001083
+82,zonular cataract,HP:0010920
+82,microspherophakic lens,HP:0030961
+82,nuclear cataract,HP:0100018
+82,cortical cataract,HP:0100019
+83,restrictive respiratory pattern,HP:0002091
+83,recurrent mild hemoptysis,HP:0002105
+83,right middle lobe and bilateral lower lobe bronchiectasis,HP:0002110
+83,shortness of breath on exertion,HP:0002875
+83,"reduced number and calibre of pulmonary blood vessels,",HP:0004930
+83,small airway obstruction,HP:0006536
+83,decreased pulmonary attenuation,HP:0025396
+83,calcified pulmonary granulomas,HP:0030250
+83,dry cough,HP:0031246
+83,pulmonary tuberculosis,HP:0032262
+83,reduced forced expiratory volume in 1s,HP:0032342
+83,pulmonary hyperinflation,HP:0033240
+83,decreased pulmonary blood flow,HP:0033674
+83,cystic shadows,HP:0100632
+83,collapsed right lower lobe,HP:0100750
+84,bilateral descended prepubertal testes,HP:0000028
+84,hypogonadotropic hypogonadism,HP:0000044
+84,micropenis,HP:0000054
+84,thin upper lip,HP:0000219
+84,smooth philtrum,HP:0000319
+84,congenital absence of upper and lower puncta,HP:0001092
+84,high pitched voice,HP:0001620
+84,sparse pubic hairs,HP:0002225
+84,"absence of hair over face, axillae and legs",HP:0002231
+84,eunuchoid stature,HP:0003782
+84,hyposmia,HP:0004409
+84,absence of pubertal development,HP:0008197
+84,testes are small in size and volume,HP:0008734
+84,frequent lacrimation,HP:0009926
+84,microphallus,HP:0030260
+84,aplastic right olfactory bulb,HP:0032466
+84,hypoplastic left olfactory bulb,HP:0040326
+85,hypogonadotropic hypogonadism,HP:0000044
+85,stretch penile length of 5 cm,HP:0000054
+85,cataract in both eyes,HP:0000518
+85,dysarthria,HP:0001260
+85,cerebellar atrophy,HP:0001272
+85,dysmetria,HP:0001310
+85,mild intention tremor in the upper limbs,HP:0002080
+85,change in speech,HP:0002167
+85,scanning speech,HP:0002168
+85,balance impairment,HP:0002172
+85,sparse axillary hairs,HP:0002215
+85,sparse pubic hairs,HP:0002225
+85,difficulty in walking,HP:0002355
+85,frequent falls,HP:0002359
+85,absence of facial hairs,HP:0002550
+85,hyper intense basal ganglia lesions on MRI,HP:0007183
+85,broad-based ataxic gait (progressive),HP:0007240
+85,bilateral low testicular volume,HP:0008734
+85,hyperintense thalamus lesions on MRI ,HP:0012692
+85,"hyperintense lesions within the subcortical white matter, thalamus and basal ganglia,",HP:0030890
+86,recurrent urinary tract infections,HP:0000010
+86,bladder retention,HP:0000016
+86,transverse vaginal septum,HP:0000145
+86,hearing difficulties,HP:0000365
+86,minimal menstruation,HP:0000876
+86,intellectual disability,HP:0001249
+86,epilepsy,HP:0001250
+86,agenesis of the corpus callosum,HP:0001274
+86,shunting from right coronary artery to right atrium,HP:0001693
+86,fever,HP:0001945
+86,vomiting,HP:0002013
+86,abdominal pain,HP:0002027
+86,recurrent airway tract infections,HP:0002788
+86,central apnea,HP:0002871
+86,respiratory failure,HP:0002878
+86,distended abdomen,HP:0003270
+86,uterus didelphys,HP:0003762
+86,pyelectasis in both kidneys,HP:0010945
+86,"SVA, wide sinus of valsalva",HP:0011567
+86,muscular VSD,HP:0011623
+86,fatigue,HP:0012378
+86,periappendicular abscess,HP:0025615
+86,Hydrometrocolpos,HP:0030010
+86,hymen imperforatus,HP:0030011
+86,heart murmur,HP:0030148
+86,cardiogenic shock,HP:0030149
+86,lung crepitation/crackles,HP:0030830
+86,haematocolpos,HP:0031923
+86,tense abdomen,HP:0032545
+86,anuria,HP:0100519
+87,duplicated right intrarenal collecting system,HP:0000081
+87,high-arched palate,HP:0000218
+87,dolichocephaly,HP:0000268
+87,long face,HP:0000276
+87,broad forehead,HP:0000337
+87,cupped ears,HP:0000378
+87,Recurrent otitis media,HP:0000403
+87,prominent ears,HP:0000411
+87,astigmatism,HP:0000483
+87,down-slanting palpebral fissures,HP:0000494
+87,hyperopia,HP:0000540
+87,left exotropia,HP:0000577
+87,hyper-responsiveness to lights,HP:0000613
+87,prominent front teeth,HP:0000675
+87,anxious,HP:0000739
+87,speech was delayed,HP:0000750
+87,hyperactive,HP:0000752
+87,jaundice,HP:0000952
+87,skin was very soft,HP:0000977
+87,finger joints were hyperextensible,HP:0001187
+87,developmental delay ,HP:0001263
+87,delayed motor milestones,HP:0001270
+87,growth failure,HP:0001510
+87,intrauterine growth retardation,HP:0001511
+87,umbilical hernia,HP:0001537
+87,bicuspid aortic valve,HP:0001647
+87,"pronation of both feet, pes planus",HP:0001763
+87,hypoglycaemia,HP:0001943
+87,swallowing difficulties,HP:0002015
+87,hyper-responsiveness to loud noises,HP:0002183
+87,(postnatal) growth failure,HP:0008897
+87,frequent tongue protrusion,HP:0010808
+87,abnormal fetal echocardiogram findings,HP:0010948
+87,recurrent sinus infection,HP:0011108
+87,patent ductus arteriosus (full term birth),HP:0001643
+87,submucous cleft,HP:5201016
+87,Marcus-Gunn jaw winking phenomenon,HP:0025186
+87,impulsivity,HP:0100710
+87,hyper-responsiveness to...loud noises,HP:5200060
+87,preference to specific textures,HP:5200065
+88,severe painful flexion contractures,HP:0001371
+88,Tachycardic ,HP:0001649
+88,Patent foramen ovale ,HP:0001655
+88,haemoglobin level had dropped,HP:0001903
+88,Feverish ,HP:0001945
+88,apnoeic spells,HP:0002104
+88,tetraparesis,HP:0002273
+88,Drowsy ,HP:0002329
+88,unable to retain or recall information,HP:0002354
+88,Tachypnoeic,HP:0002789
+88,critical illness neuromyopathy,HP:0003198
+88,flexion contractures of both hips,HP:0003273
+88,"falling respiratory rate, intubated",HP:0004887
+88,flexion contractures of both knees,HP:0006380
+88,altered proprioception in lower limbs,HP:0006858
+88,altered sensation in the lower limbs.,HP:0002936
+88,fluctuating level of consciousness,HP:0007159
+88,heterotopic ossification of knees,HP:0011986
+88,Body pain ,HP:0012531
+88,subacute infarct in the right frontal region.,HP:0025722
+88,Bilateral knee pain ,HP:0030839
+88,bilateral lower lobe consolidations,HP:0032177
+88,cognitive impairment,HP:0100543
+88,neuropathic pain,HP:6000040
+90,left-sided nystagmus,HP:0000639
+90,hyperthyroidism,HP:0000836
+90,Ataxia ,HP:0001251
+90,Decreased reflexes in all extremeties,HP:0001265
+90,Confusion ,HP:0001289
+90,wernicke's encephalopathy,HP:0001298
+90,Tachycardia ,HP:0001649
+90,weight loss,HP:0001824
+90,Vomiting ,HP:0002013
+90,Nausea ,HP:0002018
+90,gait unsteady,HP:0002317
+90,elevated bilirubin,HP:0002904
+90,elevated blood urea nitrogen,HP:0003138
+90,elevated blood creatinine,HP:0003259
+90,cachetic,HP:0004326
+90,T2 hyperintensities...dorsal medulla,HP:0011441 
+90,worsening mental status,HP:0011446
+90,Hyperemesis ,HP:0012188
+90,T2 hyperintensities and restricted diffusion in the medial thalami,HP:0012692
+90,Low TSH,HP:0031098
+90,high free thyroxine (FT4),HP:0031506
+90,elevated blood aspartate transaminase,HP:0031956
+90,elevated blood alanine transaminase,HP:0031964
+90,T2 hyperintensities and restricted diffusion...periaqueductal grey matter,HP:0032615
+90,gestational hyperthyroidism,HP:0034778
+90,Thiamine levels...low,HP:0100503
+91,autosomal dominant pattern,HP:0000006
+91,catamenial epilepsy,HP:0001250
+91,limited verbal communication,HP:0002465
+91,seizures...initially unilateral,HP:0006813
+91,severe intellectual impairment,HP:0010864
+91,seizure trigger...hot water,HP:0020209
+91,seizures...generalizes tonic clonic,HP:0025190
+91,during particular phases of the menstrual cycle,HP:0025220
+91,seizure trigger...overexertion,HP:0025377
+91,seizure trigger...infection,HP:0032892
+91,seizure clusters ,HP:0033349
+92,Agitation ,HP:0000713
+92,disorientation,HP:0001289
+92,decreased hemoglobin,HP:0001903
+92,Wide-based gait ,HP:0002136
+92,Imbalance,HP:0002172
+92,Postural tremor,HP:0002174
+92,Zoopsias/visual hallucinations,HP:0002367
+92,Paresthesias of the lower limbs ,HP:0003401
+92,increased mean globular volume,HP:0005518
+92,Attention impairment ,HP:0007018
+92,zoopsias,HP:0030786
+92,increased γ-glutamyl transferase,HP:0030948
+92,alcohol use disorder,HP:0030955
+92,initial insomnia,HP:0031354
+92,discrete atrophy in the posterior body of the callosal commissure,HP:0034007
+92,bilateral ovaloid hyperintense areas on T2-weighted images...in the splenium of the corpus callosum,HP:0040328
+92,hypointense areas on T1-weighted images in the splenium of the corpus callosum.,HP:0040331
+92,decreased vitamin B12,HP:0100502
+93,major depressive disorder,HP:0000716
+93,self-inflicted lesions,HP:0000742
+93,lack of insight,HP:0000757
+93,weight loss,HP:0001824
+93,Visual hallucinations ,HP:0002367
+93,loss of appetite,HP:0004396
+93,inflammatory signs,HP:0011123
+93,worthlessness,HP:0031469
+93,haptic hallucinations,HP:0033694
+93,Insomnia ,HP:0100785
+93,sadness,HP:5200273
+93,delusional ideas of infestation ,HP:5200426
+94,acute psychosis,HP:0000709
+94,restlessness,HP:0000711
+94,agitation,HP:0000713
+94,became irritable,HP:0000737
+94,loss of interest,HP:0000741
+94,self-induced abrasions,HP:0000742
+94,altered personality,HP:0000751
+94,Uncontrollable trembling ,HP:0001337
+94,weird noises,HP:0002167
+94,Decreased appetite,HP:0004396
+94,Hearing internal voices ,HP:0008765
+94,different identities,HP:0012075
+94,Burning sensation ,HP:0012534
+94,frequent crying spells,HP:0033705
+94,harmed himself,HP:0100716
+94,Decreased sleep,HP:0100785
+94,Abnormal movements,HP:0004305
+94,loss of identity,HP:5200217
+95,Facial dullness,HP:0000338
+95,drooping eyes,HP:0000508
+95,depression,HP:0000716
+95,Migraine ,HP:0002076
+95,very hungry,HP:0002591
+95,low potassium,HP:0002900
+95,low magnesium,HP:0002917
+95,periodic hypersomnia,HP:0007200
+95,restless leg syndrome,HP:0012452
+95,"""becomes angry...because of attempt to wake""",HP:0025237
+95,sense of weakness,HP:0025406
+95,strong desire for sex,HP:0030214
+95,difficulty initiating sleep,HP:0031354
+95,low vitamin d,HP:0100512
+95,increased urinary frequency,HP:0100515
+95,sudden sleep attacks,HP:0002330
+96,excessive deodorant use,HP:0000708
+96,distress,HP:0000713
+96,repetitive behavior,HP:0000733
+96,impaired social life,HP:0000735
+96,generalized anxiety,HP:0000739
+96,impaired study performance,HP:0001249
+96,concerns about perceived body odor,HP:0034004
+96,avoidance behavior,HP:5200320
+96,overvalued idea,HP:5200402
+97,Multicystic kidney dysplasia,HP:0000003
+97,Decreased fetal movement,HP:0001558
+97,Subglottic stenosis ,HP:0001607
+97,Mild mitral regurgitation,HP:0001653
+97,Aphonia,HP:0001686
+97,neonatal respiratory distress,HP:0002643
+97,Mild left pulmonary artery stenosis,HP:0004415
+97,Severe glottic web,HP:0005950
+97,right unilateral dysplastic kidney,HP:0008718
+97,Poor feeding by mouth,HP:0011968
+97,Severe pre-eclampsia,HP:0100602
+98,Cystic hygroma,HP:0000476
+98,Short ribs ,HP:0000773
+98,bell-shaped ribs,HP:0001591
+98,Skeletal dysplasia ,HP:0002652
+98,lower limb abnormalities ,HP:0002814
+98,Upper limb abnormalities,HP:0002817
+98,Absent fibula ,HP:0002990
+98,Absent Humerus,HP:0003862
+98,absent radius,HP:0003974
+98,absent ulna,HP:0003982
+98,Hypoplastic Chest,HP:0005257
+98,Flattened nasal bridge ,HP:0005280
+98,Hand bone aplasia,HP:0005927
+98,Flared ribs ,HP:0006603
+98,Poor rib ossification,HP:0006615
+98,absent tibia,HP:0009556
+98,Shortened limbs ,HP:0009815
+98,Midfacial hypoplasia,HP:0011800
+98,Poor spine ossification ,HP:0100856
+99,Café-au-lait macules ,HP:0000957
+99,Axillary freckling ,HP:0000997
+99,cutaneous neurofibroma,HP:0001067
+99,Spontaneous pneumothorax,HP:0002108
+99,Lisch nodules ,HP:0009737
+99,Large bullae of the lung ,HP:0032446
+99,Subcutaneous neurofibroma ,HP:0100698
+100,Bilateral epicanthal folds ,HP:0000286
+100,Wide philtrum,HP:0000289
+100,Preauricular tags,HP:0000384
+100,Mixed hearing loss ,HP:0000410
+100,Pectus carinatum ,HP:0000768
+100,Epibulbular dermoid,HP:0001140
+100,Joint laxity ,"HP:0001388, HP:0001382"
+100,recurrent cold,HP:0002788
+100,Bilateral cloudy cornea ,HP:0007759
+100,Asymmetric ears ,HP:0010722
+100,Asymmetrical hypoplastic face ,HP:0011332
+100,Chronic cough,HP:0012735
+101,Inguinal hernia,HP:0000023
+101,Tall palate ,HP:0000218
+101,Pectus excavatum ,HP:0000767
+101,Soft skin ,HP:0000977
+101,Easy bruising,HP:0000978
+101,Severe aortic valve regurgitation ,HP:0001659
+101,Dizziness,HP:0002321
+101,Aortic root aneurysm ,HP:0002616
+101,Aneurysmal dilatation,HP:0002617
+101,Scoliosis,HP:0002650
+101,corkscrew tortuosity,HP:0004948
+101,Dilated ileocolic branch of SMA with corkscrew tortuosity ,HP:0005116
+101,Internal carotid tortuosity without cerebral aneurysm ,HP:0005302
+101,Visible veins ,HP:0007394
+101,Translucent skin,HP:0010648
+101,intimal hyperplasia,HP:0011353
+101,Aneurysm of ileococlic artery ,HP:0011934
+101,Saccular aneurysm of proximal SMA,HP:0100859
+102,Malar hypoplasia,HP:0000272
+102,Elongated face ,HP:0000276
+102,Hypertelorism ,HP:0000316
+102,Bluish sclera ,HP:0000592
+102,Abnormal teeth enamel ,HP:0000682
+102,Soft skin ,HP:0000977
+102,Visible veins ,HP:0001015
+102,Striae atrophica,HP:0001065
+102,mitral valve replacement …,HP:0001718
+102,Pes planus ,HP:0001763
+102,Varicose veins ,HP:0002619
+102,tortuous coeliac and hepatic artery,HP:0004948
+102,jejunal artery stent was occluded,HP:0004950
+102,Multiple aneurysms of mesenteric vasculature ,HP:0005116
+102,Tortuous cervical carotid arteries ,HP:0005302
+102,Streptococcus salivarious endocarditis ,HP:0006689
+102,Translucent skin,HP:0010648
+102,Broad uvula with raphe ,HP:0010809
+102,multiple aneurysms in… ,HP:0011934
+102,Ectasia of femoral vessels ,HP:0035012
+102,Dilated coeliac and hepatic arteries ,HP:0100858
+102,Dilatation of Inferior mesenteric artery,HP:0100860
+103,Bifid uvula,HP:0000193
+103,Tall palate,HP:0000218
+103,Micrognathia,HP:0000347
+103,Down sloping palpebral fissures ,HP:0000494
+103,Bluish sclera,HP:0000592
+103,Pectus deformity ,HP:0000766
+103,Soft skin ,HP:0000977
+103,Visible veins ,HP:0001015
+103,Striae atrophica ,HP:0001065
+103,Hypermobility ,HP:0001382
+103,Flat feet ,HP:0001763
+103,Dilated aortic root,HP:0002616
+103,Carotid  artery tortuosity,HP:0005302
+103,Left hemidiaphragm paralysis ,HP:0006597
+103,Translucent skin,HP:0010648
+103,Mesenteric artery aneurysm,HP:0011934
+103,vertebral artery tortuosity,HP:0033981
+103,Jejunal artery aneurysm  ,HP:0100859
+104,primary hypothyroidism ,HP:0000832
+104,cutaneous rash ,HP:0000988
+104,abnormal skin pigmentation ,HP:0001000
+104,eosinophilia ,HP:0001880
+104,leukocystosis ,HP:0001974
+104,candida albicans infection ,HP:0002728
+104,elevated TSH,HP:0002925
+104,shorter than average ,HP:0004322
+104,decreased CD4,HP:0005407
+104,oral erythema ,HP:0010280
+104,erythema,HP:0010783
+104,cutaneous hyperplasia,HP:0025092
+104,psuedomembranes on buccal mucosa and tongue ,HP:0025697
+104,decreased CD4,HP:0031392
+104,oral mucosal lesions,HP:0031446
+104,decreased T4,HP:0031507
+104,decreased free T3,HP:0032210
+104,decreased free T4,HP:0033078
+104,periungual erythema ,HP:0033425
+104,scaling,HP:0040189
+104,decreased CD3,HP:0045080
+104,abnormal nail color,HP:0100643
+104,Lymphocytosis ,HP:0100827
+104,skin erosions ,HP:0200041
+105,oral ulcer,HP:0000155
+105,patchy scars,HP:0001073
+105,"hoarse, croaky voice ",HP:0001609
+105,fever,HP:0001945
+105,erythematous skin lesions,HP:0010783
+105,Recurrent oral ulcers,HP:0011107
+105,tender cervical lymphadenopathy,HP:0025289
+105,malaise,HP:0033834
+105,skin scarring ,HP:0100699
+105,papular skin ,HP:0200034
+105,axillar ulcer ,HP:0200042
+106,urinary incontinance ,HP:0000020
+106,microcytic anemia ,HP:0001935
+106,tonic-clonic seizure ,HP:0002069
+106,status epilepticus ,HP:0002133
+106,drowsy ,HP:0002329
+106,loss of consciousness,HP:0007185
+106,tongue biting ,HP:0012169
+106,Generalized convulsive status epilepticus (GCSE),HP:0032661
+106,frothy oral secretions ,HP:0100755
+107,cardiomegaly ,HP:0001640
+107,Pulmonary Artery Abnormality ,HP:0004414
+107,"""Origin of the left coronary artery from the p... ",HP:0011638
+107,abnormal coronary circulation ,HP:0025496
+107,LCA aneurysm ,HP:0030882
+107,abnormal flow within the pulmonary artery ,HP:0030967
+107,systolic murmur,HP:0031664
+107,Chest discomfort,HP:0100749
+108,renal failue ,HP:0000083
+108,salt wasting ,HP:0000127
+108,poor eye contact ,HP:0000817
+108,pale skin ,HP:0000980
+108,poor weight gain ,HP:0001508
+108,premature birth ,HP:0001622
+108,leukopenia,HP:0001882
+108,anemia,HP:0001903
+108,dehydration ,HP:0001944
+108,respiratory distress,HP:0002098
+108,hyperuricemia,HP:0002149
+108,elevated blood lactate,HP:0002151
+108,hypertriglyceridemia ,HP:0002155
+108,recurrent vomiting ,HP:0002572
+108,respiratory failure ,HP:0002878
+108,hypercholesterolemia,HP:0003124
+108,end stage renal failue,HP:0003774
+108,cachetic ,HP:0004326
+108,chronic constipation ,HP:0012450
+109,renal failure ,HP:0000083
+109,pallor,HP:0000980
+109,Peripheral hypotonia ,HP:0001252
+109,poor weight gain ,HP:0001508
+109,Low birth weight (2.400 kg),HP:0001518
+109,leukopenia,HP:0001882
+109,anemia,HP:0001903
+109,metabolic acidosis ,HP:0001942
+109,dehydration ,HP:0001944
+109,Vomiting,HP:0002013
+109,hyperuricemia,HP:0002149
+109,increased blood lactate ,HP:0002151
+109,hypertriglyceridemia ,HP:0002155
+109,recurrent vomiting ,HP:0002572
+109,hyponatremia,HP:0002902
+109,cachexia ,HP:0004326
+109,axial hypotonia ,HP:0008936
+109,Repeated blood transfusions ,HP:0011888
+109,poor oral intake ,HP:0011968
+109,progressive renal failure,HP:0012622
+109,Generalized tonic clonic seizures ,HP:0025190
+109,Premature birth (36 weeks gestation) ,HP:0025664
+110,hyperpigmented skin lesions ,HP:0001034
+110,fever,HP:0001945
+110,ANA-HEP-2 Positive ,HP:0003493
+110,elevated ESR ,HP:0003565
+110,Limited flexion in right leg ,HP:0006389
+110,morphea,HP:0012344
+110,stiff skin ,HP:0030053
+110,left chest pain,HP:0032141
+110,skin retraction ,HP:0100679
+111,epistaxis ,HP:0000421
+111,febrile neutropenia ,HP:0001875
+111,Acute B-cell Leukemia ,HP:0004812
+111,complete absence of neutrophils ,HP:0012234
+111,invasive pulmonary aspergillosis ,HP:0020103
+111,Failed response to chemo,HP:0020174
+111,air cresent sign on Chest Ct,HP:0032172
+111,multiple lung nodules ,HP:0033608
+112,hepatosplenomegaly ,HP:0001433
+112,tachycardia ,HP:0001649
+112,splenomegaly,HP:0001744
+112,weightloss ,HP:0001824
+112,acute hemolysis ,HP:0001878
+112,eosinophilia ,HP:0001880
+112,autoimmune hemolytic anemia ,HP:0001890
+112,Low red blood cell count (0.79 × 106/μl)   ,HP:0001903  
+112,reticulocytosis,HP:0001923
+112,leukocytosis ,HP:0001974
+112,schistocytes ,HP:0001981
+112,hepatomegaly,HP:0002240
+112,exertional shortness of breath ,HP:0002875
+112,hyperbilirubinemia ,HP:0002904
+112,elevated IgE ,HP:0003212
+112,elevated erythrocyte sedimentation ,HP:0003565
+112,Elevated bilirubin (4 mg/dl)   ,HP:0003573
+112,microcytic hypochromic cells ,HP:0004840
+112,increased MCV ,HP:0005518
+112,non-painful patches skin hypo and hyperpigmentation,HP:0007509
+112,elevated CRP ,HP:0011227
+112,anisocytosis ,HP:0011273
+112,fatigue ,HP:0012378
+112,Low hemoglobin levels (5 g/dl)   ,HP:0020062  
+112,decreased haptoglobin ,HP:0020181
+112,high lactate dehydrogenase ,HP:0025435
+112,night sweats ,HP:0030166
+112,scleral icterus ,HP:0032106
+112,positive coombs test ,HP:0032366
+112,teardrop cells ,HP:0032563
+112,nucleated RBCs,HP:0033281
+112,enlarged hilar lymph nodes ,HP:0034388
+112,dark urine ,HP:0040319
+113,osteoporosis,HP:0000939
+113,lethargy ,HP:0001254
+113,slim body habitus ,HP:0001533
+113,mild kyphosis,HP:0002808
+113,Vertebral fracture ,HP:0002953
+113,endplate depression,HP:0003301
+113,back stiffness,HP:0003306
+113,low back pain ,HP:0003419
+113,elevated erythrocyte sedimentation rate ,HP:0003565
+113,low body weight ,HP:0004325
+113,Low Z score DEXA ,HP:0004349
+113,biconcave and plate depression of spine ,HP:0004586
+113,wedge shape compression fractures ,HP:0008422
+113,elevated c reactive protein ,HP:0011227
+113,progressive fatigue,HP:0012378
+113,perifollicular purpuric macules      ,HP:0012733
+113,ecchymoses,HP:0031364
+113,minor loss of T9 vertebral body height              ,HP:0041084
+113,low body mass index,HP:0045082
+114,hypertension ,HP:0000822
+114,fever,HP:0001945
+114,leukocytosis ,HP:0001974  
+114,tachypnea,HP:0002789
+114,right renal cortical tract hypodensity ,HP:0011035
+114,increased CRP ,HP:0011227
+114,renal infarction ,HP:0025418
+114,overweight,HP:0025502
+114,right flank pain ,HP:0030157
+115,tremor,HP:0001337
+115,ataxia ,HP:0002066
+115,intention tremor of head and upper limbs ,HP:0002080
+115,unsteadiness,HP:0002172
+115,postural tremor of head and upper limbs ,HP:0002174
+115,Uncoordinated movement,HP:0002311
+115,tremor in hands ,HP:0002378
+115,leg numbness,HP:0002936
+115,chronic back pain ,HP:0003418
+115,atrophic pons,HP:0006879
+115,pin prick sensation in lower limb ,HP:0007328
+115,high t2 signal in the middle cerebellar peduncles,HP:0011931
+115,high t2 signal in the superior cerebellar peduncles,HP:0011932
+115,chronic pain,HP:0012532
+115,hand numbness,HP:0033660
+115,tremor in legs,HP:0200085
+115,high t2 in cerebellum of brain ,HP:6000416
+116,hip joint effusion ,HP:0001386
+116,unable to ambulate ,HP:0002355
+116,osteomyelitis ,HP:0002754
+116,septic arthritis ,HP:0003095
+116,painful rotation and flexion of the hip ,HP:0003365
+116,Hemarthrosis,HP:0005261
+116,externally rotated lower limb ,HP:0008796
+116,absence of range of motion ,HP:0008800
+116,femoral head dislocation ,HP:0008826
+116,avascular necrosis ,HP:0010885
+116,hip pain ,HP:0030838
+116,acetabulum erosion ,HP:0033640
+116,shortened lower limb ,HP:0100557

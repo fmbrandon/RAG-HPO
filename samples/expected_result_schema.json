@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "fields": [
+    {"name": "patient_id", "type": "string", "nullable": false},
+    {"name": "phrase", "type": "string", "nullable": false},
+    {
+      "name": "category",
+      "type": "string",
+      "allowed": ["Abnormal", "Normal", "Family History", "Other", "Suspected"],
+      "nullable": false
+    },
+    {"name": "hpo_id", "type": "string", "nullable": true},
+    {"name": "hpo_term", "type": "string", "nullable": true},
+    {"name": "vector_score", "type": "number", "nullable": true},
+    {
+      "name": "mapping_status",
+      "type": "string",
+      "allowed": ["mapped", "no_candidate_fit", "not_mapped_category", "error"],
+      "nullable": false
+    },
+    {"name": "error_code", "type": "string", "nullable": true},
+    {"name": "error_message", "type": "string", "nullable": true}
+  ]
+}

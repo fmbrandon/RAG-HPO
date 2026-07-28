@@ -1,23 +1,20 @@
 # RAG-HPO
 
 RAG-HPO extracts phenotype mentions from clinical text and maps abnormal
-findings to Human Phenotype Ontology terms. Version 0.2 separates the runtime
-from the notebooks and provides reproducible `doctor`, `vectorize`, and
-`annotate` commands.
+findings to Human Phenotype Ontology (HPO) terms. Version 0.2 provides an
+installable package and four commands: `doctor`, `demo`, `vectorize`, and
+`annotate`.
 
-RAG-HPO sends note text to the configured language-model endpoint. Do not submit
-identifiable or otherwise restricted data unless the endpoint and workflow have
-been approved by your institution. See [SECURITY.md](SECURITY.md).
+RAG-HPO sends note text to the configured language-model endpoint. Never submit
+identifiable or restricted data unless your institution has approved both the
+endpoint and workflow. See [SECURITY.md](SECURITY.md).
 
-## Requirements
+## Five-minute macOS quick start
 
-- CPython 3.11, 3.12, or 3.13; Python 3.12 is recommended.
-- macOS, Linux, or Windows.
-- A Groq API key or another approved OpenAI-compatible endpoint.
-- Internet access for the initial HPO and embedding-model downloads, unless
-  using prebuilt cached artifacts.
-
-## Installation
+The validated development baseline is an Apple Silicon Mac with Python 3.12.
+The prebuilt SapBERT vector download is approximately 150 MB; allow at least
+500 MB of free disk space for the bundle, environment, and outputs. Initial
+setup usually takes several minutes depending on network speed.
 
 ```bash
 git clone https://github.com/PoseyPod/RAG-HPO.git
@@ -26,30 +23,77 @@ python3.12 setup_environment.py
 source .venv/bin/activate
 ```
 
-On Windows, activate with:
+Load the Groq key into this terminal without putting it in shell history or a
+repository file:
+
+```zsh
+read -s "RAG_HPO_API_KEY?Paste Groq key: " && export RAG_HPO_API_KEY && echo
+```
+
+Then diagnose the setup and run the synthetic demonstration:
+
+```bash
+rag-hpo doctor --skip-provider
+rag-hpo demo --vector-dir /path/to/prebuilt-vectors
+```
+
+Expected final messages resemble:
+
+```text
+Demo complete using a built-in synthetic note.
+Mapped HPO IDs: HP:...
+CSV results: rag_hpo_demo_output/rag_hpo_results.csv
+JSON results: rag_hpo_demo_output/rag_hpo_results.json
+```
+
+The demo never uses the repository’s clinical examples. It uses a built-in
+synthetic note, does not retain raw provider responses, and does not store the
+API key.
+
+After the lab owner publishes the approved v0.2.0 vector asset, `rag-hpo demo`
+can download and cache it when these two release values are configured:
+
+```bash
+export RAG_HPO_VECTOR_BUNDLE_URL='https://release.example/vectors.zip'
+export RAG_HPO_VECTOR_BUNDLE_SHA256='64-character-release-sha256'
+rag-hpo demo
+```
+
+The archive SHA-256 and internal artifact manifest are both validated before
+use. The cache is versioned under `~/.cache/rag-hpo/` on macOS/Linux and the
+user’s local application-data directory on Windows. Until the lab release is
+approved, pass `--vector-dir` or build vectors locally.
+
+## Supported platforms
+
+| Platform | Status |
+| --- | --- |
+| macOS ARM, Python 3.12 | Validated |
+| macOS ARM, Python 3.11 and 3.13 | Dependency locks validated; 3.12 remains the release gate |
+| Linux, Python 3.11–3.13 | Experimental/best-effort; statically reviewed, not natively validated |
+| Windows, Python 3.11–3.13 | Experimental/best-effort; statically reviewed, not natively validated |
+
+Linux and Windows reports and native CI contributions are welcome. Static path
+tests and dependency profiles do not constitute native validation.
+
+On Windows, the expected activation command is:
 
 ```powershell
 .\.venv\Scripts\activate
 ```
 
-`pyproject.toml` is the dependency source of truth. The setup script creates
-only `.venv`; it never installs or switches the system Python interpreter.
-
-For development:
+## Diagnose problems
 
 ```bash
-pip install -e '.[vectorize,notebook,test,dev,benchmark]'
+rag-hpo doctor --vector-dir artifacts/hpo --output-dir rag_hpo_output
 ```
 
-## Provider configuration
+Each failed or warning check prints an exact corrective command. Add
+`--skip-provider` when offline; add `--json` for machine-readable diagnostics.
+The full provider check makes a minimal schema-valid request and verifies model
+access.
 
-The API key is always required and is never written by RAG-HPO:
-
-```bash
-export RAG_HPO_API_KEY='your-key' # pragma: allowlist secret
-```
-
-The convenience defaults are:
+The convenience provider defaults are:
 
 ```text
 RAG_HPO_BASE_URL=https://api.groq.com/openai/v1/chat/completions
@@ -57,45 +101,16 @@ RAG_HPO_MODEL=openai/gpt-oss-120b
 RAG_HPO_RESPONSE_MODE=strict
 ```
 
-Override these variables or the corresponding command options for another
-approved OpenAI-compatible provider. Response modes are `strict`,
-`json-object`, and `prompt-only`; RAG-HPO never silently downgrades modes.
+Override these variables or the matching command options for another approved
+OpenAI-compatible provider. Response modes are `strict`, `json-object`, and
+`prompt-only`; RAG-HPO never silently downgrades a mode.
 
-## 1. Diagnose the environment
+## Build complete HPO vectors
 
-```bash
-rag-hpo doctor --json
-```
-
-Once vector artifacts exist:
-
-```bash
-rag-hpo doctor \
-  --vector-dir artifacts/hpo \
-  --output-dir rag_hpo_output
-```
-
-Use `--skip-provider` to diagnose an offline environment without making a
-minimal provider health request.
-
-## 2. Build HPO vector artifacts
-
-Install the vectorization extra if it was not installed by the bootstrap:
-
-```bash
-pip install -e '.[vectorize]'
-```
-
-Run a bounded smoke build:
-
-```bash
-rag-hpo vectorize \
-  --hpo-addons HPO_addons.csv \
-  --output-dir artifacts/hpo \
-  --limit 50
-```
-
-Run the complete build by omitting `--limit`:
+The bootstrap installs vectorization support. A complete build downloads the
+ontology and pinned SapBERT model, then creates roughly 48,000 phrase vectors.
+It can require more than 1 GB of temporary/cache space and may take from minutes
+to much longer depending on hardware and network access.
 
 ```bash
 rag-hpo vectorize \
@@ -103,23 +118,30 @@ rag-hpo vectorize \
   --output-dir artifacts/hpo
 ```
 
-The command creates:
+For a quick functional smoke only:
+
+```bash
+rag-hpo vectorize \
+  --hpo-addons HPO_addons.csv \
+  --output-dir artifacts/hpo-smoke \
+  --limit 50
+```
+
+Do not use a `--limit` artifact for scientific evaluation. The complete command
+creates:
 
 - `hpo_meta.json`
 - `hpo_embedded.npz`
 - `hpo_manifest.json`
 - a private cached `hp.obo` when the ontology is downloaded
 
-The manifest records the HPO and add-on hashes, parser version, embedding model
-and immutable revision, normalization, dtype, dimensions, counts, and output
-hashes. Annotation rejects mismatched or modified artifacts.
+The manifest records source hashes, parser version, embedding model and
+immutable revision, normalization, dtype, dimensions, counts, and payload
+hashes. Annotation rejects modified, incomplete, or model-mismatched artifacts.
+Advanced options include `--obo-file`, `--obo-url`, `--backend`, `--refresh`,
+and `--offline`. SapBERT is the scientific default; FastEmbed is optional.
 
-Options include `--obo-file`, `--obo-url`, `--backend`, `--refresh`,
-`--offline`, and `--limit`. The default backend is the biomedical SapBERT model
-used by the earlier notebook, pinned to an immutable model revision. FastEmbed
-is available after installing `rag-hpo[fastembed]`.
-
-## 3. Annotate notes
+## Annotate data
 
 ### Manual text
 
@@ -134,11 +156,12 @@ rag-hpo annotate \
 ### CSV
 
 The required column is `clinical_note`. `patient_id` is optional and remains a
-string; the repository’s legacy `Case` column is also accepted.
+string. The legacy `Case` column is also accepted. A safe example is provided
+at [samples/synthetic_input.csv](samples/synthetic_input.csv).
 
 ```bash
 rag-hpo annotate \
-  --input Test_Cases.csv \
+  --input samples/synthetic_input.csv \
   --vector-dir artifacts/hpo \
   --output-dir rag_hpo_output
 ```
@@ -154,41 +177,69 @@ printf '%s' 'Synthetic example: fever.' | \
     --output-dir rag_hpo_output
 ```
 
-Outputs are deterministic:
+Every run writes `rag_hpo_results.csv` and `rag_hpo_results.json`. The stable
+fields are `patient_id`, `phrase`, `category`, `hpo_id`, `hpo_term`,
+`vector_score`, `mapping_status`, `error_code`, and `error_message`. Their
+machine-readable contract is in
+[samples/expected_result_schema.json](samples/expected_result_schema.json).
 
-- `rag_hpo_results.csv`
-- `rag_hpo_results.json`
+## Resume and privacy
 
-Result fields are `patient_id`, `phrase`, `category`, `hpo_id`, `hpo_term`,
-`vector_score`, `mapping_status`, `error_code`, and `error_message`.
-
-## Resume and privacy behavior
-
-RAG-HPO creates a private SQLite state database in the output directory. It
-stores input hashes and required derived state, not the API key or original
-note. Successful runs delete it automatically. Failed or partial runs retain it
-for:
+RAG-HPO uses a private SQLite state database in the output directory. It stores
+input hashes and required derived state, not the API key or original note.
+Successful runs delete it automatically. Failed or partial runs retain it:
 
 ```bash
 rag-hpo annotate ... --resume
 ```
 
-Resume requires identical input, package version, and vector-manifest hash.
-Use `--keep-state` to preserve state after success.
+Resume requires the same input hash, package version, and vector-manifest hash.
+Use `--keep-state` only when needed.
 
-Raw provider responses are disabled. `--raw-responses` enables them with a
-warning and stores them with owner-only permissions; these files can contain
-sensitive derived text.
+Raw provider responses are disabled by default. `--raw-responses` displays a
+privacy warning and stores owner-only files that may contain sensitive derived
+text.
 
-## Notebooks
+## Scientific benchmark
+
+CSC and GSC are separate corpora. `Test_Cases.csv` corresponds to the CSC input
+and must be scored only against
+`benchmarks/references/csc_manual_annotations.csv`. Never join CSC and GSC only
+by patient number.
+
+Score a selected run with:
+
+```bash
+python benchmarks/run_benchmark.py \
+  --predictions rag_hpo_output/rag_hpo_results.json \
+  --input Test_Cases.csv \
+  --references benchmarks/references/csc_manual_annotations.csv \
+  --ontology artifacts/hpo/hp.obo \
+  --prompt-file src/rag_hpo/data/system_prompts.json \
+  --vector-manifest artifacts/hpo/hpo_manifest.json \
+  --case-id 1 \
+  --model openai/gpt-oss-120b \
+  --prompt-version 1.0 \
+  --output-dir benchmark-results/case-1
+```
+
+The runner normalizes alternate HPO IDs, removes duplicate predicted IDs within
+each patient, preserves Cases 67 and 68 as distinct records, and emits explicit
+TP/FP/FN identifiers plus per-case, micro, and macro metrics. A complete live
+repository benchmark is opt-in because published example text is not
+automatically approved for external transmission.
+
+Historical Premium, CSC, and GSC workbook calculations remain separately
+labeled. See [benchmarks/README.md](benchmarks/README.md).
+
+## Notebooks and development
 
 `RAG-HPO.ipynb` and `HPO_Vectorization.ipynb` are thin, network-free examples.
 They import the package and contain no application implementation, keys,
-hard-coded local paths, or automatic downloads.
-
-## Testing and quality
+hard-coded local paths, or unconditional downloads.
 
 ```bash
+pip install -e '.[vectorize,notebook,test,dev,benchmark]'
 ruff check .
 ruff format --check .
 mypy src/rag_hpo
@@ -197,18 +248,8 @@ bandit -c pyproject.toml -r src/rag_hpo
 python -m build
 ```
 
-Network and live-provider tests are opt-in. Normal tests use synthetic text and
-mock endpoints.
-
-## Benchmark data
-
-The repository retains the published example and comparison data. Cases 67 and
-68 have identical note text but remain distinct IDs; benchmark consumers must
-not silently deduplicate them.
-
-The workbook contains stored TP, FP, and FN counts. Recompute precision, recall,
-and F1 into a tidy table with `benchmarks/recompute_metrics.py`. See
-[benchmarks/README.md](benchmarks/README.md) for the reproducibility boundary.
+The native macOS dependency locks and experimental-platform lock guidance are
+documented in [requirements/README.md](requirements/README.md).
 
 ## Citation
 
@@ -218,11 +259,6 @@ If you use RAG-HPO, cite:
 > Retrieval-Augmented Generation. *Genome Medicine*.
 > https://doi.org/10.1186/s13073-025-01521-w
 
-Machine-readable citation metadata is provided in `CITATION.cff`.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Please report security concerns
-privately as described in [SECURITY.md](SECURITY.md). Dependency-license review
-and the approved Pronto parser exception are documented in
-[LICENSE_POLICY.md](LICENSE_POLICY.md).
+Machine-readable metadata is in `CITATION.cff`. Contribution and security
+guidance are in [CONTRIBUTING.md](CONTRIBUTING.md) and
+[SECURITY.md](SECURITY.md).

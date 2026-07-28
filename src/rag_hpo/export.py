@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from rag_hpo.models import AnnotationResult
-from rag_hpo.privacy import ensure_private_directory
+from rag_hpo.privacy import ensure_private_directory, restrict_owner
 
 FIELDS = [
     "patient_id",
@@ -31,7 +31,7 @@ def _replace(path: Path, content: str) -> None:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
-        os.chmod(temporary_path, 0o600)
+        restrict_owner(temporary_path)
         os.replace(temporary_path, path)
     finally:
         temporary_path.unlink(missing_ok=True)

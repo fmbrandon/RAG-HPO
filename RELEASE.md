@@ -1,13 +1,26 @@
-# Version 0.2.0 release process
+# Version 0.2.0 release-candidate process
 
-1. Run the complete local and CI validation suite.
-2. Run `scripts/build_release_artifacts.sh`.
-3. Verify `dist/release/SHA256SUMS`, the SBOM, dependency audit, licenses, and
-   regenerated benchmark metrics.
-4. Create the `v0.2.0` GitHub release and attach everything under
-   `dist/release/`.
-5. Only after the release assets are available, remove the tracked poster and
-   workbook in a normal follow-up commit. Do not rewrite Git history.
+The release gate is macOS ARM with Python 3.12. Linux and Windows are
+experimental and must not be described as validated until native runs exist.
 
-Live provider tests are manual and must use synthetic or explicitly authorized
-example text. Never place a provider key in release files or workflow logs.
+1. Run the local test, quality, notebook, package-build, and complete-artifact
+   gates.
+2. Build every candidate artifact with one command:
+
+   ```bash
+   RAG_HPO_VECTOR_DIR=/absolute/path/to/complete-vectors \
+     scripts/build_release_artifacts.sh
+   ```
+
+3. Verify `dist/release/SHA256SUMS`, vector-bundle metadata, provenance, SBOM,
+   dependency audit, licenses, and regenerated historical metric arithmetic.
+4. Upload the candidate files for review only to the private personal
+   repository. Do not create or publish an upstream tag without lab-owner
+   authorization.
+5. After an authorized upstream release owns the poster and workbook assets,
+   remove those binaries from the source tree in a normal commit. Do not rewrite
+   Git history.
+
+Live provider tests are manual and must use synthetic text or repository cases
+that have been explicitly authorized for that endpoint. Never place a provider
+key in release files or workflow logs.

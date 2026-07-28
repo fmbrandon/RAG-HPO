@@ -21,7 +21,7 @@ from rag_hpo.models import (
     HPOMapping,
     PhenotypeExtraction,
 )
-from rag_hpo.privacy import ensure_private_directory
+from rag_hpo.privacy import ensure_private_directory, restrict_owner
 from rag_hpo.prompts import load_prompts
 from rag_hpo.provider import OpenAICompatibleProvider, ProviderError
 from rag_hpo.state import PipelineState
@@ -239,7 +239,7 @@ class AnnotationPipeline:
         ensure_private_directory(directory)
         path = directory / f"row-{row_index:05d}-{stage}.json"
         path.write_text(content, encoding="utf-8")
-        path.chmod(0o600)
+        restrict_owner(path)
 
     @staticmethod
     def _validate_backend(
