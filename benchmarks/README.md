@@ -11,8 +11,8 @@ Patient numbers are local to a corpus. Do not compare Test Case 1 with GSC Case
 1 and do not join CSC to GSC only by patient number. Immutable CSV exports and
 their source hashes are in [references/SOURCE.md](references/SOURCE.md).
 
-Cases 67 and 68 intentionally remain separate CSC records even though their
-note text is identical.
+Cases 67 and 68 are separate CSC records. Case 68 is synchronized from the
+workbook-derived `csc_input.csv` export and has ten manual reference IDs.
 
 ## Score current predictions
 
@@ -63,3 +63,22 @@ remain separately labeled and are not interchangeable gold standards.
 For CSC Case 1, the historical LLaMa 4-Scout row is TP 3, FP 8, FN 5, F1
 0.315789. It is a historical baseline, not a required performance guarantee for
 the new provider/model.
+
+## Paired accuracy comparison
+
+The checked-in 30-case selection and reports are:
+
+- `results/csc-sample-30-20260728-selection.json`
+- `results/csc-sample-30-groq-gpt-oss-120b.json`
+- `results/csc-sample-30-current-vs-llama4-scout.json`
+
+The sample was fixed before live inference. Case 68 was required, and 29 other
+eligible cases were selected without replacement using seed `20260728`.
+`prepare_csc_sample.py` reproduces the selection; `compare_paired_models.py`
+reproduces the paired bootstrap interval and sign-flip test. The raw sample
+notes and provider predictions are deliberately kept outside the repository.
+
+The result does not show an accuracy improvement over historical LLaMa
+4-Scout: micro F1 was 0.6408 versus 0.6653, macro F1 was 0.6391 versus 0.6554,
+and the paired 95% interval included zero. See [VALIDATION.md](../VALIDATION.md)
+for the interpretation and retry record.

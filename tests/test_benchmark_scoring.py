@@ -12,6 +12,7 @@ from rag_hpo.benchmark import (
     summarize,
     write_benchmark_report,
 )
+from rag_hpo.statistics import paired_inference
 
 OBO = """format-version: 1.2
 
@@ -96,7 +97,7 @@ def test_benchmark_reports_are_byte_reproducible(tmp_path: Path) -> None:
     assert first[1].read_bytes() == second[1].read_bytes()
 
 
-def test_exported_reference_corpora_are_separate_and_case_one_has_eight_ids() -> None:
+def test_exported_reference_corpora_are_separate_and_case_68_is_repaired() -> None:
     root = Path(__file__).parents[1] / "benchmarks" / "references"
     aliases = {"HP:0001513": "HP:0001513"}
     csc = load_reference_sets(root / "csc_manual_annotations.csv", aliases)
@@ -108,8 +109,18 @@ def test_exported_reference_corpora_are_separate_and_case_one_has_eight_ids() ->
         csc_rows = {row["Case"]: row["clinical_note"] for row in csv.DictReader(handle)}
     with (root / "gsc_input.csv").open(encoding="utf-8-sig", newline="") as handle:
         gsc_rows = {row["patient_id"]: row["clinical_note"] for row in csv.DictReader(handle)}
+    with (root / "csc_input.csv").open(encoding="utf-8-sig", newline="") as handle:
+        authoritative_csc = {row["Case"]: row["clinical_note"] for row in csv.DictReader(handle)}
     assert csc_rows["1"] != gsc_rows["1"]
-    assert csc_rows["67"] == csc_rows["68"]
+    assert csc_rows["67"] != csc_rows["68"]
+    assert csc_rows["68"] == authoritative_csc["68"]
+    assert len(csc["68"]) == 10
+
+
+def test_paired_inference_detects_consistent_improvement() -> None:
+    result = paired_inference([0.1] * 30, seed=7, iterations=1_000)
+    assert result["mean_difference_ci95_lower"] == 0.1
+    assert result["one_sided_sign_flip_p"] < 0.05
 
 
 def test_stored_benchmark_reports_contain_no_credentials() -> None:

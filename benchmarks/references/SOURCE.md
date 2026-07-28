@@ -15,8 +15,9 @@ CSC input and CSC manual annotations form one corpus. GSC input and GSC manual
 annotations form a separate corpus. Patient numbers are scoped to their corpus
 and must never be used to join CSC to GSC.
 
-Cases 67 and 68 remain distinct CSC records even though their note text is
-identical in the repository `Test_Cases.csv`. The workbook `CSC Input` sheet
-contains a different note for Case 68. Neither source was altered. Program
-benchmarks use and hash `Test_Cases.csv`; this discrepancy must be resolved by
-the lab owner before treating a complete CSC rerun as publication-comparable.
+The lab owner authorized resolving the duplicated repository Case 68. The
+repository `Test_Cases.csv` Case 68 note is now synchronized exactly from
+`csc_input.csv` / workbook `CSC Input!A69:B69`. Cases 67 and 68 remain distinct,
+and the ten Case 68 manual annotations come from
+`CSC Manual Annotations!A960:C969`. Run `python scripts/sync_csc_case_68.py` to
+verify or idempotently reproduce the synchronization.

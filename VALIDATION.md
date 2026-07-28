@@ -61,9 +61,54 @@ model produced a slightly different Case 1 set inside the multi-case request,
 which confirms that live inference can vary even though scoring the same stored
 prediction file is byte-for-byte reproducible.
 
-## Data discrepancy retained for review
+## Case 68 source repair
 
-Repository `Test_Cases.csv` contains identical notes for Cases 67 and 68. The
-workbook’s `CSC Input` sheet contains a different Case 68 note. Neither source
-was changed. A complete publication-comparable CSC benchmark requires the lab
-owner to choose the intended Case 68 source.
+The lab owner authorized replacing the duplicated repository Case 68 note with
+the distinct Case 68 note in the workbook-derived `csc_input.csv`. The workbook
+also contains ten Case 68 manual HPO annotations. The synchronization is
+reproducible and guarded by a regression test; Cases 67 and 68 are no longer
+text duplicates.
+
+## Paired 30-case accuracy comparison
+
+An authorized live comparison used a fixed sample selected before inference:
+Case 68 was required to validate the repaired input, and 29 of the remaining
+eligible CSC cases were sampled without replacement with seed `20260728`.
+Eligibility required a repository input, CSC manual annotations, and a
+historical LLaMa 4-Scout score. The sample manifest records all 30 case IDs and
+source hashes.
+
+The first live pass produced one HTTP 400 placeholder for Case 53. An isolated
+retry of the same unchanged note succeeded, so only that placeholder was
+replaced. The complete prediction set contained all 30 patients and no error
+rows.
+
+| Measure | Groq `openai/gpt-oss-120b` rebuild | Historical LLaMa 4-Scout |
+| --- | ---: | ---: |
+| TP / FP / FN | 297 / 126 / 207 | 331 / 160 / 173 |
+| Micro precision | 0.7021 | 0.6741 |
+| Micro recall | 0.5893 | 0.6567 |
+| Micro F1 | 0.6408 | 0.6653 |
+| Macro F1 | 0.6391 | 0.6554 |
+
+The mean paired per-case F1 difference (rebuild minus historical) was
+`-0.0164`; its deterministic 95% bootstrap interval was `[-0.0797, 0.0488]`.
+The one-sided paired sign-flip p-value for the rebuild being better was
+`0.6858`. The rebuild won 10 cases, tied one, and lost 19. Under the
+predeclared rule requiring a wholly positive interval and p < 0.05, the rebuild
+does **not** have better accuracy scores. The observed difference is not
+statistically significant, so this result also does not prove that the
+historical model is superior.
+
+Case 68 completed with TP 6, FP 8, FN 4, and F1 0.5000. Its historical LLaMa
+4-Scout row is TP 9, FP 2, FN 1, and F1 0.8571.
+
+Exact normalized HPO sets and provenance are in
+`benchmarks/results/csc-sample-30-groq-gpt-oss-120b.json`. Paired statistics are
+in `benchmarks/results/csc-sample-30-current-vs-llama4-scout.json`. Raw
+predictions and note text remain outside the repository.
+
+The rebuild is substantially stronger in installation, validation, artifact
+integrity, privacy controls, resumability, and beginner-facing operation.
+Those engineering improvements should not be described as an accuracy
+improvement.

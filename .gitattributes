@@ -9,3 +9,4 @@
 
 # Preserve literal workbook exports, including source-cell whitespace.
 benchmarks/references/*.csv whitespace=-trailing-space,-space-before-tab
+Test_Cases.csv -text whitespace=-trailing-space,-space-before-tab
