@@ -18,7 +18,9 @@ def paired_inference(
     """Return deterministic paired bootstrap and randomization-test results."""
     if len(differences) < 2:
         raise ValueError("paired comparison requires at least two cases")
-    rng = random.Random(seed)  # noqa: S311 - deterministic scientific resampling
+    # This generator is intentionally reproducible for scientific resampling;
+    # it does not create keys, tokens, or any security-sensitive value.
+    rng = random.Random(seed)  # noqa: S311  # nosec B311
     observed = statistics.fmean(differences)
     bootstrapped = sorted(
         statistics.fmean(rng.choices(differences, k=len(differences))) for _ in range(iterations)
