@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "provider": "Groq OpenAI-compatible endpoint",
+  "model": "openai/gpt-oss-120b",
+  "response_mode": "strict",
+  "runs": [
+    {
+      "run": "confirmation-82-current-prompt",
+      "case_count": 82,
+      "initial_http_400_rows": 2,
+      "initial_failed_case_ids": [
+        "105",
+        "112"
+      ],
+      "resume_attempts": 1,
+      "final_error_rows": 0
+    },
+    {
+      "run": "repeat-20-second-observation",
+      "case_count": 20,
+      "initial_http_400_rows": 1,
+      "initial_failed_case_ids": [
+        "85"
+      ],
+      "resume_attempts": 1,
+      "final_error_rows": 0
+    },
+    {
+      "run": "repeat-20-third-observation",
+      "case_count": 20,
+      "initial_http_400_rows": 0,
+      "resume_attempts": 0,
+      "final_error_rows": 0
+    },
+    {
+      "run": "discovery-30-historical-prompt",
+      "case_count": 30,
+      "initial_http_400_rows": 3,
+      "resume_attempts": 2,
+      "final_error_rows": 2,
+      "persistent_failed_case_ids": [
+        "61",
+        "65"
+      ]
+    }
+  ],
+  "privacy": {
+    "api_key_retained": false,
+    "raw_provider_responses_retained": false,
+    "clinical_note_text_retained_in_report": false
+  },
+  "interpretation": "Intermittent HTTP 400 responses are recoverable with resume under the current prompt. Two historical-prompt cases failed on three consecutive attempts, indicating prompt and strict-structured-output compatibility risk."
+}

@@ -85,16 +85,16 @@ rows.
 
 | Measure | Groq `openai/gpt-oss-120b` rebuild | Historical LLaMa 4-Scout |
 | --- | ---: | ---: |
-| TP / FP / FN | 297 / 126 / 207 | 331 / 160 / 173 |
-| Micro precision | 0.7021 | 0.6741 |
-| Micro recall | 0.5893 | 0.6567 |
-| Micro F1 | 0.6408 | 0.6653 |
-| Macro F1 | 0.6391 | 0.6554 |
+| TP / FP / FN | 299 / 124 / 205 | 331 / 160 / 173 |
+| Micro precision | 0.7069 | 0.6741 |
+| Micro recall | 0.5933 | 0.6567 |
+| Micro F1 | 0.6451 | 0.6653 |
+| Macro F1 | 0.6449 | 0.6554 |
 
 The mean paired per-case F1 difference (rebuild minus historical) was
-`-0.0164`; its deterministic 95% bootstrap interval was `[-0.0797, 0.0488]`.
+`-0.0106`; its deterministic 95% bootstrap interval was `[-0.0742, 0.0543]`.
 The one-sided paired sign-flip p-value for the rebuild being better was
-`0.6858`. The rebuild won 10 cases, tied one, and lost 19. Under the
+`0.6242`. The rebuild won 12 cases, tied one, and lost 17. Under the
 predeclared rule requiring a wholly positive interval and p < 0.05, the rebuild
 does **not** have better accuracy scores. The observed difference is not
 statistically significant, so this result also does not prove that the
@@ -107,6 +107,29 @@ Exact normalized HPO sets and provenance are in
 `benchmarks/results/csc-sample-30-groq-gpt-oss-120b.json`. Paired statistics are
 in `benchmarks/results/csc-sample-30-current-vs-llama4-scout.json`. Raw
 predictions and note text remain outside the repository.
+
+## Locked 82-case confirmation
+
+Every remaining eligible CSC case was locked before additional inference. On
+these untouched cases, the rebuild produced TP 786, FP 335, and FN 499:
+precision 0.7012, recall 0.6117, and micro F1 0.6534. Historical LLaMa
+4-Scout counts were TP 926, FP 429, and FN 364: precision 0.6834, recall
+0.7178, and micro F1 0.7002.
+
+The paired mean precision difference was 0.0028 with a 95% interval spanning
+zero. Mean recall was lower by 0.1005, with interval `[-0.1396, -0.0625]`.
+Mean F1 was lower by 0.0469, with interval `[-0.0827, -0.0116]`; its
+Holm-adjusted two-sided p-value was 0.0230. The confirmation therefore supports
+a real recall and F1 deficit, while it does not establish a per-case precision
+improvement.
+
+Three observations of a predeclared 20-case subset had mean predicted-ID
+Jaccard overlap 0.801 and a mean within-case F1 range of 0.070. Variability is
+material but does not explain the full confirmation deficit.
+
+Detailed causal results and limitations are in
+`RAG-HPO_ACCURACY_INVESTIGATION.md`. Note-level ledgers and the blinded review
+packet remain outside Git.
 
 The rebuild is substantially stronger in installation, validation, artifact
 integrity, privacy controls, resumability, and beginner-facing operation.

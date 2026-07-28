@@ -41,12 +41,14 @@ def load_hpo_aliases(obo_path: Path) -> dict[str, str]:
     aliases: dict[str, str] = {}
     current_id: str | None = None
     alternate_ids: list[str] = []
+    replaced_by: str | None = None
 
     def finish_term() -> None:
         if current_id is None:
             return
-        aliases[current_id] = current_id
-        aliases.update({alternate: current_id for alternate in alternate_ids})
+        target = replaced_by or current_id
+        aliases[current_id] = target
+        aliases.update({alternate: target for alternate in alternate_ids})
 
     with obo_path.open("r", encoding="utf-8", errors="replace") as handle:
         for raw_line in handle:
@@ -55,14 +57,18 @@ def load_hpo_aliases(obo_path: Path) -> dict[str, str]:
                 finish_term()
                 current_id = None
                 alternate_ids = []
+                replaced_by = None
             elif line.startswith("id: HP:"):
                 current_id = line.removeprefix("id: ").strip()
             elif line.startswith("alt_id: HP:"):
                 alternate_ids.append(line.removeprefix("alt_id: ").strip())
+            elif line.startswith("replaced_by: HP:"):
+                replaced_by = line.removeprefix("replaced_by: ").strip()
             elif line.startswith("[") and line.endswith("]"):
                 finish_term()
                 current_id = None
                 alternate_ids = []
+                replaced_by = None
     finish_term()
     if not aliases:
         raise ValueError(f"no HPO identifiers were found in {obo_path}")

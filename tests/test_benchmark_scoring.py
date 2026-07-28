@@ -24,6 +24,12 @@ alt_id: HP:9000001
 [Term]
 id: HP:0000002
 name: Second
+
+[Term]
+id: HP:0000003
+name: obsolete Third
+is_obsolete: true
+replaced_by: HP:0000002
 """
 
 
@@ -55,6 +61,7 @@ def test_exact_set_scoring_normalizes_alt_ids_and_deduplicates(tmp_path: Path) -
     assert score.false_negative_ids == ["HP:0000002"]
     assert (score.tp, score.fp, score.fn) == (1, 1, 1)
     assert summarize(scores)["micro"]["f1"] == 0.5
+    assert aliases["HP:0000003"] == "HP:0000002"
 
 
 def test_benchmark_reports_are_byte_reproducible(tmp_path: Path) -> None:
@@ -121,6 +128,7 @@ def test_paired_inference_detects_consistent_improvement() -> None:
     result = paired_inference([0.1] * 30, seed=7, iterations=1_000)
     assert result["mean_difference_ci95_lower"] == 0.1
     assert result["one_sided_sign_flip_p"] < 0.05
+    assert result["two_sided_sign_flip_p"] < 0.05
 
 
 def test_stored_benchmark_reports_contain_no_credentials() -> None:

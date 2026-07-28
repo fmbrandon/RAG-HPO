@@ -5,13 +5,13 @@
     "current_scores_better": false
   },
   "current": {
-    "f1": 0.6407766990291263,
-    "fn": 207,
-    "fp": 126,
-    "macro_f1": 0.6390599531676451,
-    "precision": 0.7021276595744681,
-    "recall": 0.5892857142857143,
-    "tp": 297
+    "f1": 0.6450916936353829,
+    "fn": 205,
+    "fp": 124,
+    "macro_f1": 0.6448624223034475,
+    "precision": 0.706855791962175,
+    "recall": 0.5932539682539683,
+    "tp": 299
   },
   "current_model": "openai/gpt-oss-120b",
   "historical": {
@@ -26,11 +26,11 @@
   "historical_model": "LLaMa 4-Scout",
   "paired_inference": {
     "iterations": 100000,
-    "mean_difference": -0.016385464348281843,
-    "mean_difference_ci95_lower": -0.07974406984251167,
-    "mean_difference_ci95_upper": 0.048843995632798794,
-    "median_difference": -0.02883099185620197,
-    "one_sided_sign_flip_p": 0.6858331416685833,
+    "mean_difference": -0.010582995212479374,
+    "mean_difference_ci95_lower": -0.07422623306215846,
+    "mean_difference_ci95_upper": 0.05427381697842569,
+    "median_difference": -0.013553113553113616,
+    "one_sided_sign_flip_p": 0.6241637583624163,
     "seed": 20260728
   },
   "pairs": [
@@ -83,11 +83,11 @@
       "patient_id": "15"
     },
     {
-      "current_f1": 0.4,
-      "current_fn": 8,
-      "current_fp": 4,
-      "current_tp": 4,
-      "f1_difference": -0.0666666666666666,
+      "current_f1": 0.5,
+      "current_fn": 7,
+      "current_fp": 3,
+      "current_tp": 5,
+      "f1_difference": 0.03333333333333338,
       "historical_f1": 0.4666666666666666,
       "historical_fn": 5,
       "historical_fp": 11,
@@ -383,11 +383,11 @@
       "patient_id": "113"
     },
     {
-      "current_f1": 0.4444444444444445,
-      "current_fn": 7,
-      "current_fp": 8,
-      "current_tp": 6,
-      "f1_difference": -0.055555555555555525,
+      "current_f1": 0.5185185185185186,
+      "current_fn": 6,
+      "current_fp": 7,
+      "current_tp": 7,
+      "f1_difference": 0.0185185185185186,
       "historical_f1": 0.5,
       "historical_fn": 6,
       "historical_fp": 8,

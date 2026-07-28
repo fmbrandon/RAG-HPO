@@ -79,6 +79,40 @@ reproduces the paired bootstrap interval and sign-flip test. The raw sample
 notes and provider predictions are deliberately kept outside the repository.
 
 The result does not show an accuracy improvement over historical LLaMa
-4-Scout: micro F1 was 0.6408 versus 0.6653, macro F1 was 0.6391 versus 0.6554,
+4-Scout: micro F1 was 0.6451 versus 0.6653, macro F1 was 0.6449 versus 0.6554,
 and the paired 95% interval included zero. See [VALIDATION.md](../VALIDATION.md)
 for the interpretation and retry record.
+
+## Accuracy investigation
+
+The checked-in investigation tools keep production annotation behavior
+unchanged. They:
+
+- trace each exact-set false negative through extraction, category assignment,
+  candidate retrieval, and final mapping;
+- compare exact scoring with one-to-one parent/child sensitivity scoring;
+- compare official HPO snapshots and hash every ontology/vector input;
+- reconstruct the original lineage-expanded 245,916-row vector corpus;
+- lock an untouched confirmation cohort before any additional live inference;
+- generate note-level ledgers and a blinded review packet only in the private
+  audit-artifact directory.
+
+Run the offline discovery diagnostics with `diagnose_pipeline.py`,
+`compare_ontologies.py`, `compare_vector_snapshots.py`, and
+`compare_retrieval_policies.py`. The sanitized outputs live under `results/`;
+the detailed rows deliberately remain outside Git.
+
+`audit_reference_quality.py` must be reviewed before interpreting a complete
+CSC benchmark. Six source cells contain two comma-separated HPO IDs. The
+strict scorer treats each cell as one literal identifier, while
+`score_reference_sensitivity.py` reports alternative-ID and all-required
+bounds. The source file is never rewritten automatically because the workbook
+does not say which interpretation is intended.
+
+The 30-case cohort is discovery-only. The confirmation manifest contains all
+remaining eligible cases and a predeclared 20-case repeat subset. Do not tune
+prompts, thresholds, or candidate counts against those confirmation results.
+The locked 82-case confirmation found rebuild micro F1 0.6534 versus
+historical 0.7002. The paired F1 interval excluded zero in the negative
+direction; see `results/csc-confirmation-82-analysis.json` and
+[the investigation report](../RAG-HPO_ACCURACY_INVESTIGATION.md).

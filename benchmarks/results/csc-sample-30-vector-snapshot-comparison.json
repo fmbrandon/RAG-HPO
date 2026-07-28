@@ -1,0 +1,67 @@
+{
+  "controlled_factors": {
+    "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+    "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+    "metadata_rule": "current label, synonym, and HPO_addons construction",
+    "query_text": "manual HPO description"
+  },
+  "interpretation_limit": "This is a retrieval-coverage ablation. It does not include live extraction or final language-model mapping.",
+  "reference_count": 504,
+  "schema_version": "1.0",
+  "snapshots": {
+    "benchmark-2025-05-06": {
+      "all_reference_recall": {
+        "raw8": 0.8690476190476191,
+        "unique16": 0.9285714285714286,
+        "unique32": 0.9523809523809523,
+        "unique8": 0.8928571428571429
+      },
+      "false_negative_count": 205,
+      "false_negative_recall": {
+        "raw8": 0.7121951219512195,
+        "unique16": 0.8390243902439024,
+        "unique32": 0.8975609756097561,
+        "unique8": 0.7609756097560976
+      },
+      "metadata_count": 45448,
+      "ontology_sha256": "ba2c34c78978a4df2d0d4e7af9ec28eade3c8f38a7c1f4d75d90d6ae87964d84",
+      "vector_manifest_sha256": "456daed4d9bfeb15cc12ad033c9fb6757ddf3d630cf001f8718001323e2a0df9"
+    },
+    "current-2026-06-23": {
+      "all_reference_recall": {
+        "raw8": 0.8670634920634921,
+        "unique16": 0.9285714285714286,
+        "unique32": 0.9523809523809523,
+        "unique8": 0.8908730158730159
+      },
+      "false_negative_count": 205,
+      "false_negative_recall": {
+        "raw8": 0.7073170731707317,
+        "unique16": 0.8390243902439024,
+        "unique32": 0.8975609756097561,
+        "unique8": 0.7560975609756098
+      },
+      "metadata_count": 48444,
+      "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+      "vector_manifest_sha256": "7597671887574360eb737f6c8e43b9fdb433734f8c13ce4c72da828891ecbac2"
+    },
+    "original-code-era-2024-12-12": {
+      "all_reference_recall": {
+        "raw8": 0.8690476190476191,
+        "unique16": 0.9285714285714286,
+        "unique32": 0.9523809523809523,
+        "unique8": 0.8928571428571429
+      },
+      "false_negative_count": 205,
+      "false_negative_recall": {
+        "raw8": 0.7121951219512195,
+        "unique16": 0.8390243902439024,
+        "unique32": 0.8975609756097561,
+        "unique8": 0.7609756097560976
+      },
+      "metadata_count": 44960,
+      "ontology_sha256": "85c71dac3c11100e03ea0754089b9424fe230953c6e182fa6b6edb65749d167c",
+      "vector_manifest_sha256": "1ebcaa7dc2e98959bba5b1cfe94e159b05868118ef461992703028e6fa70a989"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "compound_ids_are_all_required": {
+    "case_count": 30,
+    "macro": {
+      "f1": 0.6448624223034475,
+      "precision": 0.717419522198934,
+      "recall": 0.6068340480182586
+    },
+    "micro": {
+      "f1": 0.6450916936353829,
+      "fn": 205,
+      "fp": 124,
+      "precision": 0.706855791962175,
+      "recall": 0.5932539682539683,
+      "tp": 299
+    }
+  },
+  "compound_ids_are_alternatives": {
+    "case_count": 30,
+    "micro": {
+      "f1": 0.6450916936353829,
+      "fn": 205,
+      "fp": 124,
+      "precision": 0.706855791962175,
+      "recall": 0.5932539682539683,
+      "tp": 299
+    }
+  },
+  "policy_note": "The source does not say which interpretation is correct. The strict policy is reproducible but creates impossible IDs; alternatives and all-required are sensitivity bounds pending lab adjudication.",
+  "provenance": {
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "predictions_sha256": "a95a4df49a625a2cb97d76c7b4579329303124315546772d942beda7d3d56d78",
+    "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a",
+    "selection_manifest_sha256": "c6e99fd048a93e75e38417ba35f24daee751855da43bddeb4ce2543fb0f2d379"
+  },
+  "schema_version": "1.0",
+  "strict_unsplit_cells": {
+    "case_count": 30,
+    "macro": {
+      "f1": 0.6448624223034475,
+      "precision": 0.717419522198934,
+      "recall": 0.6068340480182586
+    },
+    "micro": {
+      "f1": 0.6450916936353829,
+      "fn": 205,
+      "fp": 124,
+      "precision": 0.706855791962175,
+      "recall": 0.5932539682539683,
+      "tp": 299
+    }
+  }
+}

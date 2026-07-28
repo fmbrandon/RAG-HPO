@@ -1,0 +1,246 @@
+{
+  "candidate_retrieval": {
+    "distinct_ids_in_current_raw_top8": {
+      "distribution": {
+        "1": 23,
+        "2": 57,
+        "3": 157,
+        "4": 259,
+        "5": 354,
+        "6": 433,
+        "7": 439,
+        "8": 206
+      },
+      "maximum": 8,
+      "median": 6.0,
+      "minimum": 1,
+      "observation_count": 1928
+    },
+    "distinct_ids_within_0_02_of_top_score": {
+      "distribution": {
+        "1": 1395,
+        "2": 328,
+        "3": 126,
+        "4": 49,
+        "5": 22,
+        "6": 5,
+        "7": 2,
+        "8": 1
+      },
+      "maximum": 8,
+      "median": 1.0,
+      "minimum": 1
+    },
+    "manual_description_oracle_hits": {
+      "distinct_16": 1210,
+      "distinct_32": 1229,
+      "distinct_64": 1249,
+      "distinct_8": 1173,
+      "raw_1": 950,
+      "raw_8": 1145
+    },
+    "manual_description_oracle_recall": {
+      "distinct_16": 0.9416342412451362,
+      "distinct_32": 0.9564202334630351,
+      "distinct_64": 0.9719844357976654,
+      "distinct_8": 0.91284046692607,
+      "raw_1": 0.7392996108949417,
+      "raw_8": 0.8910505836575876
+    },
+    "reference_count": 1285,
+    "selected_prediction_margins": {
+      "false_positive": {
+        "count": 335,
+        "mean": 0.05113757910447761,
+        "median": 0.031597
+      },
+      "true_positive": {
+        "count": 786,
+        "mean": 0.11561135877862594,
+        "median": 0.09531400000000001
+      }
+    },
+    "selected_prediction_scores": {
+      "false_positive": {
+        "count": 335,
+        "mean": 0.6268648208955224,
+        "median": 0.604539
+      },
+      "true_positive": {
+        "count": 786,
+        "mean": 0.8067456526717557,
+        "median": 0.827988
+      }
+    }
+  },
+  "cohort": {
+    "case_count": 82,
+    "selected_case_ids": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "16",
+      "17",
+      "18",
+      "21",
+      "23",
+      "24",
+      "26",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "34",
+      "35",
+      "38",
+      "39",
+      "41",
+      "42",
+      "43",
+      "45",
+      "46",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "54",
+      "55",
+      "56",
+      "57",
+      "58",
+      "59",
+      "60",
+      "62",
+      "66",
+      "67",
+      "69",
+      "70",
+      "71",
+      "72",
+      "73",
+      "74",
+      "76",
+      "78",
+      "81",
+      "82",
+      "83",
+      "84",
+      "85",
+      "87",
+      "88",
+      "91",
+      "92",
+      "93",
+      "94",
+      "95",
+      "97",
+      "98",
+      "100",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "114",
+      "115"
+    ],
+    "selection_manifest_sha256": "d9e58aec2b4aadd1ca0b533dccd625e1c6f8a2828e250e645822aa5c2af4b5fa"
+  },
+  "false_negative_stage_counts": {
+    "absent_extraction": 93,
+    "embedding_retrieval_miss": 50,
+    "exact_scoring_disagreement": 157,
+    "excluded_category": 17,
+    "mapper_choice_or_rejection": 91,
+    "retrieval_breadth": 91
+  },
+  "false_positive_class_counts": {
+    "greater_specificity": 77,
+    "lesser_specificity": 46,
+    "related_sibling": 51,
+    "unresolved_possible_manual_omission": 103,
+    "wrong_mapping": 58
+  },
+  "hierarchy_sensitivity": [
+    {
+      "f1": 0.7140482128013299,
+      "fn": 426,
+      "fp": 262,
+      "matched_relation_counts": {
+        "exact": 786,
+        "predicted_ancestor": 28,
+        "predicted_descendant": 45
+      },
+      "max_parent_child_distance": 1,
+      "precision": 0.7662801070472792,
+      "recall": 0.6684824902723735,
+      "tp": 859
+    },
+    {
+      "f1": 0.7273482959268496,
+      "fn": 410,
+      "fp": 246,
+      "matched_relation_counts": {
+        "exact": 786,
+        "predicted_ancestor": 33,
+        "predicted_descendant": 56
+      },
+      "max_parent_child_distance": 2,
+      "precision": 0.7805530776092774,
+      "recall": 0.6809338521400778,
+      "tp": 875
+    }
+  ],
+  "limitations": [
+    "Extraction-to-reference alignment is heuristic until lab adjudication.",
+    "Historical workbook contains counts but not historical predicted IDs.",
+    "Hierarchy sensitivity does not establish clinical equivalence."
+  ],
+  "private_artifacts": {
+    "blinded_review_rows": 232,
+    "note": "Stored outside Git; paths and note text are intentionally omitted.",
+    "stage_error_ledger_rows": 2406
+  },
+  "provenance": {
+    "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+    "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+    "input_sha256": "794d0d6c0247a72c98b65457f98b5ce4d142cb8876a0ab26db2717b193f2e6ed",
+    "ontology_data_version": "hp/releases/2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "predictions_sha256": "a87bf15cc3f4fae3705fa6eda4a0ffe9424013f16e534630ed1b2549bf148e23",
+    "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a",
+    "vector_manifest_sha256": "7597671887574360eb737f6c8e43b9fdb433734f8c13ce4c72da828891ecbac2"
+  },
+  "schema_version": "1.0",
+  "strict_exact_set": {
+    "case_count": 82,
+    "macro": {
+      "f1": 0.6468672059516709,
+      "precision": 0.6849881272695499,
+      "recall": 0.6258602695343121
+    },
+    "micro": {
+      "f1": 0.6533665835411472,
+      "fn": 499,
+      "fp": 335,
+      "precision": 0.7011596788581623,
+      "recall": 0.6116731517509728,
+      "tp": 786
+    }
+  }
+}

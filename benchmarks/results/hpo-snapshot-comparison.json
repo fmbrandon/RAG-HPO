@@ -1,0 +1,105 @@
+{
+  "baseline_snapshot": "current-2026-06-23",
+  "benchmark_id_count": 1316,
+  "changes_from_baseline": {
+    "benchmark-and-count-match-2025-05-06": {
+      "definition_changed": 55,
+      "label_changed": 25,
+      "normalized_id_changed": 2,
+      "parents_changed": 39,
+      "status_changed": 6,
+      "synonyms_changed": 58
+    },
+    "original-code-era-2024-12-12": {
+      "definition_changed": 61,
+      "label_changed": 33,
+      "normalized_id_changed": 3,
+      "parents_changed": 44,
+      "status_changed": 8,
+      "synonyms_changed": 76
+    }
+  },
+  "private_detail": {
+    "note": "Full labels, definitions, synonyms, and parents are outside Git.",
+    "row_count": 3948
+  },
+  "schema_version": "1.0",
+  "snapshots": {
+    "benchmark-and-count-match-2025-05-06": {
+      "benchmark_id_status": {
+        "current": 1299,
+        "missing": 9,
+        "obsolete_with_replacement": 8
+      },
+      "data_version": "hp/releases/2025-05-06",
+      "lexical_ambiguity": {
+        "ambiguous_id_assignments": 2,
+        "ambiguous_phrase_count": 1,
+        "unique_normalized_phrases": 41920
+      },
+      "prediction_id_status": {
+        "current": 374,
+        "missing": 3,
+        "obsolete_with_replacement": 2
+      },
+      "reference_id_status": {
+        "current": 1207,
+        "missing": 6,
+        "obsolete_with_replacement": 6
+      },
+      "sha256": "ba2c34c78978a4df2d0d4e7af9ec28eade3c8f38a7c1f4d75d90d6ae87964d84",
+      "term_count": 19650
+    },
+    "current-2026-06-23": {
+      "benchmark_id_status": {
+        "current": 1299,
+        "missing": 6,
+        "obsolete_with_replacement": 10,
+        "obsolete_without_replacement": 1
+      },
+      "data_version": "hp/releases/2026-06-23",
+      "lexical_ambiguity": {
+        "ambiguous_id_assignments": 2,
+        "ambiguous_phrase_count": 1,
+        "unique_normalized_phrases": 44811
+      },
+      "prediction_id_status": {
+        "current": 377,
+        "obsolete_with_replacement": 2
+      },
+      "reference_id_status": {
+        "current": 1204,
+        "missing": 6,
+        "obsolete_with_replacement": 8,
+        "obsolete_without_replacement": 1
+      },
+      "sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+      "term_count": 20413
+    },
+    "original-code-era-2024-12-12": {
+      "benchmark_id_status": {
+        "current": 1299,
+        "missing": 10,
+        "obsolete_with_replacement": 7
+      },
+      "data_version": "hp/releases/2024-12-12",
+      "lexical_ambiguity": {
+        "ambiguous_id_assignments": 2,
+        "ambiguous_phrase_count": 1,
+        "unique_normalized_phrases": 41454
+      },
+      "prediction_id_status": {
+        "current": 373,
+        "missing": 4,
+        "obsolete_with_replacement": 2
+      },
+      "reference_id_status": {
+        "current": 1208,
+        "missing": 6,
+        "obsolete_with_replacement": 5
+      },
+      "sha256": "85c71dac3c11100e03ea0754089b9424fe230953c6e182fa6b6edb65749d167c",
+      "term_count": 19475
+    }
+  }
+}

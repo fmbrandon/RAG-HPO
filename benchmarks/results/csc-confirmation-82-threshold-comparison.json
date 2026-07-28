@@ -1,0 +1,58 @@
+{
+  "baseline": {
+    "label": "current",
+    "report_sha256": "d2c57cb044f4787858b9e6fee11dbe8aea6615e5a6f897b73b098997b661eb10",
+    "summary": {
+      "case_count": 82,
+      "macro": {
+        "f1": 0.6468672059516709,
+        "precision": 0.6849881272695499,
+        "recall": 0.6258602695343121
+      },
+      "micro": {
+        "f1": 0.6533665835411472,
+        "fn": 499,
+        "fp": 335,
+        "precision": 0.7011596788581623,
+        "recall": 0.6116731517509728,
+        "tp": 786
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "holm_adjusted_one_sided_p": 0.2751072489275107,
+      "label": "threshold-0.42",
+      "paired_f1_vs_baseline": {
+        "iterations": 100000,
+        "mean_difference": 0.0020210278891527192,
+        "mean_difference_ci95_lower": -0.004463677380121664,
+        "mean_difference_ci95_upper": 0.008482238863565016,
+        "median_difference": 0.0,
+        "one_sided_lower_sign_flip_p": 0.7249027509724902,
+        "one_sided_sign_flip_p": 0.2751072489275107,
+        "seed": 20260728,
+        "two_sided_sign_flip_p": 0.5501944980550194
+      },
+      "report_sha256": "404dcf34a8d02adc517ff5ee871ecaaff873fb595489150ba8d261f68b101818",
+      "summary": {
+        "case_count": 82,
+        "macro": {
+          "f1": 0.6488882338408235,
+          "precision": 0.7031199394301599,
+          "recall": 0.615404336578379
+        },
+        "micro": {
+          "f1": 0.6539923954372623,
+          "fn": 511,
+          "fp": 308,
+          "precision": 0.7153419593345656,
+          "recall": 0.6023346303501945,
+          "tp": 774
+        }
+      }
+    }
+  ],
+  "criterion": "Exploratory improvement requires a positive paired mean-F1 interval and Holm-adjusted one-sided p below 0.05. Confirmation remains separate.",
+  "schema_version": "1.0"
+}

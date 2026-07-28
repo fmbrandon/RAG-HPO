@@ -1,0 +1,20 @@
+{
+  "collapsed_entry_count": 42384,
+  "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+  "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+  "expanded_entry_count": 245916,
+  "expanded_source_counts": {
+    "hpo-label": 95731,
+    "hpo-synonym": 150185
+  },
+  "ontology_data_version": "hp/releases/2025-05-06",
+  "ontology_sha256": "ba2c34c78978a4df2d0d4e7af9ec28eade3c8f38a7c1f4d75d90d6ae87964d84",
+  "private_artifact_hashes": {
+    "metadata_sha256": "0e2838155e64ea4a93021372774153c70d1411a4ccc9646282ae413ed47c1080",
+    "vectors_sha256": "94edb98972048cb9498e86a745edc01932689f31edc692a45a33657764573d80"
+  },
+  "reconstruction_note": "Each label or synonym is repeated once per root-to-term lineage path, matching the original notebook's 245,916-row construction. Identical vectors are collapsed with repeat_count for efficient retrieval simulation.",
+  "schema_version": "1.0",
+  "term_count": 19650,
+  "unique_phrase_count": 42370
+}

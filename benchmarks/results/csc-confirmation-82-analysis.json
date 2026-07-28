@@ -1,0 +1,149 @@
+{
+  "combined_discovery_and_confirmation": {
+    "case_count": 112,
+    "current_descriptive": {
+      "f1": 0.6510651065106511,
+      "fn": 704,
+      "fp": 459,
+      "macro_f1": 0.646330210331611,
+      "macro_precision": 0.6936751080542064,
+      "macro_recall": 0.6207639601996549,
+      "precision": 0.7027202072538861,
+      "recall": 0.606484069312465,
+      "tp": 1085
+    },
+    "historical_descriptive": {
+      "f1": 0.6906593406593406,
+      "fn": 537,
+      "fp": 589,
+      "macro_f1": 0.6835160753697075,
+      "macro_precision": 0.6767961251584914,
+      "macro_recall": 0.7135984910333855,
+      "precision": 0.680931744312026,
+      "recall": 0.7006688963210702,
+      "tp": 1257
+    },
+    "note": "Descriptive only: the discovery cohort was used to form hypotheses and is not part of confirmatory inference."
+  },
+  "confirmation_case_count": 82,
+  "current": {
+    "f1": 0.6533665835411472,
+    "fn": 499,
+    "fp": 335,
+    "macro_f1": 0.6468672059516709,
+    "macro_precision": 0.6849881272695499,
+    "macro_recall": 0.6258602695343121,
+    "precision": 0.7011596788581623,
+    "recall": 0.6116731517509728,
+    "tp": 786
+  },
+  "current_bootstrap_ci95": {
+    "macro_f1": {
+      "lower": 0.6110427759975203,
+      "upper": 0.6820603829657994
+    },
+    "macro_precision": {
+      "lower": 0.6525982879886711,
+      "upper": 0.7167866070988383
+    },
+    "macro_recall": {
+      "lower": 0.5845544385067831,
+      "upper": 0.6671730333192633
+    },
+    "micro_f1": {
+      "lower": 0.6170659941151745,
+      "upper": 0.6882000016697766
+    },
+    "micro_precision": {
+      "lower": 0.6681071737251513,
+      "upper": 0.733273882254275
+    },
+    "micro_recall": {
+      "lower": 0.5690652290144359,
+      "upper": 0.6532387250912234
+    }
+  },
+  "historical": {
+    "f1": 0.7001890359168241,
+    "fn": 364,
+    "fp": 429,
+    "macro_f1": 0.6937858282430418,
+    "macro_precision": 0.6821722423731689,
+    "macro_recall": 0.7263810306133511,
+    "precision": 0.6833948339483394,
+    "recall": 0.7178294573643411,
+    "tp": 926
+  },
+  "limitations": [
+    "Historical per-case counts do not reveal the historical predicted IDs.",
+    "The deprecated historical model cannot be rerun under identical conditions.",
+    "Provider temperature zero does not guarantee bitwise deterministic inference."
+  ],
+  "metric_shift_arithmetic": {
+    "false_negative_difference": 135,
+    "false_positive_difference": -94,
+    "predicted_positive_difference": -234,
+    "true_positive_difference": -140
+  },
+  "paired_case_inference": [
+    {
+      "holm_adjusted_two_sided_p": 0.8814511854881452,
+      "iterations": 100000,
+      "mean_difference": 0.0028158848963810773,
+      "mean_difference_ci95_lower": -0.03377898938692797,
+      "mean_difference_ci95_upper": 0.03995741765815742,
+      "median_difference": 0.005050505050505083,
+      "metric": "precision",
+      "one_sided_lower_sign_flip_p": 0.5593144068559315,
+      "one_sided_sign_flip_p": 0.4406955930440696,
+      "seed": 20260728,
+      "two_sided_sign_flip_p": 0.8814511854881452
+    },
+    {
+      "holm_adjusted_two_sided_p": 2.999970000299997e-05,
+      "iterations": 100000,
+      "mean_difference": -0.1005207610790391,
+      "mean_difference_ci95_lower": -0.13955768947351055,
+      "mean_difference_ci95_upper": -0.06247082186527476,
+      "median_difference": -0.09307359307359309,
+      "metric": "recall",
+      "one_sided_lower_sign_flip_p": 9.99990000099999e-06,
+      "one_sided_sign_flip_p": 1.0,
+      "seed": 20260728,
+      "two_sided_sign_flip_p": 9.99990000099999e-06
+    },
+    {
+      "holm_adjusted_two_sided_p": 0.02295977040229598,
+      "iterations": 100000,
+      "mean_difference": -0.04691862229137092,
+      "mean_difference_ci95_lower": -0.08267511287191988,
+      "mean_difference_ci95_upper": -0.011554530991430867,
+      "median_difference": -0.04607014430486145,
+      "metric": "f1",
+      "one_sided_lower_sign_flip_p": 0.0062599374006259935,
+      "one_sided_sign_flip_p": 0.993750062499375,
+      "seed": 20260728,
+      "two_sided_sign_flip_p": 0.01147988520114799
+    }
+  ],
+  "provenance": {
+    "cohort_manifest_sha256": "d9e58aec2b4aadd1ca0b533dccd625e1c6f8a2828e250e645822aa5c2af4b5fa",
+    "current_report_sha256": "d2c57cb044f4787858b9e6fee11dbe8aea6615e5a6f897b73b098997b661eb10",
+    "discovery_report_sha256": "b8fed0c400fedac89f7a3dbfd613730d0d158950f9fa933add56676143642fe3",
+    "historical_metrics_sha256": "c86be5af92b66104cc5c1146db04d14e836e8e535ef34653a9f38e7254ab7192"
+  },
+  "repeat_variability": {
+    "case_count": 20,
+    "maximum_within_case_f1_range": 0.17499999999999982,
+    "mean_pairwise_prediction_jaccard": 0.8005577000977763,
+    "mean_within_case_f1_range": 0.0697186038053099,
+    "mean_within_case_f1_standard_deviation": 0.03758251590438542,
+    "repeat_count": 3,
+    "report_hashes": [
+      "9a2d8fdbf58d4f13c8900f6b6ce9625ded938032e4903b8703a0fdc862ffe943",
+      "ef6129f7e51a9b8834d4239a2648c4ad32551e2afbc6d86f3ff3e0914ca69cdd",
+      "e8d5ea5af59fedd3d0d86283ae2f7a99204fc5e77b8fbec933d5877a84360909"
+    ]
+  },
+  "schema_version": "1.0"
+}

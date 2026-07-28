@@ -1,0 +1,31 @@
+{
+  "entry_identifier_status_counts": {
+    "current": 47775,
+    "obsolete_with_replacement": 585,
+    "obsolete_without_replacement": 84
+  },
+  "exact_cross_id_phrase_ambiguity": {
+    "entry_assignments": 26,
+    "phrase_count": 13
+  },
+  "metadata_entry_count": 48444,
+  "provenance": {
+    "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+    "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+    "ontology_data_version": "hp/releases/2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "vector_manifest_sha256": "7597671887574360eb737f6c8e43b9fdb433734f8c13ce4c72da828891ecbac2"
+  },
+  "risk": "Obsolete labels and add-on phrases remain retrievable and can consume raw top-k positions before candidates are deduplicated by HPO ID.",
+  "schema_version": "1.0",
+  "source_counts": {
+    "hpo-addon": 3047,
+    "hpo-label": 20413,
+    "hpo-synonym": 24984
+  },
+  "unique_identifier_status_counts": {
+    "current": 19836,
+    "obsolete_with_replacement": 496,
+    "obsolete_without_replacement": 81
+  }
+}

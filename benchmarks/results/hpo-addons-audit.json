@@ -1,0 +1,18 @@
+{
+  "conflicting_phrase_assignments": [],
+  "identifier_status_counts": {
+    "current": 2995,
+    "obsolete_with_replacement": 81,
+    "obsolete_without_replacement": 3
+  },
+  "provenance": {
+    "addons_sha256": "f5a62a07ff66b4def2de5a6c86b90bf6c6ee6f846abd6f2e26ab0c01a9fe915c",
+    "ontology_data_version": "hp/releases/2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b"
+  },
+  "risk": "The current builder accepts only IDs present exactly in the ontology and does not automatically retarget add-on rows through replaced_by mappings.",
+  "row_count": 3079,
+  "schema_version": "1.0",
+  "silently_skipped_by_current_builder": [],
+  "unique_normalized_phrase_count": 3079
+}

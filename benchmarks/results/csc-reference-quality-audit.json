@@ -1,0 +1,104 @@
+{
+  "cells_without_hpo_id": [],
+  "compound_id_cells": {
+    "affected_patient_ids": [
+      "8",
+      "9",
+      "30",
+      "100"
+    ],
+    "count": 6,
+    "rows": [
+      {
+        "candidate_ids": [
+          "HP:0002094",
+          "HP:0002098"
+        ],
+        "patient_id": "8",
+        "raw_value": "HP:0002094, HP:0002098",
+        "row": 115
+      },
+      {
+        "candidate_ids": [
+          "HP:0006596",
+          "HP:0000765"
+        ],
+        "patient_id": "9",
+        "raw_value": "HP:0006596, HP:0000765",
+        "row": 138
+      },
+      {
+        "candidate_ids": [
+          "HP:0011138",
+          "HP:0025276"
+        ],
+        "patient_id": "9",
+        "raw_value": "HP:0011138, HP:0025276",
+        "row": 140
+      },
+      {
+        "candidate_ids": [
+          "HP:0100324",
+          "HP:0012344"
+        ],
+        "patient_id": "9",
+        "raw_value": "HP:0100324, HP:0012344",
+        "row": 146
+      },
+      {
+        "candidate_ids": [
+          "HP:0011227",
+          "HP:0003565"
+        ],
+        "patient_id": "30",
+        "raw_value": "HP:0011227, HP:0003565",
+        "row": 380
+      },
+      {
+        "candidate_ids": [
+          "HP:0001388",
+          "HP:0001382"
+        ],
+        "patient_id": "100",
+        "raw_value": "HP:0001388, HP:0001382",
+        "row": 1526
+      }
+    ],
+    "scoring_risk": "The exact scorer treats each unsplit cell as one impossible identifier. The source does not state whether the IDs are alternatives or both required."
+  },
+  "duplicate_patient_id_pairs": [
+    {
+      "count": 2,
+      "hpo_id": "HP:0012344",
+      "patient_id": "9"
+    }
+  ],
+  "identifier_status_counts": {
+    "current": 1779,
+    "obsolete_with_replacement": 15,
+    "obsolete_without_replacement": 1
+  },
+  "missing_ids": [],
+  "obsolete_ids_with_replacement": [
+    "HP:0000735",
+    "HP:0001388",
+    "HP:0002355",
+    "HP:0005407",
+    "HP:0008826",
+    "HP:0030214",
+    "HP:0032172",
+    "HP:0045080"
+  ],
+  "obsolete_ids_without_replacement": [
+    "HP:0025237"
+  ],
+  "parsed_identifier_count": 1795,
+  "provenance": {
+    "ontology_data_version": "hp/releases/2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a"
+  },
+  "recommended_policy": "Keep the source unchanged. Obtain lab adjudication for compound cells, then encode each as either an alternative-ID group or separate required annotations.",
+  "reference_row_count": 1789,
+  "schema_version": "1.0"
+}

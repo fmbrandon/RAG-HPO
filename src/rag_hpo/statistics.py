@@ -26,11 +26,15 @@ def paired_inference(
         statistics.fmean(rng.choices(differences, k=len(differences))) for _ in range(iterations)
     )
     at_least_observed = 0
+    at_most_observed = 0
+    at_least_absolute = 0
     for _ in range(iterations):
         permuted = statistics.fmean(
             value if rng.getrandbits(1) else -value for value in differences
         )
         at_least_observed += permuted >= observed
+        at_most_observed += permuted <= observed
+        at_least_absolute += abs(permuted) >= abs(observed)
     return {
         "iterations": iterations,
         "mean_difference": observed,
@@ -38,5 +42,7 @@ def paired_inference(
         "mean_difference_ci95_lower": _quantile(bootstrapped, 0.025),
         "mean_difference_ci95_upper": _quantile(bootstrapped, 0.975),
         "one_sided_sign_flip_p": (at_least_observed + 1) / (iterations + 1),
+        "one_sided_lower_sign_flip_p": (at_most_observed + 1) / (iterations + 1),
+        "two_sided_sign_flip_p": (at_least_absolute + 1) / (iterations + 1),
         "seed": seed,
     }

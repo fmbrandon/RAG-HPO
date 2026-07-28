@@ -1,0 +1,192 @@
+{
+  "candidate_retrieval": {
+    "distinct_ids_in_current_raw_top8": {
+      "distribution": {
+        "1": 5,
+        "2": 26,
+        "3": 58,
+        "4": 94,
+        "5": 163,
+        "6": 154,
+        "7": 137,
+        "8": 67
+      },
+      "maximum": 8,
+      "median": 6.0,
+      "minimum": 1,
+      "observation_count": 704
+    },
+    "distinct_ids_within_0_02_of_top_score": {
+      "distribution": {
+        "1": 507,
+        "2": 117,
+        "3": 49,
+        "4": 23,
+        "5": 6,
+        "6": 2
+      },
+      "maximum": 6,
+      "median": 1.0,
+      "minimum": 1
+    },
+    "manual_description_oracle_hits": {
+      "distinct_16": 460,
+      "distinct_32": 472,
+      "distinct_64": 475,
+      "distinct_8": 442,
+      "raw_1": 362,
+      "raw_8": 430
+    },
+    "manual_description_oracle_recall": {
+      "distinct_16": 0.9126984126984127,
+      "distinct_32": 0.9365079365079365,
+      "distinct_64": 0.9424603174603174,
+      "distinct_8": 0.876984126984127,
+      "raw_1": 0.7182539682539683,
+      "raw_8": 0.8531746031746031
+    },
+    "reference_count": 504,
+    "selected_prediction_margins": {
+      "false_positive": {
+        "count": 124,
+        "mean": 0.048320080645161294,
+        "median": 0.0281105
+      },
+      "true_positive": {
+        "count": 299,
+        "mean": 0.10415519732441471,
+        "median": 0.075832
+      }
+    },
+    "selected_prediction_scores": {
+      "false_positive": {
+        "count": 124,
+        "mean": 0.6063452661290323,
+        "median": 0.5971695
+      },
+      "true_positive": {
+        "count": 299,
+        "mean": 0.801790220735786,
+        "median": 0.822772
+      }
+    }
+  },
+  "cohort": {
+    "case_count": 30,
+    "selected_case_ids": [
+      "1",
+      "6",
+      "14",
+      "15",
+      "19",
+      "20",
+      "27",
+      "33",
+      "36",
+      "37",
+      "40",
+      "47",
+      "53",
+      "61",
+      "63",
+      "64",
+      "65",
+      "68",
+      "75",
+      "77",
+      "79",
+      "80",
+      "86",
+      "90",
+      "96",
+      "99",
+      "101",
+      "102",
+      "113",
+      "116"
+    ],
+    "selection_manifest_sha256": "c6e99fd048a93e75e38417ba35f24daee751855da43bddeb4ce2543fb0f2d379"
+  },
+  "false_negative_stage_counts": {
+    "absent_extraction": 50,
+    "embedding_retrieval_miss": 23,
+    "exact_scoring_disagreement": 59,
+    "excluded_category": 11,
+    "mapper_choice_or_rejection": 27,
+    "retrieval_breadth": 35
+  },
+  "false_positive_class_counts": {
+    "greater_specificity": 26,
+    "lesser_specificity": 25,
+    "related_sibling": 11,
+    "unresolved_possible_manual_omission": 39,
+    "wrong_mapping": 23
+  },
+  "hierarchy_sensitivity": [
+    {
+      "f1": 0.7055016181229774,
+      "fn": 177,
+      "fp": 96,
+      "matched_relation_counts": {
+        "exact": 299,
+        "predicted_ancestor": 14,
+        "predicted_descendant": 14
+      },
+      "max_parent_child_distance": 1,
+      "precision": 0.7730496453900709,
+      "recall": 0.6488095238095238,
+      "tp": 327
+    },
+    {
+      "f1": 0.7076591154261057,
+      "fn": 176,
+      "fp": 95,
+      "matched_relation_counts": {
+        "exact": 299,
+        "predicted_ancestor": 15,
+        "predicted_descendant": 14
+      },
+      "max_parent_child_distance": 2,
+      "precision": 0.7754137115839244,
+      "recall": 0.6507936507936508,
+      "tp": 328
+    }
+  ],
+  "limitations": [
+    "Extraction-to-reference alignment is heuristic until lab adjudication.",
+    "Historical workbook contains counts but not historical predicted IDs.",
+    "Hierarchy sensitivity does not establish clinical equivalence."
+  ],
+  "private_artifacts": {
+    "blinded_review_rows": 85,
+    "note": "Stored outside Git; paths and note text are intentionally omitted.",
+    "stage_error_ledger_rows": 927
+  },
+  "provenance": {
+    "embedding_model": "pritamdeka/SapBERT-mnli-snli-scinli-scitail-mednli-stsb",
+    "embedding_revision": "ad34b857369884acb59a6e67f69008f533c8ca3e",
+    "input_sha256": "794d0d6c0247a72c98b65457f98b5ce4d142cb8876a0ab26db2717b193f2e6ed",
+    "ontology_data_version": "hp/releases/2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "predictions_sha256": "a95a4df49a625a2cb97d76c7b4579329303124315546772d942beda7d3d56d78",
+    "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a",
+    "vector_manifest_sha256": "7597671887574360eb737f6c8e43b9fdb433734f8c13ce4c72da828891ecbac2"
+  },
+  "schema_version": "1.0",
+  "strict_exact_set": {
+    "case_count": 30,
+    "macro": {
+      "f1": 0.6448624223034475,
+      "precision": 0.717419522198934,
+      "recall": 0.6068340480182586
+    },
+    "micro": {
+      "f1": 0.6450916936353829,
+      "fn": 205,
+      "fp": 124,
+      "precision": 0.706855791962175,
+      "recall": 0.5932539682539683,
+      "tp": 299
+    }
+  }
+}

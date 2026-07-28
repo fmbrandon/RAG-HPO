@@ -232,6 +232,11 @@ automatically approved for external transmission.
 Historical Premium, CSC, and GSC workbook calculations remain separately
 labeled. See [benchmarks/README.md](benchmarks/README.md).
 
+The locked accuracy investigation explains the rebuild's higher aggregate
+precision but lower recall and F1, including ontology-version, candidate
+retrieval, extraction, mapping, and scoring effects. See
+[RAG-HPO_ACCURACY_INVESTIGATION.md](RAG-HPO_ACCURACY_INVESTIGATION.md).
+
 ## Notebooks and development
 
 `RAG-HPO.ipynb` and `HPO_Vectorization.ipynb` are thin, network-free examples.
