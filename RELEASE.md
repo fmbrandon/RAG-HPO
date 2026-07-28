@@ -12,6 +12,10 @@ experimental and must not be described as validated until native runs exist.
      scripts/build_release_artifacts.sh
    ```
 
+   The script creates and removes its own temporary environment from the
+   hash-locked macOS Python 3.12 requirements, so audit-only packages in the
+   project workbench cannot contaminate the SBOM or license report.
+
 3. Verify `dist/release/SHA256SUMS`, vector-bundle metadata, provenance, SBOM,
    dependency audit, licenses, and regenerated historical metric arithmetic.
 4. Upload the candidate files for review only to the private personal

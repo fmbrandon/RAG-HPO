@@ -4,11 +4,27 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release_dir="${repo_root}/dist/release"
 vector_dir="${RAG_HPO_VECTOR_DIR:-}"
+bootstrap_python="${RAG_HPO_RELEASE_PYTHON:-python3.12}"
 
 if [[ -z "${vector_dir}" ]]; then
   printf 'RAG_HPO_VECTOR_DIR must point to a validated complete artifact.\n' >&2
   exit 2
 fi
+
+release_env="$(mktemp -d "${TMPDIR:-/tmp}/rag-hpo-release.XXXXXX")"
+cleanup() {
+  rm -rf -- "${release_env}"
+}
+trap cleanup EXIT
+
+"${bootstrap_python}" -m venv "${release_env}"
+release_python="${release_env}/bin/python"
+"${release_python}" -m pip install --upgrade pip
+"${release_python}" -m pip install \
+  --require-hashes \
+  -r "${repo_root}/requirements/macos-py312.txt"
+"${release_python}" -m pip install --no-deps -e "${repo_root}"
+export PATH="${release_env}/bin:${PATH}"
 
 mkdir -p \
   "${release_dir}/benchmarks" \
