@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use RAG-HPO, please cite the associated Genome Medicine article."
+title: "RAG-HPO"
+type: software
+version: 0.2.0
+license: MIT
+authors:
+  - family-names: Posey
+    given-names: Jennifer
+  - family-names: Garcia
+    given-names: Brandon
+doi: 10.1186/s13073-025-01521-w
+url: "https://github.com/PoseyPod/RAG-HPO"
+repository-code: "https://github.com/PoseyPod/RAG-HPO"

@@ -1,0 +1,23 @@
+name: Live Groq smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    environment: live-smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --require-hashes -r requirements/py312.txt
+      - run: python -m pip install --no-deps -e .
+      - name: Provider health check
+        env:
+          RAG_HPO_API_KEY: ${{ secrets.RAG_HPO_API_KEY }}
+        run: rag-hpo doctor --json
