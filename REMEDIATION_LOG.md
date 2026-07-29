@@ -223,6 +223,35 @@ Phase 3 validation performed:
   prompt record from secret scanning. Their flagged values are documented Git
   commit and SHA-256 identifiers; executable source and current prompts remain
   scanned.
+
+## 2026-07-29 — three-bin categorization and bounded-set scoring
+
+- Changed staged extraction to return source spans without assigning a
+  category. Native, FastHPOCR, first-pass, and selective audit spans merge
+  before categorization.
+- Reduced phenotype categories to Abnormal, Normal, and Family History.
+  Suspected, historical, resolved, and hypothetical status remains assertion
+  metadata; non-phenotype errors use a null category.
+- Added deterministic early routing for explicit normal/negated and
+  family-history findings, plus one consolidated whole-note final category
+  request for abnormal and ambiguous patient findings after mapping. Routing
+  is not serialized as a category, so each output finding receives one
+  definitive category.
+- Added telegraphic headings, bullets, observation predicates, lists,
+  measurements, and coordinated structures as selective second-pass cues.
+- Changed staged mapping to return a clinically bounded alternative set of at
+  most three supplied IDs. The full retrieval pool is retained in a separate
+  audit field.
+- Added one-to-one prediction-set/reference-set scoring. One intersecting ID
+  yields one true positive; unused alternatives are not false positives and a
+  single prediction cannot satisfy multiple reference findings.
+- Added optional held-out confidence calibration. Gold overlap is stored as a
+  binary calibration outcome, while runtime numeric confidence remains absent
+  unless the prompt and artifact hashes match the calibration file.
+- The cutoff selector maximizes recall subject to a frozen precision floor.
+  It supports a practical point-estimate criterion and a stricter Wilson 95%
+  lower-bound criterion; both are reported, and unseen evidence remains in
+  review rather than being rejected.
 - Added performance-blind subset selection stratified by note length and
   manual-reference count. The fixed seed is 20260728. The 30-case untouched
   CSC confirmation subset contains 446 references; the independent 30-case
@@ -231,8 +260,32 @@ Phase 3 validation performed:
 
 Validation performed so far:
 
-- Pytest: 117 tests passed with 85.10% branch-aware package coverage.
-- Ruff: passed for package, tests, and new benchmark tools.
+- Pytest: 146 tests passed with 85.86% branch-aware package coverage.
+- Ruff and mypy: passed for package, tests, and new benchmark tools.
+- Two synthetic live provider schema smokes were used as a gate; the corrected
+  run returned five nonduplicated findings without errors in four requests and
+  8,766 total provider tokens.
+
+Discovery evaluation:
+
+- Ran the fixed 30-case CSC discovery cohort once with prompt schema 1.4.
+  Malformed provider decisions initially caused 13 case-level failures.
+- Changed incomplete, duplicate, out-of-candidate, and unsplittable HTTP 400
+  decisions into explicit finding-level review flags. Out-of-candidate IDs are
+  discarded and can never be accepted.
+- Retried only the 13 failed cases, then only the single remaining failed case.
+  The assembled 30-case artifact has zero case-level errors. Across all
+  attempts it used 1,079 requests and 3,717,562 provider tokens; this is too
+  costly for routine use and is a measured limitation.
+- Strict candidate-set discovery metrics were:
+  - qualitative accepted policy: precision 0.6913, recall 0.5198, F1 0.5934;
+  - all mapped candidates: precision 0.6800, recall 0.6071, F1 0.6415;
+  - point-floor calibration: precision 0.7011, recall 0.6052, F1 0.6496.
+- The stricter Wilson-lower-bound policy produced precision 0.7722 but recall
+  0.2421. It is too conservative for the stated recall goal.
+- Because even the all-mapped discovery ceiling was only 0.6071 recall, no GSC
+  inference was run and no revised policy was promoted. Further token spend
+  would not validate a configuration that already failed its discovery gate.
 - Mypy: passed for all 28 package source files.
 - `pip check`: passed.
 - `pip-audit`: no known dependency vulnerabilities.

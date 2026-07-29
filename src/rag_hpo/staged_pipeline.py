@@ -23,6 +23,11 @@ from rag_hpo.artifacts import (
 )
 from rag_hpo.artifacts import SCHEMA_VERSION as ARTIFACT_SCHEMA_VERSION
 from rag_hpo.assertion import AssertionDecision, analyze_assertion
+from rag_hpo.calibration import (
+    STAGED_PIPELINE_SCHEMA_VERSION,
+    ConfidenceCalibration,
+    apply_calibration,
+)
 from rag_hpo.embeddings import EmbeddingBackend, create_backend
 from rag_hpo.export import export_results
 from rag_hpo.fasthpocr import FastHPORecognizer
@@ -32,10 +37,9 @@ from rag_hpo.models import (
     AnnotationResult,
     Candidate,
     Category,
-    MappingDecisionBatch,
-    PhenotypeExtraction,
-    SpanPhenotype,
-    SpanPhenotypeExtraction,
+    FinalCategoryDecisionBatch,
+    MappingSetDecisionBatch,
+    PhenotypeSpanExtraction,
 )
 from rag_hpo.pipeline import _short_error, hash_inputs
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
@@ -83,7 +87,7 @@ class Mention:
     phrase: str
     start: int
     end: int
-    category: Category
+    category: Category | None = None
     methods: set[str] = field(default_factory=set)
     recognizer_ids: set[str] = field(default_factory=set)
 
@@ -104,6 +108,13 @@ _LIST_CUE = re.compile(r"[,;]|\b(?:and|with|including)\b", re.I)
 _MEASUREMENT_CUE = re.compile(
     r"\b(?:high|low|raised|reduced|decreased|increased|elevated|abnormal)\b|"
     r"\d+(?:\.\d+)?\s*(?:mg|g|mmol|µmol|cm|mm|kg|%|bpm|mmhg)\b",
+    re.I,
+)
+_STRUCTURAL_CUE = re.compile(
+    r"(?:^|\n)\s*(?:[-*•]|\d+[.)])\s+|"
+    r"\b(?:exam(?:ination)?|findings?|features?|phenotypes?|imaging|mri|ct|"
+    r"ultrasound|laboratory|labs?)\s*:|"
+    r"\b(?:showed|shows|revealed|demonstrated|noted|observed|presented with)\b",
     re.I,
 )
 MAPPING_BATCH_SIZE = 8
@@ -216,6 +227,7 @@ class StagedAnnotationPipeline:
         keep_raw_responses: bool,
         include_evidence_text: bool,
         offline: bool,
+        confidence_calibration: Path | None = None,
         backend: EmbeddingBackend | None = None,
         mapping_prompt: MappingPromptMode = MappingPromptMode.ZERO_SHOT,
     ) -> None:
@@ -279,6 +291,17 @@ class StagedAnnotationPipeline:
             else None
         )
         self.prompts = load_prompts()
+        self.calibration = (
+            ConfidenceCalibration.load(
+                confidence_calibration,
+                prompt_bundle_sha256=sha256_file(
+                    Path(__file__).parent / "data" / "system_prompts.json"
+                ),
+                artifact_manifest_sha256=sha256_file(self.vector_dir / "hpo_manifest.json"),
+            )
+            if confidence_calibration is not None
+            else None
+        )
         self._concepts = {
             concept.hp_id: concept for concept in self.registry.concepts if not concept.obsolete
         }
@@ -297,11 +320,15 @@ class StagedAnnotationPipeline:
             json.dumps(
                 {
                     "manifest": sha256_file(self.vector_dir / "hpo_manifest.json"),
+                    "pipeline_schema_version": STAGED_PIPELINE_SCHEMA_VERSION,
                     "mode": self.mode.value,
                     "distinct_limit": self.distinct_limit,
                     "model_enabled": self.model_enabled,
                     "mapping_prompt": self.mapping_prompt.value,
                     "prompts": sha256_file(Path(__file__).parent / "data" / "system_prompts.json"),
+                    "calibration": (
+                        self.calibration.identity if self.calibration is not None else None
+                    ),
                 },
                 sort_keys=True,
             ).encode("utf-8")
@@ -345,7 +372,7 @@ class StagedAnnotationPipeline:
                             AnnotationResult(
                                 patient_id=row.patient_id,
                                 phrase="",
-                                category=Category.OTHER,
+                                category=None,
                                 mapping_status="error",
                                 error_code=code,
                                 error_message=message,
@@ -421,6 +448,7 @@ class StagedAnnotationPipeline:
         manifest = {
             "schema_version": "1.0",
             "rag_hpo_version": __version__,
+            "pipeline_schema_version": STAGED_PIPELINE_SCHEMA_VERSION,
             "mode": self.mode.value,
             "mapping_prompt": self.mapping_prompt.value,
             "distinct_candidate_limit": self.distinct_limit,
@@ -431,6 +459,14 @@ class StagedAnnotationPipeline:
             "registry_sha256": self.registry_manifest.registry_sha256,
             "prompt_bundle_sha256": sha256_file(
                 Path(__file__).parent / "data" / "system_prompts.json"
+            ),
+            "confidence_calibration": (
+                {
+                    "identity": self.calibration.identity,
+                    "minimum_precision": self.calibration.minimum_precision,
+                }
+                if self.calibration is not None
+                else None
             ),
             "provider": (
                 provider_config.redacted()
@@ -449,6 +485,9 @@ class StagedAnnotationPipeline:
                 "mapping_temperature": 0.0,
                 "mapping_batch_size": MAPPING_BATCH_SIZE,
                 "mapping_prompt": self.mapping_prompt.value,
+                "final_categorization_temperature": 0.0,
+                "final_category_values": [value.value for value in Category],
+                "maximum_mapping_alternatives": 3,
                 "deterministic_candidate_order": True,
                 "provider_seed": "not-configured",
                 "quantization": "not-recorded",
@@ -526,7 +565,10 @@ class StagedAnnotationPipeline:
                 )
                 mentions.extend(second_mentions)
         merged = self._merge_mentions(mentions)
-        return self._map_mentions(row, row_index, merged)
+        return apply_calibration(
+            self._map_mentions(row, row_index, merged),
+            self.calibration,
+        )
 
     def _extract_with_strict_chunk_fallback(
         self,
@@ -544,7 +586,7 @@ class StagedAnnotationPipeline:
             extraction, raw = self.provider_request(
                 system_message=system_message,
                 user_message=primary_payload or note,
-                response_model=PhenotypeExtraction,
+                response_model=PhenotypeSpanExtraction,
                 temperature=temperature,
             )
             self._write_raw(row_index, stage, raw)
@@ -566,7 +608,7 @@ class StagedAnnotationPipeline:
             extraction, raw = self.provider_request(
                 system_message=system_message,
                 user_message=note[start:end],
-                response_model=PhenotypeExtraction,
+                response_model=PhenotypeSpanExtraction,
                 temperature=temperature,
             )
             self._write_raw(row_index, f"{stage}-chunk-{chunk_index:03d}", raw)
@@ -586,7 +628,6 @@ class StagedAnnotationPipeline:
                 phrase=value.phrase,
                 start=value.start_offset,
                 end=value.end_offset,
-                category=Category.ABNORMAL,
                 methods={"native"},
                 recognizer_ids=set(value.candidate_hpo_ids),
             )
@@ -598,7 +639,6 @@ class StagedAnnotationPipeline:
                     phrase=value.phrase,
                     start=value.start_offset,
                     end=value.end_offset,
-                    category=Category.ABNORMAL,
                     methods={"fasthpocr"},
                     recognizer_ids=set(
                         value.candidate_hpo_ids or ((value.hpo_id,) if value.hpo_id else ())
@@ -611,7 +651,7 @@ class StagedAnnotationPipeline:
     @staticmethod
     def _validated_extraction(
         note: str,
-        extraction: PhenotypeExtraction | SpanPhenotypeExtraction,
+        extraction: PhenotypeSpanExtraction,
         method: str,
         *,
         allowed_ranges: list[tuple[int, int]] | None = None,
@@ -658,21 +698,14 @@ class StagedAnnotationPipeline:
                         phrase=note[start:end],
                         start=start,
                         end=end,
-                        category=phenotype.category,
                         methods={method},
                     )
                 )
                 continue
-            if isinstance(phenotype, SpanPhenotype):
-                match = min(
-                    matches,
-                    key=lambda item: abs(item.start() - phenotype.start_offset),
-                )
-            else:
-                match = next(
-                    (item for item in matches if (item.start(), item.end()) not in used),
-                    matches[0],
-                )
+            match = next(
+                (item for item in matches if (item.start(), item.end()) not in used),
+                matches[0],
+            )
             start, end = match.start(), match.end()
             used.add((start, end))
             values.append(
@@ -680,7 +713,6 @@ class StagedAnnotationPipeline:
                     phrase=note[start:end],
                     start=start,
                     end=end,
-                    category=phenotype.category,
                     methods={method},
                 )
             )
@@ -721,7 +753,10 @@ class StagedAnnotationPipeline:
             measurement_gap = bool(_MEASUREMENT_CUE.search(sentence.text)) and not bool(
                 first_in_sentence
             )
-            if unmatched_recognizer or list_gap or measurement_gap:
+            structural_gap = bool(_STRUCTURAL_CUE.search(sentence.text)) and not bool(
+                first_in_sentence
+            )
+            if unmatched_recognizer or list_gap or measurement_gap or structural_gap:
                 targets.append(sentence)
         return targets
 
@@ -738,18 +773,33 @@ class StagedAnnotationPipeline:
             if existing is None:
                 merged[key] = mention
             else:
-                if any(method.startswith("model-pass") for method in mention.methods) and not any(
-                    method.startswith("model-pass") for method in existing.methods
-                ):
-                    existing.category = mention.category
                 existing.methods.update(mention.methods)
                 existing.recognizer_ids.update(mention.recognizer_ids)
+        values = list(merged.values())
+        suppressed: set[int] = set()
+        for broad_index, broad in enumerate(values):
+            nested = [
+                (narrow_index, narrow)
+                for narrow_index, narrow in enumerate(values)
+                if narrow_index != broad_index
+                and broad.start <= narrow.start
+                and broad.end >= narrow.end
+                and (broad.start, broad.end) != (narrow.start, narrow.end)
+                and normalize_phrase(narrow.phrase) in normalize_phrase(broad.phrase)
+            ]
+            # One nested phenotype is the same mention with added context
+            # ("possible scoliosis" versus "scoliosis"). Multiple nested spans
+            # can be a coordinated list and must remain separate.
+            if len(nested) == 1:
+                _narrow_index, narrow = nested[0]
+                narrow.methods.update(broad.methods)
+                narrow.recognizer_ids.update(broad.recognizer_ids)
+                suppressed.add(broad_index)
         return sorted(
-            merged.values(),
+            (value for index, value in enumerate(values) if index not in suppressed),
             key=lambda value: (
                 value.start,
                 value.end,
-                value.category.value,
                 normalize_phrase(value.phrase),
             ),
         )
@@ -769,14 +819,17 @@ class StagedAnnotationPipeline:
                 mention.start,
                 mention.end,
             )
-            if mention.category is not Category.ABNORMAL:
+            routing_category = self._routing_category(mention, assertion)
+            if routing_category is not Category.ABNORMAL:
+                mention.category = routing_category
                 results.append(
                     self._result(
                         row,
                         mention,
                         assertion,
                         mapping_status="not_mapped_category",
-                        review_status="review",
+                        review_status="accepted",
+                        category_confidence="high",
                     )
                 )
                 continue
@@ -812,7 +865,8 @@ class StagedAnnotationPipeline:
                         row,
                         mention,
                         assertion,
-                        candidate_ids=[value.hpo_id for value in candidates],
+                        candidate_ids=sorted(mention.recognizer_ids)[:3],
+                        retrieval_candidate_ids=[value.hpo_id for value in candidates],
                         mapping_status="no_candidate_fit",
                         confidence="low",
                         review_status="review",
@@ -822,15 +876,21 @@ class StagedAnnotationPipeline:
             abnormal.append((mention_id, mention, assertion, candidates))
 
         if not abnormal:
-            return results
+            return (
+                self._finalize_categories(row, row_index, self._deduplicate(results))
+                if self.model_enabled
+                else self._deduplicate(results)
+            )
         if not self.model_enabled:
             for _mention_id, mention, assertion, candidates in abnormal:
+                mention.category = Category.ABNORMAL
+                candidate_ids = sorted(mention.recognizer_ids)[:3]
                 selected = (
                     next(
-                        (value for value in candidates if value.hpo_id in mention.recognizer_ids),
+                        (value for value in candidates if value.hpo_id == candidate_ids[0]),
                         None,
                     )
-                    if len(mention.recognizer_ids) == 1
+                    if len(candidate_ids) == 1
                     else None
                 )
                 results.append(
@@ -838,10 +898,17 @@ class StagedAnnotationPipeline:
                         row,
                         mention,
                         assertion,
-                        candidate_ids=[value.hpo_id for value in candidates],
+                        candidate_ids=candidate_ids,
+                        retrieval_candidate_ids=[value.hpo_id for value in candidates],
                         selected=selected,
-                        mapping_status="mapped" if selected else "no_candidate_fit",
+                        mapping_status="mapped" if candidate_ids else "no_candidate_fit",
+                        mapping_verdict=(
+                            "supported"
+                            if len(candidate_ids) == 1
+                            else ("ambiguous" if candidate_ids else "unsupported")
+                        ),
                         confidence="high" if selected else "low",
+                        category_confidence="high",
                         review_status=(
                             "accepted" if selected and assertion.status == "affirmed" else "review"
                         ),
@@ -849,7 +916,6 @@ class StagedAnnotationPipeline:
                 )
             return self._deduplicate(results)
 
-        expected = {value[0] for value in abnormal}
         decisions: dict[str, Any] = {}
         for batch_index, start in enumerate(range(0, len(abnormal), MAPPING_BATCH_SIZE)):
             items = abnormal[start : start + MAPPING_BATCH_SIZE]
@@ -862,25 +928,79 @@ class StagedAnnotationPipeline:
             if set(decisions) & set(batch_decisions):
                 raise ValueError("batched mapper returned duplicate decisions")
             decisions.update(batch_decisions)
-        if set(decisions) != expected:
-            raise ValueError("batched mapper returned incomplete or duplicate decisions")
-
         for mention_id, mention, assertion, candidates in abnormal:
-            decision = decisions[mention_id]
+            decision = decisions.get(mention_id)
+            if decision is None:
+                results.append(
+                    self._result(
+                        row,
+                        mention,
+                        assertion,
+                        candidate_ids=[],
+                        retrieval_candidate_ids=[value.hpo_id for value in candidates],
+                        mapping_status="no_candidate_fit",
+                        confidence="low",
+                        mapping_verdict="unsupported",
+                        review_status="review",
+                        error_code="incomplete_mapping_decision",
+                        error_message=(
+                            "The mapper omitted or duplicated this finding; no HPO ID was accepted."
+                        ),
+                    )
+                )
+                continue
             by_id = {value.hpo_id: value for value in candidates}
-            selected = by_id.get(decision.hpo_id or "")
-            consensus = bool(selected and selected.hpo_id in mention.recognizer_ids)
+            invalid_ids = [hpo_id for hpo_id in decision.candidate_hpo_ids if hpo_id not in by_id]
+            candidate_ids = [hpo_id for hpo_id in decision.candidate_hpo_ids if hpo_id in by_id]
+            if invalid_ids:
+                mapping_verdict = (
+                    "supported"
+                    if len(candidate_ids) == 1
+                    else ("ambiguous" if candidate_ids else "unsupported")
+                )
+                selected = by_id[candidate_ids[0]] if len(candidate_ids) == 1 else None
+                results.append(
+                    self._result(
+                        row,
+                        mention,
+                        assertion,
+                        candidate_ids=candidate_ids,
+                        retrieval_candidate_ids=[value.hpo_id for value in candidates],
+                        selected=selected,
+                        mapping_status="mapped" if candidate_ids else "no_candidate_fit",
+                        confidence="low",
+                        mapping_verdict=mapping_verdict,
+                        review_status="review",
+                        error_code="mapping_candidate_out_of_scope",
+                        error_message=(
+                            "The mapper returned an HPO ID outside the supplied candidate "
+                            "set; out-of-scope IDs were discarded."
+                        ),
+                    )
+                )
+                continue
+            selected = by_id[candidate_ids[0]] if len(candidate_ids) == 1 else None
+            consensus = bool(
+                selected
+                and selected.hpo_id in mention.recognizer_ids
+                and decision.verdict == "supported"
+            )
             base_finding = "model-pass-1" in mention.methods
             if consensus:
                 review_status = "accepted"
                 confidence = "high"
-            elif base_finding and selected is not None:
+            elif (
+                base_finding
+                and candidate_ids
+                and decision.verdict in {"supported", "ambiguous"}
+                and decision.confidence in {"high", "medium"}
+            ):
                 review_status = "accepted"
                 confidence = decision.confidence
             elif (
                 decision.verdict == "supported"
                 and decision.confidence in {"high", "medium"}
-                and selected is not None
+                and candidate_ids
             ):
                 review_status = "accepted"
                 confidence = decision.confidence
@@ -888,6 +1008,7 @@ class StagedAnnotationPipeline:
                 review_status = "rejected"
                 confidence = "high"
                 selected = None
+                candidate_ids = []
             else:
                 review_status = "review"
                 confidence = decision.confidence
@@ -899,14 +1020,132 @@ class StagedAnnotationPipeline:
                     row,
                     mention,
                     assertion,
-                    candidate_ids=[value.hpo_id for value in candidates],
+                    candidate_ids=candidate_ids,
+                    retrieval_candidate_ids=[value.hpo_id for value in candidates],
                     selected=selected,
-                    mapping_status="mapped" if selected else "no_candidate_fit",
+                    mapping_status="mapped" if candidate_ids else "no_candidate_fit",
+                    mapping_verdict=decision.verdict,
                     confidence=confidence,
                     review_status=review_status,
                 )
             )
-        return self._deduplicate(results)
+        return self._finalize_categories(
+            row,
+            row_index,
+            self._deduplicate(results),
+        )
+
+    @staticmethod
+    def _routing_category(
+        mention: Mention,
+        assertion: AssertionDecision,
+    ) -> Category:
+        if assertion.status == "family_history":
+            return Category.FAMILY_HISTORY
+        if assertion.status in {"normal", "negated"}:
+            return Category.NORMAL
+        if re.search(
+            r"\b(?:normal|unremarkable|within normal limits|intact)\b",
+            mention.phrase,
+            re.I,
+        ):
+            return Category.NORMAL
+        return Category.ABNORMAL
+
+    def _finalize_categories(
+        self,
+        row: AnnotationInput,
+        row_index: int,
+        results: list[AnnotationResult],
+    ) -> list[AnnotationResult]:
+        targets = [
+            (f"c{index:04d}", index, result)
+            for index, result in enumerate(results)
+            if result.category is None and result.phrase
+        ]
+        if not targets:
+            return results
+        payload = json.dumps(
+            {
+                "note": row.clinical_note,
+                "items": [
+                    {
+                        "mention_id": mention_id,
+                        "phrase": result.phrase,
+                        "start_offset": result.evidence_start,
+                        "end_offset": result.evidence_end,
+                        "assertion_hint": result.assertion_status,
+                        "candidate_hpo_ids": result.candidate_hpo_ids or [],
+                    }
+                    for mention_id, _position, result in targets
+                ],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        try:
+            batch, raw = self.provider_request(
+                system_message=self.prompts["final_categorization"],
+                user_message=payload,
+                response_model=FinalCategoryDecisionBatch,
+                temperature=0.0,
+            )
+        except ProviderError as exc:
+            if exc.status_code != 400:
+                raise
+            batch = FinalCategoryDecisionBatch(decisions=[])
+            raw = ""
+        if raw:
+            self._write_raw(row_index, "final-categorization", raw)
+        expected = {mention_id for mention_id, _position, _result in targets}
+        counts: dict[str, int] = {}
+        for decision in batch.decisions:
+            counts[decision.mention_id] = counts.get(decision.mention_id, 0) + 1
+        decisions = {
+            decision.mention_id: decision
+            for decision in batch.decisions
+            if decision.mention_id in expected and counts[decision.mention_id] == 1
+        }
+        updated = list(results)
+        for mention_id, position, result in targets:
+            decision = decisions.get(mention_id)
+            if decision is None:
+                updated[position] = result.model_copy(
+                    update={
+                        "category": Category.ABNORMAL,
+                        "category_confidence": "low",
+                        "review_status": "review",
+                        "error_code": "incomplete_final_category",
+                        "error_message": (
+                            "The final categorizer omitted or duplicated this finding; "
+                            "it was retained for review."
+                        ),
+                    }
+                )
+                continue
+            changes: dict[str, object] = {
+                "category": decision.category,
+                "category_confidence": decision.confidence,
+            }
+            if decision.category is not Category.ABNORMAL:
+                changes.update(
+                    {
+                        "hpo_id": None,
+                        "hpo_term": None,
+                        "vector_score": None,
+                        "mapping_status": "not_mapped_category",
+                        "assertion_status": (
+                            "normal" if decision.category is Category.NORMAL else "family_history"
+                        ),
+                        "review_status": (
+                            "accepted" if decision.confidence in {"high", "medium"} else "review"
+                        ),
+                    }
+                )
+            elif decision.confidence == "low" and result.review_status == "accepted":
+                changes["review_status"] = "review"
+            updated[position] = result.model_copy(update=changes)
+        return updated
 
     def _request_mapping_items(
         self,
@@ -955,12 +1194,14 @@ class StagedAnnotationPipeline:
                     )
                 ],
                 user_message=payload,
-                response_model=MappingDecisionBatch,
+                response_model=MappingSetDecisionBatch,
                 temperature=0.0,
             )
         except ProviderError as exc:
-            if exc.status_code != 400 or len(items) == 1:
+            if exc.status_code != 400:
                 raise
+            if len(items) == 1:
+                return {}
             midpoint = len(items) // 2
             left = self._request_mapping_items(
                 items[:midpoint],
@@ -978,28 +1219,15 @@ class StagedAnnotationPipeline:
                 raise ValueError("batched mapper returned duplicate decisions") from exc
             return {**left, **right}
         self._write_raw(row_index, stage, raw)
-        decisions = {value.mention_id: value for value in batch.decisions}
         expected = {value[0] for value in items}
-        if len(decisions) != len(batch.decisions) or set(decisions) != expected:
-            if len(items) > 1:
-                midpoint = len(items) // 2
-                left = self._request_mapping_items(
-                    items[:midpoint],
-                    note=note,
-                    row_index=row_index,
-                    stage=f"{stage}-incomplete-a",
-                )
-                right = self._request_mapping_items(
-                    items[midpoint:],
-                    note=note,
-                    row_index=row_index,
-                    stage=f"{stage}-incomplete-b",
-                )
-                if set(left) & set(right):
-                    raise ValueError("batched mapper returned duplicate decisions")
-                return {**left, **right}
-            raise ValueError("batched mapper returned incomplete or duplicate decisions")
-        return decisions
+        counts: dict[str, int] = {}
+        for value in batch.decisions:
+            counts[value.mention_id] = counts.get(value.mention_id, 0) + 1
+        return {
+            value.mention_id: value
+            for value in batch.decisions
+            if value.mention_id in expected and counts[value.mention_id] == 1
+        }
 
     @staticmethod
     def _candidate_payload(
@@ -1055,8 +1283,13 @@ class StagedAnnotationPipeline:
         mapping_status: str,
         review_status: str,
         candidate_ids: list[str] | None = None,
+        retrieval_candidate_ids: list[str] | None = None,
         selected: Candidate | None = None,
         confidence: str | None = None,
+        category_confidence: str | None = None,
+        mapping_verdict: str | None = None,
+        error_code: str | None = None,
+        error_message: str | None = None,
     ) -> AnnotationResult:
         return AnnotationResult.model_validate(
             {
@@ -1067,13 +1300,19 @@ class StagedAnnotationPipeline:
                 "hpo_term": selected.term if selected else None,
                 "vector_score": selected.score if selected else None,
                 "mapping_status": mapping_status,
+                "error_code": error_code,
+                "error_message": error_message,
                 "evidence_start": mention.start,
                 "evidence_end": mention.end,
                 "assertion_status": assertion.status,
                 "confidence": confidence,
+                "category_confidence": category_confidence,
                 "review_status": review_status,
                 "source_methods": sorted(mention.methods),
                 "candidate_hpo_ids": candidate_ids,
+                "retrieval_candidate_hpo_ids": retrieval_candidate_ids,
+                "mapping_verdict": mapping_verdict,
+                "confidence_basis": "uncalibrated-evidence",
                 "evidence_text": assertion.sentence if self.include_evidence_text else None,
             }
         )

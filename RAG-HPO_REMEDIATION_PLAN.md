@@ -152,3 +152,37 @@ Promotion remains conditional:
   high-recall limits.
 - `model` remains the default and staged modes stay clearly experimental. No
   individual independent-set failures will be used for retuning.
+
+## Phase 4C — Implemented and discovery-gated
+
+- Staged extraction now proposes exact spans without categories. All detector
+  lanes merge before one definitive category is emitted. Clear Normal and
+  Family History findings finalize locally; routing itself is not serialized.
+- Public phenotype categories are limited to Abnormal, Normal, and Family
+  History. Certainty and temporality remain separate assertion metadata.
+- Explicit normal/negated and family-history mentions are routed locally.
+  Abnormal and uncertain patient mentions are mapped and then reviewed once
+  in complete-note context by a consolidated final categorization request.
+- Telegraphic headings, bullet lists, clinical observation predicates,
+  measurements, and coordination now trigger selective coverage auditing.
+- Mapping returns one bounded alternative set of at most three supplied HPO
+  IDs. The larger retrieval pool is retained separately and cannot be scored
+  as an answer.
+- Primary new-run scoring uses one-to-one candidate-set/reference-group
+  matching. One intersecting ID is one TP; unused alternatives are not FPs.
+- Runtime numeric confidence is populated only from a prompt- and
+  artifact-matched held-out calibration. Cutoff selection maximizes recall
+  subject to either a frozen point-estimate precision floor or the stricter
+  Wilson 95% lower-bound floor, with both statistics retained.
+
+The implementation and offline tests are complete. A short synthetic live
+provider gate validated extraction, bounded mapping, final categorization, and
+overlapping-span consolidation without exposing benchmark cases.
+
+The fixed 30-case CSC discovery evaluation then reached 0.7011 precision,
+0.6052 recall, and 0.6496 F1 under the practical point-floor calibration. Its
+all-mapped recall ceiling was 0.6071. The discovery gate therefore failed:
+GSC was not run, the calibration was not promoted, and `model` remains the
+default. Provider-format recovery now preserves malformed findings in review,
+but the run's 3,717,562 cumulative tokens show that staged model batching still
+needs material efficiency work before another confirmation study.

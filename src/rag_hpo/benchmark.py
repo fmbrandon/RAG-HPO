@@ -168,6 +168,81 @@ def load_prediction_sets(
     return predictions
 
 
+def _prediction_candidate_ids(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    raw = str(value or "").strip()
+    if not raw:
+        return []
+    if raw.startswith("["):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, list):
+            return [str(item).strip() for item in parsed if str(item).strip()]
+    return HPO_ID.findall(raw)
+
+
+def load_prediction_groups(
+    path: Path,
+    aliases: dict[str, str],
+    *,
+    accepted_only: bool = False,
+    maximum_candidates: int = 3,
+) -> dict[str, list[set[str]]]:
+    """Load one bounded alternative-ID set per predicted phenotype finding."""
+
+    if maximum_candidates <= 0:
+        raise ValueError("maximum_candidates must be positive")
+    if path.suffix.lower() == ".json":
+        raw_rows: Any = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw_rows, list):
+            raise ValueError("prediction JSON must contain a list of result objects")
+        rows = raw_rows
+    else:
+        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+    predictions: dict[str, list[set[str]]] = {}
+    seen: dict[str, set[frozenset[str]]] = {}
+    for raw_row in rows:
+        if not isinstance(raw_row, dict):
+            raise ValueError("each prediction must be an object")
+        patient_id = str(raw_row.get("patient_id") or "").strip()
+        if not patient_id:
+            continue
+        predictions.setdefault(patient_id, [])
+        seen.setdefault(patient_id, set())
+        accepted = not accepted_only or raw_row.get("review_status") in (
+            None,
+            "",
+            "accepted",
+        )
+        if not accepted or raw_row.get("mapping_status") not in (None, "", "mapped"):
+            continue
+        raw_ids = _prediction_candidate_ids(raw_row.get("candidate_hpo_ids"))
+        if not raw_ids:
+            selected = _normalize_hpo_id(raw_row.get("hpo_id"), aliases)
+            raw_ids = [selected] if selected else []
+        candidate_ids = {
+            aliases.get(identifier, identifier)
+            for identifier in raw_ids
+            if HPO_ID.fullmatch(identifier)
+        }
+        if len(candidate_ids) > maximum_candidates:
+            raise ValueError(
+                "prediction candidate set exceeds the configured maximum "
+                f"of {maximum_candidates}: {sorted(candidate_ids)}"
+            )
+        identity = frozenset(candidate_ids)
+        if not identity or identity in seen[patient_id]:
+            continue
+        seen[patient_id].add(identity)
+        predictions[patient_id].append(set(identity))
+    return predictions
+
+
 def score_sets(
     predictions: dict[str, set[str]],
     references: dict[str, set[str]],
@@ -266,6 +341,84 @@ def score_reference_groups(
                 true_positive_ids=sorted(matched_predictions),
                 false_positive_ids=sorted(predicted - matched_predictions),
                 false_negative_ids=sorted(unmatched_groups),
+                tp=tp,
+                fp=fp,
+                fn=fn,
+                precision=precision,
+                recall=recall,
+                f1=f1,
+            )
+        )
+    return scores
+
+
+def _maximum_group_matching(
+    predictions: list[set[str]],
+    groups: list[set[str]],
+) -> dict[int, int]:
+    matched_group: dict[int, int] = {}
+
+    def augment(prediction_index: int, visited: set[int]) -> bool:
+        prediction = predictions[prediction_index]
+        for group_index, group in enumerate(groups):
+            if group_index in visited or not prediction.intersection(group):
+                continue
+            visited.add(group_index)
+            existing = matched_group.get(group_index)
+            if existing is None or augment(existing, visited):
+                matched_group[group_index] = prediction_index
+                return True
+        return False
+
+    for prediction_index in sorted(
+        range(len(predictions)),
+        key=lambda index: (_format_reference_group(predictions[index]), index),
+    ):
+        augment(prediction_index, set())
+    return matched_group
+
+
+def score_prediction_groups(
+    predictions: dict[str, list[set[str]]],
+    references: dict[str, list[set[str]]],
+    *,
+    patient_ids: list[str] | None = None,
+) -> list[CaseScore]:
+    """Score one bounded prediction set as one finding using one-to-one matching."""
+
+    selected_ids = patient_ids or sorted(
+        references,
+        key=lambda value: (not value.isdigit(), int(value) if value.isdigit() else value),
+    )
+    scores: list[CaseScore] = []
+    for patient_id in selected_ids:
+        predicted = predictions.get(patient_id, [])
+        groups = references.get(patient_id, [])
+        matched_group = _maximum_group_matching(predicted, groups)
+        matched_predictions = set(matched_group.values())
+        tp = len(matched_group)
+        fp = len(predicted) - tp
+        fn = len(groups) - tp
+        precision, recall, f1 = _metrics(tp, fp, fn)
+        scores.append(
+            CaseScore(
+                patient_id=patient_id,
+                predicted_ids=[_format_reference_group(value) for value in predicted],
+                reference_ids=[_format_reference_group(value) for value in groups],
+                true_positive_ids=[
+                    _format_reference_group(predicted[index])
+                    for index in sorted(matched_predictions)
+                ],
+                false_positive_ids=[
+                    _format_reference_group(value)
+                    for index, value in enumerate(predicted)
+                    if index not in matched_predictions
+                ],
+                false_negative_ids=[
+                    _format_reference_group(value)
+                    for index, value in enumerate(groups)
+                    if index not in matched_group
+                ],
                 tp=tp,
                 fp=fp,
                 fn=fn,

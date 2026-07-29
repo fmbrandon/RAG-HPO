@@ -93,6 +93,11 @@ def build_parser() -> argparse.ArgumentParser:
     annotate.add_argument("--no-model", action="store_true")
     annotate.add_argument("--include-evidence-text", action="store_true")
     annotate.add_argument(
+        "--confidence-calibration",
+        type=Path,
+        help="Apply a hash-matched held-out confidence calibration policy.",
+    )
+    annotate.add_argument(
         "--mapping-prompt",
         choices=[mode.value for mode in MappingPromptMode],
         default=MappingPromptMode.ZERO_SHOT.value,
@@ -229,6 +234,7 @@ def _annotate(args: argparse.Namespace) -> int:
                 keep_raw_responses=args.raw_responses,
                 include_evidence_text=args.include_evidence_text,
                 offline=args.offline,
+                confidence_calibration=args.confidence_calibration,
                 mapping_prompt=MappingPromptMode(args.mapping_prompt),
             )
         results = pipeline.run(rows, initial_errors=errors)

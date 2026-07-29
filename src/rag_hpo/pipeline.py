@@ -48,7 +48,7 @@ def load_csv_inputs(path: Path) -> tuple[list[AnnotationInput], list[AnnotationR
                     AnnotationResult(
                         patient_id=str(patient_id).strip() or str(index),
                         phrase="",
-                        category=Category.OTHER,
+                        category=None,
                         mapping_status="error",
                         error_code="invalid_input",
                         error_message=_short_error(exc),
@@ -139,7 +139,7 @@ class AnnotationPipeline:
                             AnnotationResult(
                                 patient_id=row.patient_id,
                                 phrase="",
-                                category=Category.OTHER,
+                                category=None,
                                 mapping_status="error",
                                 error_code=code,
                                 error_message=message,

@@ -4,11 +4,15 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
+
 from rag_hpo.benchmark import (
     load_hpo_aliases,
+    load_prediction_groups,
     load_prediction_sets,
     load_reference_groups,
     load_reference_sets,
+    score_prediction_groups,
     score_reference_groups,
     score_sets,
     summarize,
@@ -127,6 +131,63 @@ def test_alternative_reference_ids_count_as_one_finding(tmp_path: Path) -> None:
     )
     assert (scores[0].tp, scores[0].fp, scores[0].fn) == (2, 0, 0)
     assert scores[0].f1 == 1.0
+
+
+def test_bounded_prediction_alternatives_count_as_one_finding(tmp_path: Path) -> None:
+    ontology = tmp_path / "hp.obo"
+    ontology.write_text(OBO, encoding="utf-8")
+    references = tmp_path / "references.csv"
+    references.write_text(
+        "Patient ID,hpo_term\n1,HP:0000002\n1,HP:0000001\n",
+        encoding="utf-8",
+    )
+    predictions = tmp_path / "predictions.json"
+    predictions.write_text(
+        json.dumps(
+            [
+                {
+                    "patient_id": "1",
+                    "phrase": "ambiguous finding",
+                    "category": "Abnormal",
+                    "hpo_id": None,
+                    "candidate_hpo_ids": ["HP:0000001", "HP:0000002"],
+                    "mapping_status": "mapped",
+                    "review_status": "accepted",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    aliases = load_hpo_aliases(ontology)
+    scores = score_prediction_groups(
+        load_prediction_groups(predictions, aliases, accepted_only=True),
+        load_reference_groups(references, aliases),
+        patient_ids=["1"],
+    )
+    assert (scores[0].tp, scores[0].fp, scores[0].fn) == (1, 0, 1)
+
+
+def test_prediction_candidate_set_is_capped_at_three(tmp_path: Path) -> None:
+    predictions = tmp_path / "predictions.json"
+    predictions.write_text(
+        json.dumps(
+            [
+                {
+                    "patient_id": "1",
+                    "candidate_hpo_ids": [
+                        "HP:0000001",
+                        "HP:0000002",
+                        "HP:0000003",
+                        "HP:0000004",
+                    ],
+                    "mapping_status": "mapped",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="exceeds"):
+        load_prediction_groups(predictions, {})
 
 
 def test_accepted_only_prediction_policy_excludes_review_rows(

@@ -21,9 +21,11 @@ from rag_hpo.models import (
     AnnotationInput,
     Candidate,
     Category,
-    MappingDecisionBatch,
-    PhenotypeExtraction,
+    FinalCategoryDecisionBatch,
+    MappingSetDecisionBatch,
+    PhenotypeSpanExtraction,
 )
+from rag_hpo.provider import ProviderError
 from rag_hpo.registry import (
     LEXICAL_MANIFEST_NAME,
     LEXICAL_NAME,
@@ -260,9 +262,21 @@ class StagedProvider:
         *,
         incomplete_mapping: bool = False,
         usage_requests: int = 0,
+        final_category: str = "Abnormal",
+        ambiguous_mapping: bool = False,
+        invalid_mapping: bool = False,
+        incomplete_final: bool = False,
+        reject_mapping: bool = False,
+        reject_final: bool = False,
     ) -> None:
         self.calls: list[str] = []
         self.incomplete_mapping = incomplete_mapping
+        self.final_category = final_category
+        self.ambiguous_mapping = ambiguous_mapping
+        self.invalid_mapping = invalid_mapping
+        self.incomplete_final = incomplete_final
+        self.reject_mapping = reject_mapping
+        self.reject_final = reject_final
         self.usage = {
             "requests": usage_requests,
             "input_tokens": usage_requests * 10,
@@ -279,48 +293,69 @@ class StagedProvider:
         temperature: float = 0.2,
     ) -> tuple[Any, str]:
         del temperature
-        if response_model is PhenotypeExtraction:
+        if response_model is PhenotypeSpanExtraction:
             if "missed" in system_message:
                 self.calls.append("audit")
-                value = PhenotypeExtraction.model_validate(
+                value = PhenotypeSpanExtraction.model_validate(
                     {
                         "phenotypes": [
                             {
                                 "phrase": "short stature",
-                                "category": "Abnormal",
                             }
                         ]
                     }
                 )
             else:
                 self.calls.append("extract")
-                value = PhenotypeExtraction.model_validate(
+                value = PhenotypeSpanExtraction.model_validate(
                     {
                         "phenotypes": [
                             {
                                 "phrase": "Fever",
-                                "category": "Abnormal",
                             }
                         ]
                     }
                 )
             return value, value.model_dump_json()
-        assert response_model is MappingDecisionBatch
-        self.calls.append("map")
         payload = json.loads(user_message)
+        if response_model is FinalCategoryDecisionBatch:
+            self.calls.append("categorize")
+            if self.reject_final:
+                raise ProviderError("invalid_request", "rejected", 400)
+            value = FinalCategoryDecisionBatch.model_validate(
+                {
+                    "decisions": [
+                        {
+                            "mention_id": item["mention_id"],
+                            "category": self.final_category,
+                            "confidence": "high",
+                        }
+                        for item in ([] if self.incomplete_final else payload["items"])
+                    ]
+                }
+            )
+            return value, value.model_dump_json()
+        assert response_model is MappingSetDecisionBatch
+        self.calls.append("map")
+        if self.reject_mapping:
+            raise ProviderError("invalid_request", "rejected", 400)
         decisions = []
         if not self.incomplete_mapping:
             for item in payload["items"]:
                 selected = "HP:0000001" if item["phrase"].casefold() == "fever" else "HP:0000002"
+                if self.invalid_mapping:
+                    selected = "HP:9999999"
                 decisions.append(
                     {
                         "mention_id": item["mention_id"],
-                        "hpo_id": selected,
-                        "verdict": "supported",
+                        "candidate_hpo_ids": (
+                            ["HP:0000001", "HP:0000002"] if self.ambiguous_mapping else [selected]
+                        ),
+                        "verdict": "ambiguous" if self.ambiguous_mapping else "supported",
                         "confidence": "medium",
                     }
                 )
-        value = MappingDecisionBatch.model_validate({"decisions": decisions})
+        value = MappingSetDecisionBatch.model_validate({"decisions": decisions})
         return value, value.model_dump_json()
 
 
@@ -358,7 +393,7 @@ def test_staged_pipeline_runs_two_passes_and_batched_mapping(tmp_path: Path) -> 
     review = [value for value in results if value.review_status == "review"]
     assert review[0].candidate_hpo_ids
     assert "HP:0000002" in review[0].candidate_hpo_ids
-    assert provider.calls == ["extract", "audit", "map"]
+    assert provider.calls == ["extract", "audit", "map", "categorize"]
     exported = json.loads((output_dir / "rag_hpo_results.json").read_text())
     assert exported[0]["evidence_start"] == 0
     assert "source_methods" in exported[0]
@@ -389,13 +424,103 @@ def test_native_mode_requires_no_provider_and_retains_assertion_flag(
     results = pipeline.run(
         [AnnotationInput(patient_id="1", clinical_note="The patient denies fever.")]
     )
-    assert results[0].hpo_id == "HP:0000001"
-    assert results[0].review_status == "review"
+    assert results[0].hpo_id is None
+    assert results[0].category is Category.NORMAL
+    assert results[0].mapping_status == "not_mapped_category"
+    assert results[0].review_status == "accepted"
     assert results[0].assertion_status == "negated"
     assert results[0].evidence_text
 
 
-def test_incomplete_batched_mapping_is_a_row_error(tmp_path: Path) -> None:
+def test_final_categorization_can_remove_a_false_abnormal_mapping(
+    tmp_path: Path,
+) -> None:
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=StagedProvider(final_category="Normal"),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was considered.")])
+    assert results[0].category is Category.NORMAL
+    assert results[0].category_confidence == "high"
+    assert results[0].hpo_id is None
+    assert results[0].mapping_status == "not_mapped_category"
+    assert results[0].assertion_status == "normal"
+
+
+def test_nested_context_span_merges_into_single_phenotype_span() -> None:
+    mentions = StagedAnnotationPipeline._merge_mentions(
+        [
+            Mention(
+                phrase="Possible scoliosis",
+                start=0,
+                end=18,
+                methods={"model-pass-1"},
+            ),
+            Mention(
+                phrase="scoliosis",
+                start=9,
+                end=18,
+                methods={"native"},
+                recognizer_ids={"HP:0002650"},
+            ),
+        ]
+    )
+    assert len(mentions) == 1
+    assert mentions[0].phrase == "scoliosis"
+    assert mentions[0].methods == {"model-pass-1", "native"}
+    assert mentions[0].recognizer_ids == {"HP:0002650"}
+
+
+def test_assertion_cues_inside_extracted_span_are_retained() -> None:
+    normal = analyze_assertion("Hearing is normal.", 0, 17)
+    family = analyze_assertion("His mother had seizures.", 0, 23)
+    uncertain = analyze_assertion("Possible scoliosis.", 0, 18)
+    assert normal.status == "normal"
+    assert family.status == "family_history"
+    assert uncertain.status == "uncertain"
+
+
+def test_ambiguous_mapping_retains_at_most_three_alternatives_as_one_finding(
+    tmp_path: Path,
+) -> None:
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=StagedProvider(ambiguous_mapping=True),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was present.")])
+    assert len(results) == 1
+    assert results[0].hpo_id is None
+    assert results[0].candidate_hpo_ids == ["HP:0000001", "HP:0000002"]
+    assert results[0].mapping_status == "mapped"
+    assert results[0].mapping_verdict == "ambiguous"
+    assert results[0].review_status == "accepted"
+
+
+def test_incomplete_batched_mapping_is_retained_for_review(tmp_path: Path) -> None:
     vector_dir = tmp_path / "vectors"
     _vector_bundle(vector_dir)
     pipeline = StagedAnnotationPipeline(
@@ -413,9 +538,93 @@ def test_incomplete_batched_mapping_is_a_row_error(tmp_path: Path) -> None:
         backend=FakeBackend(),
     )
     results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was present.")])
-    assert results[0].mapping_status == "error"
-    assert results[0].error_message
-    assert "incomplete" in results[0].error_message
+    assert results[0].mapping_status == "no_candidate_fit"
+    assert results[0].review_status == "review"
+    assert results[0].error_code == "incomplete_mapping_decision"
+
+
+def test_out_of_scope_mapping_id_is_discarded_without_failing_row(tmp_path: Path) -> None:
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=StagedProvider(invalid_mapping=True),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was present.")])
+    assert results[0].mapping_status == "no_candidate_fit"
+    assert results[0].candidate_hpo_ids == []
+    assert results[0].review_status == "review"
+    assert results[0].error_code == "mapping_candidate_out_of_scope"
+
+
+def test_incomplete_final_category_keeps_abnormal_finding_for_review(
+    tmp_path: Path,
+) -> None:
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=StagedProvider(incomplete_final=True),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was present.")])
+    assert results[0].category is Category.ABNORMAL
+    assert results[0].category_confidence == "low"
+    assert results[0].review_status == "review"
+    assert results[0].error_code == "incomplete_final_category"
+
+
+@pytest.mark.parametrize("rejected_stage", ["mapping", "final"])
+def test_unsplittable_provider_400_is_a_finding_level_review(
+    tmp_path: Path,
+    rejected_stage: str,
+) -> None:
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=StagedProvider(
+            reject_mapping=rejected_stage == "mapping",
+            reject_final=rejected_stage == "final",
+        ),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run([AnnotationInput(patient_id="1", clinical_note="Fever was present.")])
+    assert all(result.mapping_status != "error" for result in results)
+    assert results[0].category is Category.ABNORMAL
+    assert results[0].review_status == "review"
+    assert results[0].error_code in {
+        "incomplete_mapping_decision",
+        "incomplete_final_category",
+    }
 
 
 def test_resume_manifest_accumulates_attempt_usage(tmp_path: Path) -> None:

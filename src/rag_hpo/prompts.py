@@ -23,6 +23,7 @@ def load_prompts() -> dict[str, Any]:
         "batch_mapping_verification",
         "context_mapping_zero_shot",
         "context_mapping_one_shot",
+        "final_categorization",
     }
     missing = required - data.keys()
     if missing:

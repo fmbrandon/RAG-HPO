@@ -78,3 +78,44 @@ One-shot reached precision 0.656, recall 0.615, and F0.5 0.648. Both improved
 the reused staged baseline, but neither met the predeclared 0.70 precision
 eligibility floor. Therefore one-shot was not promoted and no prompt was
 advanced to repeated confirmation.
+
+## 2026-07-29 — prompt bundle schema 1.4
+
+Bundle SHA-256:
+`d3d1f332552e139f6624283468875bdf29bac90e44ef98f4db1152a52b5978bf`
+
+- `phenotype_extraction` 1.0 text was constrained to the three public
+  categories (`4b02c01a4f11604465ccb3ffaef004692f6e5cdd81f468b84f84d07f872a0895`).
+  Suspected, historical, resolved, and hypothetical patient findings are
+  abnormal with separate assertion metadata; irrelevant text is omitted.
+- `coverage_extraction` 3.0
+  (`2e53ca90d4ca0ade6ada5c13480e8ba170cbba51c2677bdde4e0421dfe4a0025`)
+  and `coverage_audit` 2.0
+  (`f564a0a372d55d352b01d51ddf99d1c0128d70ff09c9a1062e83001b0d6f8cf5`)
+  now return spans only. Category is assigned once after recognizer and model
+  spans merge. Telegraphic headings, lists, shared modifiers, measurements,
+  and coordinated structures are explicit coverage cues.
+- `context_mapping_zero_shot` 2.0
+  (`8e3008a689ac6c1b1d98ebacb80af8ff76f6739a99b74de2d0299d7d2bc69b0b`)
+  and `context_mapping_one_shot` 2.0
+  (`d2698147b8098b5d86cde6bf7c2ae3c133aeb88fd4fd08c2f630b92314780826`)
+  return zero to three supplied IDs. Ambiguous sets must be clinically
+  plausible and unsupported decisions retain no ID.
+- `final_categorization` 1.0
+  (`24fb3fc63c145d4a3fd58eb99e377c50338e258e8ae0f42ddcccb7a7095fbe71`)
+  makes one authoritative whole-note decision per routed span: Abnormal,
+  Normal, or Family History. It adds one consolidated request per note in
+  staged model modes.
+
+No benchmark case, answer, or case-specific rule was added. The compatibility
+pipeline remains the default until this revised schema is evaluated on a
+locked subset. A short synthetic live schema smoke was run once, then repeated
+only after it exposed overlapping-span and assertion-provenance defects; the
+corrected run required four requests and 8,766 total provider tokens.
+
+The subsequent fixed 30-case CSC discovery evaluation produced strict
+candidate-set precision/recall/F1 of 0.6913/0.5198/0.5934 under the qualitative
+accepted policy and 0.6800/0.6071/0.6415 when every mapped candidate was
+included. A point-floor calibration reached 0.7011/0.6052/0.6496. Because the
+candidate ceiling did not reach 0.70 recall, schema 1.4 was not promoted and
+no GSC provider run was performed.

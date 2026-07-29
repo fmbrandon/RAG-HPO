@@ -154,7 +154,7 @@ def main() -> int:
                 {
                     "patient_id": patient_id,
                     "phrase": "",
-                    "category": "Other",
+                    "category": "",
                     "hpo_id": "",
                     "hpo_term": "",
                     "vector_score": "",

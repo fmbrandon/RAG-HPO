@@ -172,7 +172,11 @@ Choose the annotation workflow explicitly:
   default until the staged accuracy gates pass.
 - `--mode balanced` runs native recognition, optional FastHPOCR recognition,
   two-pass model extraction, hybrid sparse/dense retrieval, and batched
-  mapping/verification. It is experimental while validation is in progress.
+  mapping/verification. Extraction proposes spans without categories. Clear
+  Normal and Family History spans are finalized locally; routed abnormal or
+  ambiguous spans receive one definitive whole-note decision after mapping.
+  The only categories are `Abnormal`, `Normal`, and `Family History`. It is
+  experimental while validation is in progress.
 - `--mode high-recall` uses 32 distinct candidates and retains plausible
   unresolved findings in the review queue.
 - `--mode native --no-model` is deterministic and fully local.
@@ -190,6 +194,12 @@ patient-versus-relative subject, and assertion. Preceding/following sentences
 are included only for deterministic ambiguity cues, which limits token use.
 `--mapping-prompt one-shot` adds one fixed synthetic example for controlled
 research comparisons; it never selects examples from benchmark data.
+
+Mapping may retain one to three clinically plausible HPO alternatives for one
+phenotype when the note cannot distinguish them. `candidate_hpo_ids` is this
+bounded alternative set; `retrieval_candidate_hpo_ids` separately preserves
+the larger 16- or 32-ID search pool for audit. An alternative set is one
+finding, not multiple predictions.
 
 For a network-prohibited run, use `--offline --no-model`. An offline model run
 must use an already-running loopback OpenAI-compatible endpoint, cached model
@@ -248,9 +258,18 @@ Every run writes `rag_hpo_results.csv` and `rag_hpo_results.json`. The stable
 fields are `patient_id`, `phrase`, `category`, `hpo_id`, `hpo_term`,
 `vector_score`, `mapping_status`, `error_code`, and `error_message`. Staged
 modes append `evidence_start`, `evidence_end`, `assertion_status`,
-`confidence`, `review_status`, `source_methods`, and `candidate_hpo_ids`.
+`confidence`, `category_confidence`, `review_status`, `source_methods`,
+`candidate_hpo_ids`, `retrieval_candidate_hpo_ids`, `mapping_verdict`,
+`overall_confidence`, and `confidence_basis`.
 Accepted findings are the primary automated output; `review` findings are
 preserved for human resolution and `rejected` findings remain auditable.
+
+The model's `high`, `medium`, and `low` labels are not presented as numerical
+probabilities. `overall_confidence` remains empty unless
+`--confidence-calibration` supplies a held-out calibration file whose prompt
+and artifact hashes match the current run. A calibration can move mapped
+findings between accepted and review, but it never silently rejects an
+unfamiliar evidence stratum.
 
 Evidence text is omitted by default. `--include-evidence-text` displays a
 privacy warning and includes the source sentence in result files. Staged runs
@@ -300,9 +319,14 @@ python benchmarks/run_benchmark.py \
   --output-dir benchmark-results/case-1
 ```
 
-The runner normalizes alternate HPO IDs, removes duplicate predicted IDs within
-each patient, preserves Cases 67 and 68 as distinct records, and emits explicit
-TP/FP/FN identifiers plus per-case, micro, and macro metrics. Routine live
+The runner normalizes alternate HPO IDs and, by default, treats each bounded
+prediction candidate set as one phenotype finding. If any candidate matches
+one ID in a manual alternative group, one one-to-one true positive is awarded;
+unused alternatives are not false positives. Sets are capped at three to
+prevent candidate inflation. `--prediction-unit selected-id` reproduces the
+legacy document-ID policy. The runner preserves Cases 67 and 68 as distinct
+records and emits explicit TP/FP/FN identifiers plus per-case, micro, and macro
+metrics. Routine live
 evaluation uses fixed, performance-blind 30-case subsets of CSC and GSC,
 stratified by note length and manual-reference count. The CSC subset excludes
 the discovery cases. Selection IDs, seed, strata, and hashes are recorded
@@ -326,6 +350,14 @@ Phase 3's prompt additions and unchanged base prompts are recorded in
 The frozen staged subset evaluation, including confidence intervals and the
 decision not to promote `balanced`, is recorded in
 [PHASE4_70_70_FINDINGS.md](PHASE4_70_70_FINDINGS.md).
+
+The newer three-category/bounded-alternative pipeline also remains
+experimental. On its fixed 30-case CSC discovery cohort, a
+precision-constrained calibration reached strict precision 0.701, recall
+0.605, and F1 0.650. Including every mapped candidate raised recall only to
+0.607, so the revision did not advance to GSC confirmation and did not replace
+the default workflow. See [REMEDIATION_LOG.md](REMEDIATION_LOG.md) for the
+provider-recovery and token-cost findings.
 
 ## Notebooks and development
 

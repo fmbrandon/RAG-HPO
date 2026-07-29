@@ -10,8 +10,10 @@ from pathlib import Path
 from rag_hpo.artifacts import sha256_file
 from rag_hpo.benchmark import (
     load_hpo_aliases,
+    load_prediction_groups,
     load_prediction_sets,
     load_reference_groups,
+    score_prediction_groups,
     score_reference_groups,
     summarize,
     write_benchmark_report,
@@ -52,6 +54,15 @@ def main() -> int:
         action="store_true",
         help="Score accepted staged findings and exclude review/rejected rows.",
     )
+    parser.add_argument(
+        "--prediction-unit",
+        choices=("candidate-set", "selected-id"),
+        default="candidate-set",
+        help=(
+            "Score each bounded candidate set as one phenotype finding, or use the "
+            "legacy selected-ID document policy."
+        ),
+    )
     args = parser.parse_args()
     if args.case_ids and args.selection_manifest is not None:
         parser.error("--case-id and --selection-manifest are mutually exclusive")
@@ -65,13 +76,25 @@ def main() -> int:
         parser.error(str(exc))
 
     aliases = load_hpo_aliases(args.ontology)
-    predictions = load_prediction_sets(
-        args.predictions,
-        aliases,
-        accepted_only=args.accepted_only,
-    )
     references = load_reference_groups(args.references, aliases)
-    scores = score_reference_groups(predictions, references, patient_ids=case_ids)
+    if args.prediction_unit == "candidate-set":
+        prediction_groups = load_prediction_groups(
+            args.predictions,
+            aliases,
+            accepted_only=args.accepted_only,
+        )
+        scores = score_prediction_groups(
+            prediction_groups,
+            references,
+            patient_ids=case_ids,
+        )
+    else:
+        predictions = load_prediction_sets(
+            args.predictions,
+            aliases,
+            accepted_only=args.accepted_only,
+        )
+        scores = score_reference_groups(predictions, references, patient_ids=case_ids)
     if not scores:
         parser.error("no benchmark cases were selected")
     csv_path, json_path = write_benchmark_report(
@@ -84,6 +107,7 @@ def main() -> int:
             "model": args.model,
             "prompt_version": args.prompt_version,
             "prediction_policy": ("accepted-only" if args.accepted_only else "all-mapped"),
+            "prediction_unit": args.prediction_unit,
             "selection_manifest": (
                 args.selection_manifest.name
                 if args.selection_manifest is not None

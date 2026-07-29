@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
@@ -14,8 +14,6 @@ class Category(StrEnum):
     ABNORMAL = "Abnormal"
     NORMAL = "Normal"
     FAMILY_HISTORY = "Family History"
-    OTHER = "Other"
-    SUSPECTED = "Suspected"
 
 
 class Phenotype(StrictModel):
@@ -33,6 +31,22 @@ class Phenotype(StrictModel):
 
 class PhenotypeExtraction(StrictModel):
     phenotypes: list[Phenotype]
+
+
+class PhenotypeSpan(StrictModel):
+    phrase: str = Field(min_length=1)
+
+    @field_validator("phrase")
+    @classmethod
+    def strip_phrase(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("phrase must not be blank")
+        return value
+
+
+class PhenotypeSpanExtraction(StrictModel):
+    phenotypes: list[PhenotypeSpan]
 
 
 class HPOMapping(StrictModel):
@@ -59,6 +73,42 @@ class MappingDecisionBatch(StrictModel):
     decisions: list[MappingDecision]
 
 
+class MappingSetDecision(StrictModel):
+    mention_id: str
+    candidate_hpo_ids: list[str] = Field(max_length=3)
+    verdict: Literal["supported", "unsupported", "ambiguous"]
+    confidence: Literal["high", "medium", "low"]
+
+    @field_validator("candidate_hpo_ids")
+    @classmethod
+    def require_distinct_candidates(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("candidate_hpo_ids must be distinct")
+        return value
+
+    @model_validator(mode="after")
+    def validate_verdict_candidates(self) -> MappingSetDecision:
+        if self.verdict == "unsupported" and self.candidate_hpo_ids:
+            raise ValueError("unsupported decisions cannot retain candidate IDs")
+        if self.verdict != "unsupported" and not self.candidate_hpo_ids:
+            raise ValueError("supported or ambiguous decisions require candidate IDs")
+        return self
+
+
+class MappingSetDecisionBatch(StrictModel):
+    decisions: list[MappingSetDecision]
+
+
+class FinalCategoryDecision(StrictModel):
+    mention_id: str
+    category: Category
+    confidence: Literal["high", "medium", "low"]
+
+
+class FinalCategoryDecisionBatch(StrictModel):
+    decisions: list[FinalCategoryDecision]
+
+
 class AnnotationInput(StrictModel):
     patient_id: str
     clinical_note: str
@@ -75,7 +125,7 @@ class AnnotationInput(StrictModel):
 class AnnotationResult(StrictModel):
     patient_id: str
     phrase: str
-    category: Category
+    category: Category | None
     hpo_id: str | None = None
     hpo_term: str | None = None
     vector_score: float | None = None
@@ -91,9 +141,16 @@ class AnnotationResult(StrictModel):
     evidence_end: int | None = None
     assertion_status: str | None = None
     confidence: Literal["high", "medium", "low"] | None = None
+    category_confidence: Literal["high", "medium", "low"] | None = None
     review_status: Literal["accepted", "review", "rejected"] | None = None
     source_methods: list[str] | None = None
     candidate_hpo_ids: list[str] | None = None
+    retrieval_candidate_hpo_ids: list[str] | None = None
+    mapping_verdict: Literal["supported", "unsupported", "ambiguous"] | None = None
+    phenotype_confidence: float | None = Field(default=None, ge=0, le=1)
+    mapping_set_confidence: float | None = Field(default=None, ge=0, le=1)
+    overall_confidence: float | None = Field(default=None, ge=0, le=1)
+    confidence_basis: str | None = None
     evidence_text: str | None = None
 
 

@@ -35,7 +35,12 @@ python benchmarks/run_benchmark.py \
 The runner:
 
 - maps current and alternate HPO IDs through the supplied ontology;
-- collapses duplicate predicted IDs only within each patient;
+- treats each bounded `candidate_hpo_ids` set as one predicted phenotype by
+  default and rejects sets larger than three;
+- uses deterministic one-to-one matching, so any prediction/reference
+  alternative intersection earns one TP and unused alternatives add no FP;
+- supports `--prediction-unit selected-id` only for reproducing legacy
+  document-ID analyses;
 - writes the exact predicted, reference, TP, FP, and FN sets;
 - writes per-case CSV plus micro/macro JSON metrics;
 - records hashes for predictions, references, ontology, and the supplied vector
@@ -118,6 +123,48 @@ The locked 82-case confirmation found rebuild micro F1 0.6534 versus
 historical 0.7002. The paired F1 interval excluded zero in the negative
 direction; see `results/csc-confirmation-82-analysis.json` and
 [the investigation report](../RAG-HPO_ACCURACY_INVESTIGATION.md).
+
+## Confidence calibration and cutoff selection
+
+Do not translate model-provided high/medium/low labels directly into numeric
+probabilities. After producing a bounded-candidate discovery run, calibrate
+evidence strata without new provider inference:
+
+```bash
+python benchmarks/calibrate_candidate_confidence.py \
+  --predictions /private/discovery/rag_hpo_results.json \
+  --references references/csc_manual_annotations.csv \
+  --ontology /private/artifacts/hp.obo \
+  --prompt-file ../src/rag_hpo/data/system_prompts.json \
+  --vector-manifest /private/artifacts/hpo_manifest.json \
+  --selection-manifest results/csc-sample-30-20260728-selection.json \
+  --minimum-precision 0.70 \
+  --precision-criterion point \
+  --output /private/discovery/confidence_calibration.json
+```
+
+For calibration only, a prediction candidate set that intersects its matched
+gold alternative group receives `gold_match=1`; otherwise it receives zero.
+The locked selection manifest is required so cases with zero predictions
+remain in the recall denominator.
+The default selects the highest-recall cumulative evidence policy whose
+precision point estimate meets the frozen floor and reports its Wilson 95%
+lower bound. Use `--precision-criterion lower95` for a much more conservative
+policy. Neither discovery policy should be promoted without held-out
+confirmation. The file contains no note text and can be applied only when its
+prompt and artifact hashes match:
+
+```bash
+rag-hpo annotate ... \
+  --mode balanced \
+  --confidence-calibration /private/discovery/confidence_calibration.json
+```
+
+The existing references cannot separately identify “real phenotype but wrong
+mapping” from “spurious phenotype.” The first calibration is therefore an
+overall correctness probability. Separate phenotype and mapping-set
+probabilities require span-level human labels and remain null until those
+labels exist.
 
 ## FastHPOCR Phase 1
 

@@ -14,7 +14,7 @@ from typing import Any
 from rag_hpo.artifacts import sha256_file
 from rag_hpo.assertion import analyze_assertion
 from rag_hpo.config import ProviderConfig, ResponseMode
-from rag_hpo.models import Candidate, Category, MappingDecisionBatch
+from rag_hpo.models import Candidate, Category, MappingSetDecisionBatch
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
 from rag_hpo.prompts import load_prompts
 from rag_hpo.provider import OpenAICompatibleProvider, ProviderError
@@ -75,7 +75,7 @@ def _request_batch(
         result, _ = provider.request(
             system_message=prompt,
             user_message=json.dumps({"items": items}, ensure_ascii=False, sort_keys=True),
-            response_model=MappingDecisionBatch,
+            response_model=MappingSetDecisionBatch,
             temperature=0.0,
         )
     except ProviderError as exc:
@@ -221,15 +221,18 @@ def main() -> int:
                 )
             for raw, item in pending:
                 decision = decisions[str(item["mention_id"])]
-                candidate_ids = {str(value["hpo_id"]) for value in item["candidates"]}
-                selected_id = decision.hpo_id if decision.hpo_id in candidate_ids else None
+                supplied_ids = {str(value["hpo_id"]) for value in item["candidates"]}
+                candidate_ids = [
+                    value for value in decision.candidate_hpo_ids if value in supplied_ids
+                ]
+                selected_id = candidate_ids[0] if len(candidate_ids) == 1 else None
                 accepted = (
                     "model-pass-1" in set(raw.get("source_methods") or [])
                     or (
                         decision.verdict == "supported"
                         and decision.confidence in {"high", "medium"}
                     )
-                ) and selected_id is not None
+                ) and bool(candidate_ids)
                 revised = dict(raw)
                 revised.update(
                     {
@@ -237,10 +240,10 @@ def main() -> int:
                         "hpo_term": (
                             concepts[selected_id].label if selected_id is not None else None
                         ),
+                        "candidate_hpo_ids": candidate_ids,
                         "vector_score": None,
-                        "mapping_status": (
-                            "mapped" if selected_id is not None else "no_candidate_fit"
-                        ),
+                        "mapping_status": ("mapped" if candidate_ids else "no_candidate_fit"),
+                        "mapping_verdict": decision.verdict,
                         "confidence": decision.confidence,
                         "review_status": (
                             "accepted"

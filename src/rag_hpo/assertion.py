@@ -6,6 +6,7 @@ from typing import Literal
 
 AssertionStatus = Literal[
     "affirmed",
+    "normal",
     "negated",
     "family_history",
     "uncertain",
@@ -27,6 +28,10 @@ _NEGATION_CUE = re.compile(
     r"free of|never had|no evidence of)\b",
     re.I,
 )
+_NORMAL_CUE = re.compile(
+    r"\b(?:normal|normally|unremarkable|within normal limits|intact)\b",
+    re.I,
+)
 _UNCERTAIN_CUE = re.compile(
     r"\b(?:possible|possibly|suspected|suspicious for|may have|might have|"
     r"could have|concern for|question of|rule out|r/o|differential(?: diagnosis)?)\b",
@@ -45,6 +50,11 @@ _HYPOTHETICAL_CUE = re.compile(
 _POST_NEGATION = re.compile(
     r"^\s*(?:was|were|is|are|has been|have been)?\s*"
     r"(?:not present|absent|negative|ruled out)\b",
+    re.I,
+)
+_POST_NORMAL = re.compile(
+    r"^\s*(?:was|were|is|are|appears?|remains?)?\s*"
+    r"(?:normal|unremarkable|within normal limits|intact)\b",
     re.I,
 )
 _POST_RESOLVED = re.compile(
@@ -109,6 +119,7 @@ def analyze_assertion(text: str, start: int, end: int) -> AssertionDecision:
     relative_start = start - sentence_start
     relative_end = end - sentence_start
     before = _last_clause(sentence[:relative_start])[-120:]
+    mention_text = sentence[relative_start:relative_end]
     after = sentence[relative_end:][:80]
     section = _section_at(text, start)
 
@@ -116,16 +127,32 @@ def analyze_assertion(text: str, start: int, end: int) -> AssertionDecision:
         return AssertionDecision("family_history", section, sentence, section)
     if cue := _cue(_FAMILY_CUE, before):
         return AssertionDecision("family_history", cue, sentence, section)
+    if cue := _cue(_FAMILY_CUE, mention_text):
+        return AssertionDecision("family_history", cue, sentence, section)
     if cue := _cue(_HYPOTHETICAL_CUE, before):
+        return AssertionDecision("hypothetical", cue, sentence, section)
+    if cue := _cue(_HYPOTHETICAL_CUE, mention_text):
         return AssertionDecision("hypothetical", cue, sentence, section)
     if cue := _cue(_RESOLVED_CUE, before):
         return AssertionDecision("resolved", cue, sentence, section)
+    if cue := _cue(_RESOLVED_CUE, mention_text):
+        return AssertionDecision("resolved", cue, sentence, section)
     if cue := _cue(_UNCERTAIN_CUE, before):
+        return AssertionDecision("uncertain", cue, sentence, section)
+    if cue := _cue(_UNCERTAIN_CUE, mention_text):
         return AssertionDecision("uncertain", cue, sentence, section)
     if cue := _cue(_NEGATION_CUE, before):
         return AssertionDecision("negated", cue, sentence, section)
+    if cue := _cue(_NEGATION_CUE, mention_text):
+        return AssertionDecision("negated", cue, sentence, section)
+    if cue := _cue(_NORMAL_CUE, before):
+        return AssertionDecision("normal", cue, sentence, section)
+    if cue := _cue(_NORMAL_CUE, mention_text):
+        return AssertionDecision("normal", cue, sentence, section)
     if match := _POST_NEGATION.search(after):
         return AssertionDecision("negated", match.group(0).strip(), sentence, section)
+    if match := _POST_NORMAL.search(after):
+        return AssertionDecision("normal", match.group(0).strip(), sentence, section)
     if match := _POST_RESOLVED.search(after):
         return AssertionDecision("resolved", match.group(0).strip(), sentence, section)
     return AssertionDecision("affirmed", None, sentence, section)

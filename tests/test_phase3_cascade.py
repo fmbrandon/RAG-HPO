@@ -95,6 +95,7 @@ def _registry() -> HPORegistry:
     [
         ("The patient has fever.", "fever", "affirmed"),
         ("The patient denies fever.", "fever", "negated"),
+        ("The patient's temperature was normal.", "temperature", "normal"),
         ("No cough, but fever developed.", "fever", "affirmed"),
         ("Possible fever was discussed.", "fever", "uncertain"),
         ("The fever has resolved.", "fever", "resolved"),

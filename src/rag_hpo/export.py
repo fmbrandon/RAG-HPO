@@ -23,9 +23,16 @@ FIELDS = [
     "evidence_end",
     "assertion_status",
     "confidence",
+    "category_confidence",
     "review_status",
     "source_methods",
     "candidate_hpo_ids",
+    "retrieval_candidate_hpo_ids",
+    "mapping_verdict",
+    "phenotype_confidence",
+    "mapping_set_confidence",
+    "overall_confidence",
+    "confidence_basis",
     "evidence_text",
 ]
 
@@ -56,6 +63,7 @@ def export_results(results: list[AnnotationResult], output_dir: Path) -> tuple[P
             **row,
             "source_methods": "|".join(row["source_methods"] or []),
             "candidate_hpo_ids": "|".join(row["candidate_hpo_ids"] or []),
+            "retrieval_candidate_hpo_ids": "|".join(row["retrieval_candidate_hpo_ids"] or []),
         }
         for row in rows
     ]

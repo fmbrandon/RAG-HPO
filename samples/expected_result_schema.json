@@ -1,13 +1,13 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "fields": [
     {"name": "patient_id", "type": "string", "nullable": false},
     {"name": "phrase", "type": "string", "nullable": false},
     {
       "name": "category",
       "type": "string",
-      "allowed": ["Abnormal", "Normal", "Family History", "Other", "Suspected"],
-      "nullable": false
+      "allowed": ["Abnormal", "Normal", "Family History"],
+      "nullable": true
     },
     {"name": "hpo_id", "type": "string", "nullable": true},
     {"name": "hpo_term", "type": "string", "nullable": true},
@@ -30,13 +30,39 @@
       "nullable": true
     },
     {
+      "name": "category_confidence",
+      "type": "string",
+      "allowed": ["high", "medium", "low"],
+      "nullable": true
+    },
+    {
       "name": "review_status",
       "type": "string",
       "allowed": ["accepted", "review", "rejected"],
       "nullable": true
     },
     {"name": "source_methods", "type": "array[string]", "nullable": true},
-    {"name": "candidate_hpo_ids", "type": "array[string]", "nullable": true},
+    {
+      "name": "candidate_hpo_ids",
+      "type": "array[string]",
+      "maximum_items": 3,
+      "nullable": true
+    },
+    {
+      "name": "retrieval_candidate_hpo_ids",
+      "type": "array[string]",
+      "nullable": true
+    },
+    {
+      "name": "mapping_verdict",
+      "type": "string",
+      "allowed": ["supported", "unsupported", "ambiguous"],
+      "nullable": true
+    },
+    {"name": "phenotype_confidence", "type": "number", "nullable": true},
+    {"name": "mapping_set_confidence", "type": "number", "nullable": true},
+    {"name": "overall_confidence", "type": "number", "nullable": true},
+    {"name": "confidence_basis", "type": "string", "nullable": true},
     {"name": "evidence_text", "type": "string", "nullable": true}
   ]
 }
