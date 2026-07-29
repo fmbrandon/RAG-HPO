@@ -129,7 +129,10 @@ The workbook has a separate reference defect: six cells in Cases 8, 9, 30,
 and 100 contain two comma-separated IDs. The strict scorer treats each entire
 cell as an impossible identifier. Treating the IDs as alternatives raises
 confirmation F1 only to 0.6559, so it is important but not the main deficit.
-The source remains unchanged pending lab adjudication.
+The lab owner subsequently confirmed that either ID is acceptable for one
+finding. Alternative-group scoring is now the primary policy; the source
+workbook remains unchanged. Values in the original investigation tables are
+retained as the pre-adjudication record unless explicitly labeled corrected.
 
 See
 [`current-vector-metadata-audit.json`](benchmarks/results/current-vector-metadata-audit.json)

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "fields": [
     {"name": "patient_id", "type": "string", "nullable": false},
     {"name": "phrase", "type": "string", "nullable": false},
@@ -19,6 +19,24 @@
       "nullable": false
     },
     {"name": "error_code", "type": "string", "nullable": true},
-    {"name": "error_message", "type": "string", "nullable": true}
+    {"name": "error_message", "type": "string", "nullable": true},
+    {"name": "evidence_start", "type": "integer", "nullable": true},
+    {"name": "evidence_end", "type": "integer", "nullable": true},
+    {"name": "assertion_status", "type": "string", "nullable": true},
+    {
+      "name": "confidence",
+      "type": "string",
+      "allowed": ["high", "medium", "low"],
+      "nullable": true
+    },
+    {
+      "name": "review_status",
+      "type": "string",
+      "allowed": ["accepted", "review", "rejected"],
+      "nullable": true
+    },
+    {"name": "source_methods", "type": "array[string]", "nullable": true},
+    {"name": "candidate_hpo_ids", "type": "array[string]", "nullable": true},
+    {"name": "evidence_text", "type": "string", "nullable": true}
   ]
 }

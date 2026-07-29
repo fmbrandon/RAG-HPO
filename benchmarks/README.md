@@ -42,9 +42,10 @@ The runner:
   manifest identity;
 - produces byte-identical output for identical files and metadata.
 
-Run Case 1 before any authorized subset. A complete live benchmark is opt-in:
-repository examples are published but are not automatically approved for
-external transmission.
+Run Case 1 before an authorized subset. Live provider evaluation defaults to
+the locked subsets described below; do not run a complete corpus merely for
+routine development. Repository examples are published but are not
+automatically approved for external transmission.
 
 ## Historical workbook arithmetic
 
@@ -104,10 +105,11 @@ the detailed rows deliberately remain outside Git.
 
 `audit_reference_quality.py` must be reviewed before interpreting a complete
 CSC benchmark. Six source cells contain two comma-separated HPO IDs. The
-strict scorer treats each cell as one literal identifier, while
-`score_reference_sensitivity.py` reports alternative-ID and all-required
-bounds. The source file is never rewritten automatically because the workbook
-does not say which interpretation is intended.
+lab owner confirmed that these are alternative IDs for one finding. The primary
+benchmark now uses deterministic one-to-one alternative-group matching.
+`score_reference_sensitivity.py` retains the former strict and all-required
+interpretations only as historical sensitivity bounds. The source file remains
+unchanged.
 
 The 30-case cohort is discovery-only. The confirmation manifest contains all
 remaining eligible cases and a predeclared 20-case repeat subset. Do not tune
@@ -116,3 +118,163 @@ The locked 82-case confirmation found rebuild micro F1 0.6534 versus
 historical 0.7002. The paired F1 interval excluded zero in the negative
 direction; see `results/csc-confirmation-82-analysis.json` and
 [the investigation report](../RAG-HPO_ACCURACY_INVESTIGATION.md).
+
+## FastHPOCR Phase 1
+
+Install the optional research dependency with:
+
+```bash
+pip install -e '.[fasthpocr]'
+```
+
+`run_fasthpocr.py` builds or validates a private, provenance-recorded index and
+emits span-level predictions plus alternative-aware metrics. The index and
+note-level results belong outside Git. `summarize_historical_metrics.py`
+creates the corpus-aware historical comparison, and
+`compare_recognizer_predictions.py` measures overlap without mixing CSC and
+GSC identifiers.
+
+Phase 1 found that longest-span filtering improved precision-weighted and F1
+results on both CSC and GSC. A raw union with RAG-HPO increased recall but
+reduced precision and F1, while exact-ID agreement reached 0.937 precision.
+See [the Phase 1 report](../PHASE1_FASTHPOCR_FINDINGS.md) and
+[`fasthpocr-phase1-summary.json`](results/fasthpocr-phase1-summary.json).
+
+## Canonical registry and Phase 2
+
+Build the terminology registry without loading an embedding model:
+
+```bash
+python benchmarks/build_registry.py \
+  --ontology /path/to/pinned/hp.obo \
+  --addons HPO_addons.csv \
+  --output-dir /private/path/to/registry
+```
+
+The builder writes deterministic registry and lexical artifacts with their
+manifests. Full Phase 2 evidence is summarized in
+[`phase2-registry-summary.json`](results/phase2-registry-summary.json).
+FastHPOCR benchmarks now derive their external-synonym view from this registry
+and retain exact or morphological multi-ID matches as ambiguity sets.
+
+## Phase 3 cascade and verifier
+
+`run_phase3_cascade.py` evaluates the deterministic confidence lane.
+`run_phase3_hybrid.py` performs one optional batched verification call per case,
+and `compare_phase3_hybrid.py` replays the retained policy and performs paired
+inference. Note-level decisions and provider-derived predictions must be
+written outside Git.
+
+The deterministic lane is not a complete annotator: its CSC recall was 0.208.
+The corrected confirmation hybrid retained 0.602 recall while increasing
+precision from 0.704 to 0.749. It did not reach the 0.80 precision requirement
+for default promotion. See [the Phase 3 report](../PHASE3_CASCADE_FINDINGS.md)
+and the sanitized
+[`phase3-hybrid-summary.json`](results/phase3-hybrid-summary.json).
+
+## Staged 70/70 remediation
+
+`evaluate_hybrid_retrieval.py` measures active canonical-ID coverage at 16 and
+32 candidates. `analyze_staged_policies.py` compares only general
+confidence/method policies on the fixed discovery cohort and emits aggregate
+results; it does not add case-specific logic.
+
+Primary staged scoring uses:
+
+```bash
+python benchmarks/run_benchmark.py \
+  --predictions /private/path/rag_hpo_results.json \
+  --input benchmarks/references/csc_input.csv \
+  --references benchmarks/references/csc_manual_annotations.csv \
+  --ontology /private/path/hp.obo \
+  --prompt-file src/rag_hpo/data/system_prompts.json \
+  --vector-manifest /private/path/hpo_manifest.json \
+  --selection-manifest results/csc-confirmation-stratified-30-20260728-selection.json \
+  --accepted-only \
+  --model openai/gpt-oss-120b \
+  --prompt-version staged-2.0 \
+  --output-dir /private/path/score
+```
+
+`--accepted-only` excludes review/rejected rows. Omitting it is a high-recall
+sensitivity analysis, not the primary result. Prediction-only cases with no
+manual reference findings are excluded from the denominator; reference-only
+cases remain and count as false negatives.
+
+The post-discovery settings and source/artifact hashes are frozen in
+[`70-70-frozen-config.json`](provenance/70-70-frozen-config.json). Raw notes,
+provider responses, prediction rows, and adjudication packets remain in the
+owner-only audit-artifact directory.
+
+Live evaluation is subset-only by default. `prepare_stratified_subset.py`
+selects 30 cases per corpus without reading predictions or scores. It uses a
+fixed seed and 3x3 strata over note length and manual-reference count. CSC
+sampling excludes the 30 discovery cases; GSC is sampled independently. The
+locked manifests are:
+
+- `results/csc-confirmation-stratified-30-20260728-selection.json`
+- `results/gsc-stratified-30-20260728-selection.json`
+
+These samples contain 446 CSC and 268 GSC manual-reference findings. Report
+bootstrap intervals with their metrics by running
+`bootstrap_subset_metrics.py` against the accepted-only benchmark report and
+its selection manifest. Label the results as subset estimates, not full-corpus
+results. Neither selected subset may be used to retune the frozen
+configuration. Full-corpus provider runs require an explicit, documented
+reason; routine development and regression work must use the fixed subsets or
+smaller synthetic fixtures.
+
+The locked subset result is summarized in
+[`staged-70-70-subset-summary.json`](results/staged-70-70-subset-summary.json)
+and [the findings report](../PHASE4_70_70_FINDINGS.md). CSC passed the
+accepted-only 0.70/0.70 point gate. GSC precision was 0.858 and recall was
+0.698, one true positive below the recall gate, so `balanced` was not promoted
+to the default.
+
+## Context, hierarchy, and consistency evaluation
+
+Context-aware zero-shot and fixed synthetic one-shot mapping use the same
+extraction and retrieval calls. Select them with `--mapping-prompt`; do not
+choose a prompt on the locked confirmation subsets.
+
+Keep strict alternative-aware exact scoring as the primary result. Produce
+separate one- and two-edge sensitivity results without new inference:
+
+```bash
+python benchmarks/score_layered.py \
+  --predictions /private/run/rag_hpo_results.json \
+  --references references/csc_manual_annotations.csv \
+  --ontology /private/artifacts/hp.obo \
+  --selection-manifest results/csc-confirmation-stratified-30-20260728-selection.json \
+  --accepted-only \
+  --output /private/score/layered.json
+```
+
+The scorer matches one prediction to one alternative-aware reference finding,
+prioritizing exact IDs before one-edge and then two-edge parent, child, or
+sibling relationships. Relaxed results are sensitivity analyses, not extra
+accepted predictions.
+
+Measure repeatability from three already-produced runs of a fixed 10–20 case
+subset:
+
+```bash
+python benchmarks/evaluate_consistency.py \
+  --predictions /private/run-1/rag_hpo_results.json \
+  --predictions /private/run-2/rag_hpo_results.json \
+  --predictions /private/run-3/rag_hpo_results.json \
+  --references references/csc_manual_annotations.csv \
+  --ontology /private/artifacts/hp.obo \
+  --selection-manifest /private/repeat-subset-selection.json \
+  --output /private/score/consistency.json
+```
+
+Predeclared defaults require micro precision/recall/F1 ranges no larger than
+0.02, mean pairwise case Jaccard at least 0.85, and at least 90% of accepted
+IDs to recur in all runs. The report also records disposition agreement,
+per-case F1 ranges, input hashes, retry/usage data, model configuration, and
+runtime identity when the run manifests are available.
+
+The no-new-inference hierarchy results and the historical 20-case consistency
+baseline are summarized in
+[CONTEXT_CONSISTENCY_FINDINGS.md](../CONTEXT_CONSISTENCY_FINDINGS.md).

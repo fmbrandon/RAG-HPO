@@ -32,7 +32,7 @@ def test_build_entries_includes_labels_synonyms_and_addons(tmp_path: Path) -> No
     obo.write_text(OBO, encoding="utf-8")
     addons = tmp_path / "addons.csv"
     addons.write_text(
-        "HP_ID,info\nHP:0001945,High temperature\nHP:9999999,Unknown\n",
+        "HP_ID,info\nHP:0001945,High temperature\n",
         encoding="utf-8",
     )
     entries = build_entries(obo, addons_path=addons, limit=None)
@@ -47,6 +47,15 @@ def test_build_entries_includes_labels_synonyms_and_addons(tmp_path: Path) -> No
         "hpo-synonym",
         "hpo-addon",
     }
+
+
+def test_build_entries_rejects_unknown_addon_identifier(tmp_path: Path) -> None:
+    obo = tmp_path / "hp.obo"
+    obo.write_text(OBO, encoding="utf-8")
+    addons = tmp_path / "addons.csv"
+    addons.write_text("HP_ID,info\nHP:9999999,Unknown\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="unknown ID"):
+        build_entries(obo, addons_path=addons, limit=None)
 
 
 def test_limit_is_deterministic(tmp_path: Path) -> None:

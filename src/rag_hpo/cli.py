@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
 
 from pydantic import ValidationError
 
@@ -15,6 +18,11 @@ from rag_hpo.models import AnnotationInput, AnnotationResult
 from rag_hpo.ontology import DEFAULT_HPO_URL, vectorize
 from rag_hpo.pipeline import AnnotationPipeline, load_csv_inputs
 from rag_hpo.provider import OpenAICompatibleProvider
+from rag_hpo.staged_pipeline import (
+    AnnotationMode,
+    MappingPromptMode,
+    StagedAnnotationPipeline,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +77,27 @@ def build_parser() -> argparse.ArgumentParser:
     annotate.add_argument("--resume", action="store_true")
     annotate.add_argument("--keep-state", action="store_true")
     annotate.add_argument("--raw-responses", action="store_true")
+    annotate.add_argument(
+        "--mode",
+        choices=[mode.value for mode in AnnotationMode],
+        default=AnnotationMode.MODEL.value,
+    )
+    annotate.add_argument(
+        "--recognizer",
+        action="append",
+        choices=("native", "fasthpocr"),
+        default=[],
+    )
+    annotate.add_argument("--fasthpocr-index", type=Path)
+    annotate.add_argument("--offline", action="store_true")
+    annotate.add_argument("--no-model", action="store_true")
+    annotate.add_argument("--include-evidence-text", action="store_true")
+    annotate.add_argument(
+        "--mapping-prompt",
+        choices=[mode.value for mode in MappingPromptMode],
+        default=MappingPromptMode.ZERO_SHOT.value,
+        help="Use a context-aware zero-shot prompt or one fixed synthetic example.",
+    )
     annotate.add_argument("--json", action="store_true", dest="as_json")
     return parser
 
@@ -140,32 +169,80 @@ def _annotate(args: argparse.Namespace) -> int:
             "WARNING: raw provider responses may contain sensitive clinical text.",
             file=sys.stderr,
         )
+    if args.include_evidence_text:
+        print(
+            "WARNING: evidence text may contain sensitive clinical information.",
+            file=sys.stderr,
+        )
+    mode = AnnotationMode(args.mode)
+    if mode is AnnotationMode.MODEL and args.no_model:
+        raise ValueError("--no-model cannot be used with --mode model")
+    uses_provider = mode is AnnotationMode.MODEL or (
+        mode in {AnnotationMode.BALANCED, AnnotationMode.HIGH_RECALL} and not args.no_model
+    )
+    if args.offline and uses_provider:
+        host = urlparse(args.base_url).hostname
+        if host not in {"localhost", "127.0.0.1", "::1"}:
+            raise ValueError("--offline model modes require a loopback --base-url")
     rows, errors = _load_annotation_source(args)
     if not rows and errors:
         from rag_hpo.export import export_results
 
         export_results(errors, args.output_dir)
         return 4
-    config = ProviderConfig.from_env(
-        base_url=args.base_url,
-        model=args.model,
-        response_mode=ResponseMode(args.response_mode),
-    )
-    with OpenAICompatibleProvider(config) as provider:
-        pipeline = AnnotationPipeline(
-            provider=provider,
-            vector_dir=args.vector_dir,
-            output_dir=args.output_dir,
-            resume=args.resume,
-            keep_state=args.keep_state,
-            keep_raw_responses=args.raw_responses,
+    provider_context: Any
+    if uses_provider:
+        config = ProviderConfig.from_env(
+            base_url=args.base_url,
+            model=args.model,
+            response_mode=ResponseMode(args.response_mode),
         )
+        provider_context = OpenAICompatibleProvider(config)
+    else:
+        provider_context = contextlib.nullcontext(None)
+    with provider_context as provider:
+        if mode is AnnotationMode.MODEL:
+            if provider is None:
+                raise RuntimeError("model mode requires a provider")
+            pipeline: AnnotationPipeline | StagedAnnotationPipeline = AnnotationPipeline(
+                provider=provider,
+                vector_dir=args.vector_dir,
+                output_dir=args.output_dir,
+                resume=args.resume,
+                keep_state=args.keep_state,
+                keep_raw_responses=args.raw_responses,
+                offline=args.offline,
+            )
+        else:
+            recognizers = {"native", *args.recognizer}
+            if mode is AnnotationMode.FASTHPOCR:
+                recognizers.add("fasthpocr")
+            pipeline = StagedAnnotationPipeline(
+                provider=provider,
+                vector_dir=args.vector_dir,
+                output_dir=args.output_dir,
+                mode=mode,
+                recognizers=recognizers,
+                fasthpocr_index=args.fasthpocr_index,
+                resume=args.resume,
+                keep_state=args.keep_state,
+                keep_raw_responses=args.raw_responses,
+                include_evidence_text=args.include_evidence_text,
+                offline=args.offline,
+                mapping_prompt=MappingPromptMode(args.mapping_prompt),
+            )
         results = pipeline.run(rows, initial_errors=errors)
     failures = sum(result.mapping_status == "error" for result in results)
     summary = {
         "input_rows": len(rows) + len(errors),
         "result_rows": len(results),
         "error_rows": failures,
+        "accepted_rows": sum(
+            result.review_status in (None, "accepted") and result.mapping_status == "mapped"
+            for result in results
+        ),
+        "review_rows": sum(result.review_status == "review" for result in results),
+        "rejected_rows": sum(result.review_status == "rejected" for result in results),
         "output_csv": str(args.output_dir / "rag_hpo_results.csv"),
         "output_json": str(args.output_dir / "rag_hpo_results.json"),
     }

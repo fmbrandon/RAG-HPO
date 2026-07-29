@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "ontology": {
+    "data_version": "hp/releases/2026-06-23",
+    "sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "utf8_validated": true
+  },
+  "addons": {
+    "input_row_count": 3079,
+    "active_distinct_record_count": 3047,
+    "sha256": "f5a62a07ff66b4def2de5a6c86b90bf6c6ee6f846abd6f2e26ab0c01a9fe915c"
+  },
+  "registry": {
+    "schema_version": "1.0",
+    "concept_count": 20413,
+    "official_phrase_count": 45397,
+    "extension_phrase_count": 3047,
+    "normalized_phrase_count": 47659,
+    "ambiguity_group_count": 15,
+    "registry_sha256": "e47253f1aac6a256248b7be9162e054ae84adbf7b2f89e107beee41e831c35b9",
+    "lexical_sha256": "d34a6a281caa73aabc866ef1a9baae19e3114a55ceb03fe8f6e7d65483ab42e4",
+    "independent_build_hashes_identical": true
+  },
+  "native_sapbert": {
+    "row_count": 47859,
+    "dimension": 768,
+    "metadata_sha256": "1c4ca3794182621199ee4d45044a99147344e08705f08b905cb77add7ec58b03",
+    "vectors_sha256": "83d2490bf951ab6db73a4fad9036f03715a3378534d93300dfd4f81f3fdfefde",
+    "independent_build_hashes_identical": true,
+    "prior_row_count": 48444,
+    "unchanged_rows": 47774,
+    "removed_obsolete_rows": 669,
+    "deterministically_replaced_case_variant_rows": 1,
+    "newly_normalized_alternate_id_addon_rows": 84
+  },
+  "fasthpocr": {
+    "version": "0.1.4",
+    "external_synonym_count": 3047,
+    "index_sha256": "ac7e5148155c79344f429aaf1de34e99c6576d9235d5462ddb27836af2fd1806",
+    "semantic_sha256": "de618ab2322597a3abd98cca5ab0fb26224b20e51dc2695a78ca1017d60b4067",
+    "term_count": 19119,
+    "generated_label_count": 249844,
+    "probe_count": 271,
+    "raw_output_sha256": "bd2551f6b6760676f9a0d5c20c024e24d536482e88c719c7d30576d7dddb9347",
+    "normalized_output_sha256": "14ac1a7c37acd2e2b51d10912e0debbbb83676559d5d44f44d8e2e436a00045e",
+    "build_seconds": 305.41544554100255,
+    "reuse_validation_seconds": 9.6715454160003
+  },
+  "prior_index_normalization_check": {
+    "corpus": "CSC",
+    "input_case_count": 116,
+    "mention_count": 1644,
+    "ambiguous_mention_count": 53,
+    "normalized_predictions_sha256": "1f6a7572493eee6023769e120695b46a01069f99232a4f631bbecffd3e0bc40f",
+    "byte_different_indexes_normalize_identically": true,
+    "difficult_breathing_candidates": [
+      "HP:0002094",
+      "HP:0002098",
+      "HP:0005957"
+    ]
+  }
+}

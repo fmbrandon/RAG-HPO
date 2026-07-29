@@ -128,9 +128,9 @@ def main() -> int:
         "compound_ids_are_alternatives": _aggregate(alternative_rows),
         "compound_ids_are_all_required": summarize(split_scores),
         "policy_note": (
-            "The source does not say which interpretation is correct. The strict policy "
-            "is reproducible but creates impossible IDs; alternatives and all-required "
-            "are sensitivity bounds pending lab adjudication."
+            "The lab owner confirmed that comma-delimited IDs are alternatives for one "
+            "finding. The strict and all-required results are retained only as historical "
+            "sensitivity bounds."
         ),
         "provenance": {
             "predictions_sha256": sha256_file(args.predictions),

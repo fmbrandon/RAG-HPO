@@ -7,14 +7,25 @@ import argparse
 import json
 from pathlib import Path
 
+from rag_hpo.artifacts import sha256_file
 from rag_hpo.benchmark import (
     load_hpo_aliases,
     load_prediction_sets,
-    load_reference_sets,
-    score_sets,
+    load_reference_groups,
+    score_reference_groups,
     summarize,
     write_benchmark_report,
 )
+
+
+def _selection_ids(path: Path) -> list[str]:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    selection = raw.get("selection", raw)
+    for key in ("selected_case_ids", "confirmation_case_ids", "case_ids"):
+        values = selection.get(key)
+        if isinstance(values, list):
+            return [str(value) for value in values]
+    raise ValueError("selection manifest does not contain a recognized case-ID list")
 
 
 def main() -> int:
@@ -29,14 +40,38 @@ def main() -> int:
     parser.add_argument("--vector-manifest", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--case-id", action="append", dest="case_ids")
+    parser.add_argument(
+        "--selection-manifest",
+        type=Path,
+        help="Score exactly the case IDs recorded in a locked selection manifest.",
+    )
     parser.add_argument("--model", default="not-recorded")
     parser.add_argument("--prompt-version", default="not-recorded")
+    parser.add_argument(
+        "--accepted-only",
+        action="store_true",
+        help="Score accepted staged findings and exclude review/rejected rows.",
+    )
     args = parser.parse_args()
+    if args.case_ids and args.selection_manifest is not None:
+        parser.error("--case-id and --selection-manifest are mutually exclusive")
+    try:
+        case_ids = (
+            _selection_ids(args.selection_manifest)
+            if args.selection_manifest is not None
+            else args.case_ids
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        parser.error(str(exc))
 
     aliases = load_hpo_aliases(args.ontology)
-    predictions = load_prediction_sets(args.predictions, aliases)
-    references = load_reference_sets(args.references, aliases)
-    scores = score_sets(predictions, references, patient_ids=args.case_ids)
+    predictions = load_prediction_sets(
+        args.predictions,
+        aliases,
+        accepted_only=args.accepted_only,
+    )
+    references = load_reference_groups(args.references, aliases)
+    scores = score_reference_groups(predictions, references, patient_ids=case_ids)
     if not scores:
         parser.error("no benchmark cases were selected")
     csv_path, json_path = write_benchmark_report(
@@ -48,6 +83,17 @@ def main() -> int:
         metadata={
             "model": args.model,
             "prompt_version": args.prompt_version,
+            "prediction_policy": ("accepted-only" if args.accepted_only else "all-mapped"),
+            "selection_manifest": (
+                args.selection_manifest.name
+                if args.selection_manifest is not None
+                else "not-supplied"
+            ),
+            "selection_manifest_sha256": (
+                sha256_file(args.selection_manifest)
+                if args.selection_manifest is not None
+                else "not-supplied"
+            ),
         },
         input_path=args.input,
         prompt_path=args.prompt_file,

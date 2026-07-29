@@ -34,12 +34,17 @@ class SapBERTBackend:
         self,
         model_id: str = DEFAULT_SAPBERT_MODEL,
         revision: str = DEFAULT_SAPBERT_REVISION,
+        *,
+        local_files_only: bool = False,
     ) -> None:
         from sentence_transformers import SentenceTransformer
 
         self.model_id = model_id
         self.revision = revision
-        self._model = SentenceTransformer(model_id, revision=revision)
+        model_options: dict[str, object] = {"revision": revision}
+        if local_files_only:
+            model_options["local_files_only"] = True
+        self._model = SentenceTransformer(model_id, **model_options)
 
     def encode(self, texts: Sequence[str]) -> np.ndarray:
         values = self._model.encode(
@@ -66,9 +71,9 @@ class FastEmbedBackend:
         return normalize_rows(np.asarray(list(self._model.embed(list(texts)))))
 
 
-def create_backend(name: str) -> EmbeddingBackend:
+def create_backend(name: str, *, offline: bool = False) -> EmbeddingBackend:
     if name == "sapbert":
-        return SapBERTBackend()
+        return SapBERTBackend(local_files_only=offline)
     if name == "fastembed":
         return FastEmbedBackend()
     raise ValueError(f"unknown embedding backend: {name}")

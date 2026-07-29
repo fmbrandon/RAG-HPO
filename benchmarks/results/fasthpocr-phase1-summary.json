@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0",
+  "phase": "FastHPOCR licensing and evidence baseline",
+  "completed_on": "2026-07-28",
+  "reference_policy": "Each reference row is one finding; comma-delimited HPO IDs are alternatives.",
+  "historical_reproduction": {
+    "row_count": 1730,
+    "source_workbook_sha256": "b5516972c6459542ac92059c6f5d78fc1b016adce80633779b54515972d1af14",
+    "metrics_sha256": "c86be5af92b66104cc5c1146db04d14e836e8e535ef34653a9f38e7254ab7192",
+    "byte_matches_prior_export": true
+  },
+  "current_fast_hpo_cr": {
+    "version": "0.1.4",
+    "ontology_release": "2026-06-23",
+    "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+    "runs": [
+      {
+        "corpus": "CSC",
+        "configuration": "default",
+        "case_count": 112,
+        "tp": 822,
+        "fp": 739,
+        "fn": 967,
+        "precision": 0.5265855221012171,
+        "recall": 0.45947456679709336,
+        "f1": 0.49074626865671644,
+        "f0_5": 0.511639
+      },
+      {
+        "corpus": "CSC",
+        "configuration": "longest-match",
+        "case_count": 112,
+        "tp": 809,
+        "fp": 552,
+        "fn": 980,
+        "precision": 0.5944158706833211,
+        "recall": 0.4522079373951928,
+        "f1": 0.5136507936507937,
+        "f0_5": 0.559242
+      },
+      {
+        "corpus": "CSC",
+        "configuration": "add-ons-and-longest-match",
+        "case_count": 112,
+        "tp": 819,
+        "fp": 555,
+        "fn": 970,
+        "precision": 0.5960698689956332,
+        "recall": 0.4577976523197317,
+        "f1": 0.5178627884919379,
+        "f0_5": 0.562114
+      },
+      {
+        "corpus": "GSC",
+        "configuration": "default",
+        "case_count": 114,
+        "tp": 694,
+        "fp": 241,
+        "fn": 318,
+        "precision": 0.7422459893048128,
+        "recall": 0.6857707509881423,
+        "f1": 0.7128916281458654,
+        "f0_5": 0.730219
+      },
+      {
+        "corpus": "GSC",
+        "configuration": "longest-match",
+        "case_count": 114,
+        "tp": 681,
+        "fp": 108,
+        "fn": 331,
+        "precision": 0.8631178707224335,
+        "recall": 0.6729249011857708,
+        "f1": 0.7562465297057192,
+        "f0_5": 0.816939
+      }
+    ],
+    "longest_match_paired_f1": {
+      "CSC": {
+        "mean_difference": 0.026511979475379803,
+        "ci95": [
+          0.019966442053684086,
+          0.03350495026924064
+        ],
+        "two_sided_sign_flip_p": 0.00004999750012499375
+      },
+      "GSC": {
+        "mean_difference": 0.04990166965284048,
+        "ci95": [
+          0.03926102171359698,
+          0.06068460719046846
+        ],
+        "two_sided_sign_flip_p": 0.00004999750012499375
+      }
+    },
+    "addons_effect": {
+      "CSC_default": {
+        "additional_tp": 8,
+        "additional_fp": 3
+      },
+      "CSC_longest_match": {
+        "additional_tp": 10,
+        "additional_fp": 3
+      },
+      "GSC": {
+        "prediction_change_count": 0
+      }
+    }
+  },
+  "current_csc_complementarity": {
+    "case_count": 112,
+    "rebuilt_rag_hpo": {
+      "tp": 1088,
+      "fp": 456,
+      "fn": 701,
+      "precision": 0.7046632124352331,
+      "recall": 0.6081609837898267,
+      "f1": 0.6528652865286529
+    },
+    "fast_hpo_cr_addons_longest": {
+      "tp": 819,
+      "fp": 555,
+      "fn": 970,
+      "precision": 0.5960698689956332,
+      "recall": 0.4577976523197317,
+      "f1": 0.5178627884919379
+    },
+    "exact_id_intersection": {
+      "tp": 638,
+      "fp": 43,
+      "fn": 1151,
+      "precision": 0.9368575624082232,
+      "recall": 0.35662381218557854,
+      "f1": 0.5165991902834008
+    },
+    "unverified_union": {
+      "tp": 1268,
+      "fp": 969,
+      "fn": 521,
+      "precision": 0.5668305766651766,
+      "recall": 0.708775852431526,
+      "f1": 0.6299056135121709
+    },
+    "true_positive_overlap": {
+      "shared": 638,
+      "rag_hpo_only": 450,
+      "fast_hpo_cr_only": 181
+    },
+    "false_positive_overlap": {
+      "shared": 43,
+      "rag_hpo_only": 413,
+      "fast_hpo_cr_only": 512
+    }
+  },
+  "index_observations": {
+    "default_bytes": 139099635,
+    "addons_bytes": 166601050,
+    "first_build_seconds": 267.47181595800066,
+    "addons_build_seconds": 290.0210178749985,
+    "annotation_seconds_for_114_to_116_cases": "0.05-0.13",
+    "byte_reproducible": false,
+    "first_index_sha256": "05da3cae8a9ffb03ac7f554d400f793888a4fde0186ecd78ba6555b5c65fb63c",
+    "repeat_index_sha256": "25b9e0ced8ba48e254248f2867a0b8e40192a34251057f8cac529a3f3d5d6a47",
+    "semantic_difference": "One CSC mention changed selected HPO ID; many selected synonym labels changed while retaining the same ID."
+  },
+  "decisions": [
+    "Keep FastHPOCR optional and unvendored.",
+    "Use longest-span preference as the FastHPOCR precision-first default.",
+    "Treat exact-ID agreement as a high-confidence lane.",
+    "Never accept the unverified union as final output.",
+    "Send recognizer-unique findings through assertion, ambiguity, and optional model verification.",
+    "Do not trust the upstream serialized index hash as proof of deterministic scientific output.",
+    "Score only cases with manual reference findings while reporting unscored inputs separately."
+  ]
+}

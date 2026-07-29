@@ -51,6 +51,11 @@ class ArtifactManifest(BaseModel):
     vector_count: int = Field(ge=0)
     metadata_sha256: str
     vectors_sha256: str
+    registry_schema_version: str | None = None
+    registry_sha256: str | None = None
+    registry_manifest_sha256: str | None = None
+    lexical_sha256: str | None = None
+    lexical_manifest_sha256: str | None = None
 
 
 def sha256_file(path: Path) -> str:
@@ -89,6 +94,11 @@ def write_artifacts(
     embedding_backend: str,
     embedding_model: str,
     embedding_revision: str,
+    registry_schema_version: str | None = None,
+    registry_sha256: str | None = None,
+    registry_manifest_sha256: str | None = None,
+    lexical_sha256: str | None = None,
+    lexical_manifest_sha256: str | None = None,
 ) -> ArtifactManifest:
     matrix = np.asarray(vectors, dtype=np.float32)
     if matrix.ndim != 2:
@@ -143,6 +153,11 @@ def write_artifacts(
         vector_count=matrix.shape[0],
         metadata_sha256=sha256_file(metadata_path),
         vectors_sha256=sha256_file(vectors_path),
+        registry_schema_version=registry_schema_version,
+        registry_sha256=registry_sha256,
+        registry_manifest_sha256=registry_manifest_sha256,
+        lexical_sha256=lexical_sha256,
+        lexical_manifest_sha256=lexical_manifest_sha256,
     )
     _atomic_write_bytes(
         manifest_path,
@@ -166,6 +181,41 @@ def load_artifacts(vector_dir: Path) -> tuple[list[ArtifactEntry], np.ndarray, A
         raise ValueError("metadata hash does not match the manifest")
     if sha256_file(vectors_path) != manifest.vectors_sha256:
         raise ValueError("vector hash does not match the manifest")
+    registry_fields = (
+        manifest.registry_schema_version,
+        manifest.registry_sha256,
+        manifest.registry_manifest_sha256,
+        manifest.lexical_sha256,
+        manifest.lexical_manifest_sha256,
+    )
+    if any(registry_fields) and not all(registry_fields):
+        raise ValueError("vector manifest contains incomplete registry provenance")
+    if all(registry_fields):
+        from rag_hpo.registry import (
+            LEXICAL_MANIFEST_NAME,
+            LEXICAL_NAME,
+            REGISTRY_MANIFEST_NAME,
+            REGISTRY_NAME,
+            REGISTRY_SCHEMA_VERSION,
+            load_registry_bundle,
+        )
+
+        if manifest.registry_schema_version != REGISTRY_SCHEMA_VERSION:
+            raise ValueError(f"unsupported registry schema: {manifest.registry_schema_version}")
+        expected_hashes = {
+            REGISTRY_NAME: manifest.registry_sha256,
+            REGISTRY_MANIFEST_NAME: manifest.registry_manifest_sha256,
+            LEXICAL_NAME: manifest.lexical_sha256,
+            LEXICAL_MANIFEST_NAME: manifest.lexical_manifest_sha256,
+        }
+        for name, expected_hash in expected_hashes.items():
+            if sha256_file(vector_dir / name) != expected_hash:
+                raise ValueError(f"{name} hash does not match the vector manifest")
+        _, registry_manifest, lexical_manifest = load_registry_bundle(vector_dir)
+        if registry_manifest.registry_sha256 != manifest.registry_sha256:
+            raise ValueError("registry identity differs from the vector manifest")
+        if lexical_manifest.lexical_sha256 != manifest.lexical_sha256:
+            raise ValueError("lexical identity differs from the vector manifest")
 
     metadata: dict[str, Any] = json.loads(metadata_path.read_text(encoding="utf-8"))
     if metadata.get("schema_version") != SCHEMA_VERSION:

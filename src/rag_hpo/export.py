@@ -19,6 +19,14 @@ FIELDS = [
     "mapping_status",
     "error_code",
     "error_message",
+    "evidence_start",
+    "evidence_end",
+    "assertion_status",
+    "confidence",
+    "review_status",
+    "source_methods",
+    "candidate_hpo_ids",
+    "evidence_text",
 ]
 
 
@@ -43,10 +51,18 @@ def export_results(results: list[AnnotationResult], output_dir: Path) -> tuple[P
     json_path = output_dir / "rag_hpo_results.json"
 
     rows = [result.model_dump(mode="json") for result in results]
+    csv_rows = [
+        {
+            **row,
+            "source_methods": "|".join(row["source_methods"] or []),
+            "candidate_hpo_ids": "|".join(row["candidate_hpo_ids"] or []),
+        }
+        for row in rows
+    ]
     buffer = __import__("io").StringIO()
     writer = csv.DictWriter(buffer, fieldnames=FIELDS)
     writer.writeheader()
-    writer.writerows(rows)
+    writer.writerows(csv_rows)
     _replace(csv_path, buffer.getvalue())
     _replace(json_path, json.dumps(rows, indent=2, ensure_ascii=False) + "\n")
     return csv_path, json_path

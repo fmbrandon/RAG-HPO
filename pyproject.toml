@@ -19,6 +19,7 @@ dependencies = [
   "pandas>=2.2,<4",
   "pydantic>=2.9,<3",
   "rapidfuzz>=3.9,<4",
+  "scikit-learn>=1.5,<2",
   "sentence-transformers>=3,<6",
   "tabulate>=0.9,<1",
   "tiktoken>=0.8,<1",
@@ -27,6 +28,11 @@ dependencies = [
 
 [project.optional-dependencies]
 vectorize = ["pronto>=2.6,<3"]
+fasthpocr = [
+  "FastHPOCR==0.1.4",
+  # FastHPOCR imports Pronto but does not declare it in its package metadata.
+  "pronto>=2.6,<3",
+]
 fastembed = ["fastembed>=0.4,<1"]
 notebook = [
   "ipykernel>=6.29,<8",

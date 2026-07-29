@@ -1,0 +1,34 @@
+{
+  "package": "FastHPOCR",
+  "version": "0.1.4",
+  "source_archive": {
+    "filename": "FastHPOCR-0.1.4.tar.gz",
+    "sha256": "c0f750314558e08e6b69335ebcd57783d07a82108e9f5912fd12a28727f6c9af",
+    "url": "https://files.pythonhosted.org/packages/source/F/FastHPOCR/FastHPOCR-0.1.4.tar.gz"
+  },
+  "installed_resources": {
+    "license.txt": {
+      "sha256": "ba71fe3fc79b48a8220c4adcc00a6e58e120695dc6c560e453b3c70668aa75cd"
+    },
+    "resources/base-synonyms": {
+      "bytes": 1385,
+      "sha256": "2505fae37a5fcb440e6cf992c5003afaf7b2773b9179965e2db2bf43dc790213"
+    },
+    "resources/vocab.clusters.list": {
+      "bytes": 6300038,
+      "sha256": "04a512a413c573e2c7b2a1e3a6b744b8ce4def5afdeb88ab0e48361fef5d93b1"
+    }
+  },
+  "license": {
+    "identifier": "MIT",
+    "copyright": "Copyright 2024 Tudor Groza",
+    "upstream_file": "https://github.com/tudorgroza/fast_hpo_cr/blob/main/license.txt"
+  },
+  "metadata_findings": [
+    "The source distribution contains the MIT license file.",
+    "PyPI metadata does not populate License, Home-page, or Requires-Dist.",
+    "FastHPOCR imports Pronto, so RAG-HPO declares Pronto in the optional extra.",
+    "Bundled linguistic resources are not vendored by RAG-HPO."
+  ],
+  "reviewed_on": "2026-07-28"
+}

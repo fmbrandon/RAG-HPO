@@ -26,10 +26,10 @@
       "tp": 789
     }
   },
-  "policy_note": "The source does not say which interpretation is correct. The strict policy is reproducible but creates impossible IDs; alternatives and all-required are sensitivity bounds pending lab adjudication.",
+  "policy_note": "The lab owner confirmed that comma-delimited IDs are alternatives for one finding. The strict and all-required results are retained only as historical sensitivity bounds.",
   "provenance": {
     "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
-    "predictions_sha256": "a87bf15cc3f4fae3705fa6eda4a0ffe9424013f16e534630ed1b2549bf148e23",
+    "predictions_sha256": "3e988d0a4e6c6389023d9793ae05246faffb76a92f1a2c7d00ec8a8077958dbd",
     "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a",
     "selection_manifest_sha256": "d9e58aec2b4aadd1ca0b533dccd625e1c6f8a2828e250e645822aa5c2af4b5fa"
   },

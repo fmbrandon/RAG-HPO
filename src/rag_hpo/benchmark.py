@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 from rag_hpo.artifacts import sha256_file
+
+HPO_ID = re.compile(r"HP:\d{7}")
 
 
 @dataclass(frozen=True)
@@ -106,7 +109,38 @@ def load_reference_sets(
     return references
 
 
-def load_prediction_sets(path: Path, aliases: dict[str, str]) -> dict[str, set[str]]:
+def load_reference_groups(
+    path: Path,
+    aliases: dict[str, str],
+    *,
+    patient_column: str = "Patient ID",
+    hpo_column: str = "hpo_term",
+) -> dict[str, list[set[str]]]:
+    """Load one reference finding per row, with comma-delimited IDs as alternatives."""
+    references: dict[str, list[set[str]]] = {}
+    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if not reader.fieldnames or patient_column not in reader.fieldnames:
+            raise ValueError(f"reference CSV requires a {patient_column!r} column")
+        if hpo_column not in reader.fieldnames:
+            raise ValueError(f"reference CSV requires a {hpo_column!r} column")
+        for row in reader:
+            patient_id = str(row.get(patient_column) or "").strip()
+            identifiers = {
+                aliases.get(identifier, identifier)
+                for identifier in HPO_ID.findall(str(row.get(hpo_column) or ""))
+            }
+            if patient_id and identifiers:
+                references.setdefault(patient_id, []).append(identifiers)
+    return references
+
+
+def load_prediction_sets(
+    path: Path,
+    aliases: dict[str, str],
+    *,
+    accepted_only: bool = False,
+) -> dict[str, set[str]]:
     if path.suffix.lower() == ".json":
         raw_rows: Any = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw_rows, list):
@@ -124,7 +158,12 @@ def load_prediction_sets(path: Path, aliases: dict[str, str]) -> dict[str, set[s
         hpo_id = _normalize_hpo_id(raw_row.get("hpo_id"), aliases)
         if patient_id:
             predictions.setdefault(patient_id, set())
-            if hpo_id and raw_row.get("mapping_status") in (None, "", "mapped"):
+            accepted = not accepted_only or raw_row.get("review_status") in (
+                None,
+                "",
+                "accepted",
+            )
+            if hpo_id and accepted and raw_row.get("mapping_status") in (None, "", "mapped"):
                 predictions[patient_id].add(hpo_id)
     return predictions
 
@@ -136,7 +175,7 @@ def score_sets(
     patient_ids: list[str] | None = None,
 ) -> list[CaseScore]:
     selected_ids = patient_ids or sorted(
-        predictions,
+        set(predictions) | set(references),
         key=lambda value: (not value.isdigit(), int(value) if value.isdigit() else value),
     )
     scores: list[CaseScore] = []
@@ -156,6 +195,77 @@ def score_sets(
                 true_positive_ids=sorted(true_positive),
                 false_positive_ids=sorted(false_positive),
                 false_negative_ids=sorted(false_negative),
+                tp=tp,
+                fp=fp,
+                fn=fn,
+                precision=precision,
+                recall=recall,
+                f1=f1,
+            )
+        )
+    return scores
+
+
+def _format_reference_group(group: set[str]) -> str:
+    return "|".join(sorted(group))
+
+
+def _maximum_reference_matching(
+    predictions: set[str],
+    groups: list[set[str]],
+) -> dict[int, str]:
+    matched_group: dict[int, str] = {}
+
+    def augment(prediction: str, visited: set[int]) -> bool:
+        for index, group in enumerate(groups):
+            if index in visited or prediction not in group:
+                continue
+            visited.add(index)
+            existing = matched_group.get(index)
+            if existing is None or augment(existing, visited):
+                matched_group[index] = prediction
+                return True
+        return False
+
+    for prediction in sorted(predictions):
+        augment(prediction, set())
+    return matched_group
+
+
+def score_reference_groups(
+    predictions: dict[str, set[str]],
+    references: dict[str, list[set[str]]],
+    *,
+    patient_ids: list[str] | None = None,
+) -> list[CaseScore]:
+    """Score predictions against one-to-one alternative-ID reference findings."""
+    selected_ids = patient_ids or sorted(
+        references,
+        key=lambda value: (not value.isdigit(), int(value) if value.isdigit() else value),
+    )
+    scores: list[CaseScore] = []
+    for patient_id in selected_ids:
+        predicted = predictions.get(patient_id, set())
+        groups = references.get(patient_id, [])
+        matched_group = _maximum_reference_matching(predicted, groups)
+        matched_predictions = set(matched_group.values())
+        unmatched_groups = [
+            _format_reference_group(group)
+            for index, group in enumerate(groups)
+            if index not in matched_group
+        ]
+        tp = len(matched_group)
+        fp = len(predicted) - tp
+        fn = len(groups) - tp
+        precision, recall, f1 = _metrics(tp, fp, fn)
+        scores.append(
+            CaseScore(
+                patient_id=patient_id,
+                predicted_ids=sorted(predicted),
+                reference_ids=[_format_reference_group(group) for group in groups],
+                true_positive_ids=sorted(matched_predictions),
+                false_positive_ids=sorted(predicted - matched_predictions),
+                false_negative_ids=sorted(unmatched_groups),
                 tp=tp,
                 fp=fp,
                 fn=fn,

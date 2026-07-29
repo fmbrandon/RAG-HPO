@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "frozen_at": "2026-07-28",
+  "purpose": "Post-discovery staged-pipeline evaluation freeze",
+  "configuration": {
+    "mode": "balanced",
+    "embedding_backend": "sapbert",
+    "dense_rows": 64,
+    "lexical_rows": 64,
+    "distinct_candidates": 16,
+    "mapping_batch_size": 8,
+    "recognizers": [
+      "native",
+      "fasthpocr"
+    ],
+    "lower_confidence_addition_policy": "review_without_forced_mapping",
+    "assertion_policy": "flag_for_review_never_delete",
+    "accepted_scoring_policy": "review_status=accepted"
+  },
+  "prompt_versions": {
+    "coverage_extraction": "2.0",
+    "coverage_audit": "1.0",
+    "batch_mapping_verification": "1.0"
+  },
+  "hashes": {
+    "prompt_bundle_sha256": "3d3fc7fe0f49e7e54dbff7df01ca48822568dc9161079db2f7117f95160bd180",
+    "retrieval_source_sha256": "2e3727f5ffc95a528bdd4b7977acf3eaa4406ccdecb5b7acc94897dbaed36c48",
+    "staged_pipeline_source_sha256": "b2c1e0ab980e9c351a7eeca77354ba18b1a9d769f35197c0d9147e6712527f90",
+    "post_evaluation_accounting_source_sha256": "91863320cff92dee91c3bb8c659162998a7c3a1541fb3a5d0cd725d2a7e5d742",
+    "vector_manifest_sha256": "11192841848cde75c9db5e4aafc81d00556559e484a51a692f0ac8571a8317cf",
+    "fasthpocr_index_sha256": "ac7e5148155c79344f429aaf1de34e99c6576d9235d5462ddb27836af2fd1806",
+    "discovery_predictions_sha256": "b58b04b61583399079aeae1534f2bc9e6ef93ad17c4768f230ca5253537f214f"
+  },
+  "discovery_evidence": {
+    "case_count": 30,
+    "accepted": {
+      "precision": 0.5481832543443917,
+      "recall": 0.6884920634920635,
+      "f1": 0.6103781882145998
+    },
+    "model_pass1_only": {
+      "precision": 0.7225950782997763,
+      "recall": 0.6408730158730159,
+      "f1": 0.6792849631966351
+    },
+    "model_pass1_plus_dual_recognizer": {
+      "precision": 0.6952965235173824,
+      "recall": 0.6746031746031746,
+      "f1": 0.6847935548841892
+    },
+    "all_mapped": {
+      "precision": 0.5418569254185692,
+      "recall": 0.7063492063492064,
+      "f1": 0.6132644272179156
+    },
+    "candidate_oracle_recall": 0.9285714285714286
+  },
+  "evaluation_policy": {
+    "reason": "Limit provider time and token use while retaining a performance-blind, reproducible evaluation.",
+    "sample_size_per_corpus": 30,
+    "seed": 20260728,
+    "method": "3x3 rank strata over note character count and manual-reference count; seeded sampling within each stratum",
+    "csc_scope": "Untouched confirmation cases only; discovery cases excluded",
+    "gsc_scope": "Independent eligible GSC cases",
+    "csc_selection_manifest": "benchmarks/results/csc-confirmation-stratified-30-20260728-selection.json",
+    "csc_selection_manifest_sha256": "1cb77700297945de8677f63ae71cbe07d2222f9dd0e95d0446ee0b710ca91415",
+    "gsc_selection_manifest": "benchmarks/results/gsc-stratified-30-20260728-selection.json",
+    "gsc_selection_manifest_sha256": "2abebb602db23b005d4d6d7de56dbb50500f2d79acb1a737811339cc5459ee4c",
+    "reporting_limit": "Subset estimates require uncertainty intervals and cannot be described as full-corpus results."
+  },
+  "evaluation_result": {
+    "csc_accepted_precision": 0.7270642201834863,
+    "csc_accepted_recall": 0.7107623318385651,
+    "csc_point_gate": "pass",
+    "gsc_accepted_precision": 0.8577981651376146,
+    "gsc_accepted_recall": 0.6977611940298507,
+    "gsc_point_gate": "fail_recall_by_one_true_positive"
+  },
+  "decision": "Do not promote balanced to the default. Do not tune on the selected CSC confirmation subset or GSC subset."
+}

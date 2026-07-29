@@ -7,7 +7,9 @@ from pathlib import Path
 from rag_hpo.benchmark import (
     load_hpo_aliases,
     load_prediction_sets,
+    load_reference_groups,
     load_reference_sets,
+    score_reference_groups,
     score_sets,
     summarize,
     write_benchmark_report,
@@ -102,6 +104,73 @@ def test_benchmark_reports_are_byte_reproducible(tmp_path: Path) -> None:
     )
     assert first[0].read_bytes() == second[0].read_bytes()
     assert first[1].read_bytes() == second[1].read_bytes()
+
+
+def test_alternative_reference_ids_count_as_one_finding(tmp_path: Path) -> None:
+    ontology = tmp_path / "hp.obo"
+    ontology.write_text(OBO, encoding="utf-8")
+    references = tmp_path / "references.csv"
+    references.write_text(
+        'Patient ID,hpo_term\n1,"HP:0000001, HP:9000001"\n1,HP:0000002\n',
+        encoding="utf-8",
+    )
+    predictions = tmp_path / "predictions.csv"
+    predictions.write_text(
+        "patient_id,hpo_id,mapping_status\n1,HP:9000001,mapped\n1,HP:0000002,mapped\n",
+        encoding="utf-8",
+    )
+    aliases = load_hpo_aliases(ontology)
+    scores = score_reference_groups(
+        load_prediction_sets(predictions, aliases),
+        load_reference_groups(references, aliases),
+        patient_ids=["1"],
+    )
+    assert (scores[0].tp, scores[0].fp, scores[0].fn) == (2, 0, 0)
+    assert scores[0].f1 == 1.0
+
+
+def test_accepted_only_prediction_policy_excludes_review_rows(
+    tmp_path: Path,
+) -> None:
+    predictions = tmp_path / "predictions.json"
+    predictions.write_text(
+        json.dumps(
+            [
+                {
+                    "patient_id": "1",
+                    "hpo_id": "HP:0000001",
+                    "mapping_status": "mapped",
+                    "review_status": "accepted",
+                },
+                {
+                    "patient_id": "1",
+                    "hpo_id": "HP:0000002",
+                    "mapping_status": "mapped",
+                    "review_status": "review",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    assert load_prediction_sets(
+        predictions,
+        {},
+        accepted_only=True,
+    ) == {"1": {"HP:0000001"}}
+
+
+def test_scoring_includes_reference_only_cases() -> None:
+    scores = score_sets({}, {"7": {"HP:0000001"}})
+    assert [score.patient_id for score in scores] == ["7"]
+    assert (scores[0].tp, scores[0].fp, scores[0].fn) == (0, 0, 1)
+
+
+def test_group_scoring_excludes_prediction_only_cases() -> None:
+    scores = score_reference_groups(
+        {"1": {"HP:0000001"}, "2": {"HP:0000002"}},
+        {"1": [{"HP:0000001"}]},
+    )
+    assert [score.patient_id for score in scores] == ["1"]
 
 
 def test_exported_reference_corpora_are_separate_and_case_68_is_repaired() -> None:

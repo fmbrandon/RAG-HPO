@@ -44,6 +44,12 @@ class OpenAICompatibleProvider:
         )
         self._owns_client = client is None
         self.client = client or httpx.Client(timeout=timeout)
+        self.usage: dict[str, int] = {
+            "requests": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+        }
 
     def close(self) -> None:
         if self._owns_client:
@@ -63,6 +69,7 @@ class OpenAICompatibleProvider:
         response_model: type[T],
         temperature: float = 0.2,
     ) -> tuple[T, str]:
+        self.usage["requests"] += 1
         payload: dict[str, Any] = {
             "model": self.config.model,
             "messages": [
@@ -78,6 +85,15 @@ class OpenAICompatibleProvider:
         response = self._post_with_retries(payload)
         try:
             envelope = response.json()
+            usage = envelope.get("usage", {})
+            for source, target in (
+                ("prompt_tokens", "input_tokens"),
+                ("completion_tokens", "output_tokens"),
+                ("total_tokens", "total_tokens"),
+            ):
+                value = usage.get(source)
+                if isinstance(value, int):
+                    self.usage[target] += value
             content = envelope["choices"][0]["message"]["content"]
             if not isinstance(content, str):
                 raise TypeError("completion content is not text")

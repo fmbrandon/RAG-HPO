@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "evaluation_scope": {
+    "policy": "performance-blind stratified subsets only",
+    "sample_size_per_corpus": 30,
+    "seed": 20260728,
+    "csc": {
+      "eligible_untouched_cases": 82,
+      "manual_reference_findings": 446,
+      "selection_manifest_sha256": "1cb77700297945de8677f63ae71cbe07d2222f9dd0e95d0446ee0b710ca91415"
+    },
+    "gsc": {
+      "eligible_cases": 114,
+      "manual_reference_findings": 268,
+      "selection_manifest_sha256": "2abebb602db23b005d4d6d7de56dbb50500f2d79acb1a737811339cc5459ee4c"
+    },
+    "claim_limit": "These are subset estimates, not full-corpus results."
+  },
+  "frozen_pipeline": {
+    "mode": "balanced",
+    "model": "openai/gpt-oss-120b",
+    "prompt_bundle_sha256": "3d3fc7fe0f49e7e54dbff7df01ca48822568dc9161079db2f7117f95160bd180",
+    "artifact_manifest_sha256": "11192841848cde75c9db5e4aafc81d00556559e484a51a692f0ac8571a8317cf",
+    "evaluation_pipeline_source_sha256": "b2c1e0ab980e9c351a7eeca77354ba18b1a9d769f35197c0d9147e6712527f90",
+    "post_evaluation_accounting_source_sha256": "91863320cff92dee91c3bb8c659162998a7c3a1541fb3a5d0cd725d2a7e5d742"
+  },
+  "accepted_only_primary": {
+    "csc": {
+      "tp": 317,
+      "fp": 119,
+      "fn": 129,
+      "precision": 0.7270642201834863,
+      "recall": 0.7107623318385651,
+      "f1": 0.7188208616780045,
+      "micro_precision_ci95": [
+        0.6740566986217991,
+        0.7829982904900595
+      ],
+      "micro_recall_ci95": [
+        0.6481926426387854,
+        0.770042194092827
+      ],
+      "micro_f1_ci95": [
+        0.6709394904458599,
+        0.7660079489608264
+      ],
+      "point_gate_70_70": "pass",
+      "predictions_sha256": "2adf21293226f5e0650ac148d0603c9c678a0cb2c9f9051190ae8e5b4dd92186",
+      "benchmark_report_sha256": "7aeccb191a49e5500ca3973b9f8e67f8ba7a8a876f9c8fbcf11bf64fe60d8165"
+    },
+    "gsc": {
+      "tp": 187,
+      "fp": 31,
+      "fn": 81,
+      "precision": 0.8577981651376146,
+      "recall": 0.6977611940298507,
+      "f1": 0.7695473251028807,
+      "micro_precision_ci95": [
+        0.8044686530105526,
+        0.9039307477857547
+      ],
+      "micro_recall_ci95": [
+        0.6275283797729618,
+        0.7619047619047619
+      ],
+      "micro_f1_ci95": [
+        0.714279038718291,
+        0.8167770419426049
+      ],
+      "point_gate_70_70": "fail_recall_by_one_true_positive",
+      "predictions_sha256": "1abad61210812f4389715c3dd0d59db557ac5d96de3b8f4c571b9c1a89ab4735",
+      "benchmark_report_sha256": "84fce837345dd058f904143acadb04810381a4495672e0f159267a1d78f68fa3"
+    }
+  },
+  "all_mapped_sensitivity": {
+    "csc": {
+      "precision": 0.7235955056179775,
+      "recall": 0.7219730941704036,
+      "f1": 0.7227833894500562
+    },
+    "gsc": {
+      "precision": 0.8513513513513513,
+      "recall": 0.7052238805970149,
+      "f1": 0.7714285714285714
+    },
+    "interpretation": "Review findings cannot be counted as accepted; this is sensitivity analysis only."
+  },
+  "historical_llama_4_scout_same_cases": {
+    "csc": {
+      "precision": 0.694560669456067,
+      "recall": 0.7410714285714286,
+      "f1": 0.717062634989201
+    },
+    "gsc": {
+      "precision": 0.6228571428571429,
+      "recall": 0.8164794007490637,
+      "f1": 0.706645056726094
+    },
+    "limit": "Historical files contain counts but not predicted IDs."
+  },
+  "reliability_and_cost": {
+    "gsc": {
+      "elapsed_seconds": 569.027858,
+      "requests": 134,
+      "input_tokens": 687749,
+      "output_tokens": 169156,
+      "total_tokens": 856905,
+      "row_errors_after_resume": 0
+    },
+    "csc": {
+      "row_errors_before_resume": 4,
+      "row_errors_after_resume": 0,
+      "cumulative_usage": "not_recoverable",
+      "reason": "The pre-fix run manifest overwrote prior attempt totals during resume."
+    },
+    "future_fix": "Run manifests now retain attempts and cumulative token/runtime totals."
+  },
+  "promotion_decision": {
+    "balanced_default": "not_promoted",
+    "reason": "GSC accepted-only recall was 0.697761, below the predeclared 0.70 point-estimate gate.",
+    "no_post_confirmation_tuning": true
+  }
+}

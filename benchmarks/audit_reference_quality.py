@@ -98,7 +98,7 @@ def main() -> int:
             "rows": compound_cells,
             "scoring_risk": (
                 "The exact scorer treats each unsplit cell as one impossible identifier. "
-                "The source does not state whether the IDs are alternatives or both required."
+                "The lab owner confirmed that the IDs are alternatives for one finding."
             ),
         },
         "cells_without_hpo_id": invalid_cells,
@@ -107,8 +107,8 @@ def main() -> int:
         "obsolete_ids_without_replacement": sorted(obsolete_ids),
         "missing_ids": sorted(missing_ids),
         "recommended_policy": (
-            "Keep the source unchanged. Obtain lab adjudication for compound cells, then "
-            "encode each as either an alternative-ID group or separate required annotations."
+            "Keep the source unchanged and score each compound cell as one alternative-ID "
+            "group using deterministic one-to-one matching."
         ),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

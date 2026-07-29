@@ -1,0 +1,80 @@
+{
+  "combined_112_descriptive": {
+    "baseline": {
+      "f0_5": 0.6829880728185813,
+      "f1": 0.6528652865286529,
+      "fn": 701,
+      "fp": 456,
+      "precision": 0.7046632124352331,
+      "recall": 0.6081609837898267,
+      "tp": 1088
+    },
+    "corrected_hybrid": {
+      "f0_5": 0.7113415769179631,
+      "f1": 0.6641837368094351,
+      "fn": 719,
+      "fp": 363,
+      "precision": 0.7466852756454989,
+      "recall": 0.5980994969256568,
+      "tp": 1070
+    },
+    "note": "Descriptive only; the discovery cohort was used before confirmation."
+  },
+  "confirmation_82": {
+    "baseline": {
+      "f0_5": 0.6838273530941238,
+      "f1": 0.655860349127182,
+      "fn": 496,
+      "fp": 332,
+      "precision": 0.703835860838537,
+      "recall": 0.6140077821011674,
+      "tp": 789
+    },
+    "corrected_hybrid": {
+      "f0_5": 0.713890426120642,
+      "f1": 0.6675291073738681,
+      "fn": 511,
+      "fp": 260,
+      "precision": 0.7485493230174082,
+      "recall": 0.6023346303501945,
+      "tp": 774
+    },
+    "paired_f0_5": {
+      "iterations": 100000,
+      "mean_difference": 0.03479304909794277,
+      "mean_difference_ci95_lower": 0.022030708066413378,
+      "mean_difference_ci95_upper": 0.04916851338178523,
+      "one_sided_sign_flip_p": 9.99990000099999e-06,
+      "seed": 20260728
+    },
+    "rejection_yield": {
+      "removed_false_positives": 72,
+      "removed_true_positives": 15
+    }
+  },
+  "gates": {
+    "default_precision_at_least_0_80": false,
+    "paired_f0_5_positive_ci95": true,
+    "recall_at_least_0_58": true,
+    "recall_drop_at_most_0_02": true
+  },
+  "offline_confidence_lane": {
+    "csc_112": {
+      "precision": 0.8161925601750547,
+      "recall": 0.20849636668529906
+    },
+    "gsc_114": {
+      "precision": 0.9234828496042217,
+      "recall": 0.3458498023715415
+    },
+    "use": "High-confidence evidence only; never a complete final output."
+  },
+  "policy": "Retain local assertion flags and ambiguous reviews; remove only model-reviewed unsupported/high-confidence predictions.",
+  "private_report_sha256": {
+    "confirmation_revised": "5780f5bfaa7457cd3f1b7b01b2265f3b33c1f54b7d457f0b55f90ad666405aca",
+    "discovery_revised": "d4daa12629c2ac7edd59dcdfad9815e28eda6b2339c954e7e839d13e8ec7c767",
+    "offline_csc": "858d947d925457d4dd9b8c00757458f3e28b6af83e7f0327edc186a121fdfe4e",
+    "offline_gsc": "e48e7296be21776c3126fb2a373096bcbb5cb9208a4553f1ec4f36454c0c432f"
+  },
+  "schema_version": "1.0"
+}

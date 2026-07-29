@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import StrEnum
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
@@ -49,8 +50,10 @@ class ProviderConfig(BaseModel):
     @field_validator("base_url")
     @classmethod
     def require_https(cls, value: str) -> str:
-        if not value.startswith("https://"):
-            raise ValueError("provider base URL must use HTTPS")
+        parsed = urlparse(value)
+        loopback = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+        if parsed.scheme != "https" and not (parsed.scheme == "http" and loopback):
+            raise ValueError("provider base URL must use HTTPS or HTTP loopback")
         return value
 
     def redacted(self) -> dict[str, object]:

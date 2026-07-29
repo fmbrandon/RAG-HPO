@@ -1,0 +1,142 @@
+{
+  "corpus": "CSC",
+  "coverage": {
+    "eligible_note_characters": {
+      "count": 82,
+      "max": 4432,
+      "mean": 1904.4268292682927,
+      "median": 1788.5,
+      "min": 477
+    },
+    "eligible_reference_ids": {
+      "count": 82,
+      "max": 40,
+      "mean": 15.670731707317072,
+      "median": 15.0,
+      "min": 4
+    },
+    "selected_note_characters": {
+      "count": 30,
+      "max": 4432,
+      "mean": 1953.0666666666666,
+      "median": 1762.0,
+      "min": 477
+    },
+    "selected_reference_id_total": 446,
+    "selected_reference_ids": {
+      "count": 30,
+      "max": 27,
+      "mean": 14.866666666666667,
+      "median": 12.5,
+      "min": 5
+    }
+  },
+  "inference_limit": "Thirty cases support an efficient comparative estimate and include hundreds of reference phenotypes, but corpus-wide claims must include bootstrap intervals and must not be described as a full-corpus result.",
+  "privacy": {
+    "subset_input_location": "private audit artifacts outside Git",
+    "tracked_manifest_contains_note_text": false
+  },
+  "purpose": "performance-blind stratified subset evaluation",
+  "schema_version": "1.0",
+  "selection": {
+    "eligible_case_count": 82,
+    "excluded_case_count": 30,
+    "method": "deterministic 3x3 rank strata over note character count and manual-reference count; seeded sampling within each stratum",
+    "sample_size": 30,
+    "seed": 20260728,
+    "selected_case_ids": [
+      "2",
+      "4",
+      "8",
+      "10",
+      "12",
+      "13",
+      "28",
+      "32",
+      "34",
+      "35",
+      "39",
+      "41",
+      "42",
+      "43",
+      "55",
+      "56",
+      "60",
+      "62",
+      "67",
+      "71",
+      "72",
+      "76",
+      "78",
+      "81",
+      "82",
+      "83",
+      "97",
+      "100",
+      "105",
+      "111"
+    ],
+    "strata": [
+      {
+        "eligible": 14,
+        "note_length_bin": 0,
+        "reference_count_bin": 0,
+        "selected": 5
+      },
+      {
+        "eligible": 10,
+        "note_length_bin": 0,
+        "reference_count_bin": 1,
+        "selected": 4
+      },
+      {
+        "eligible": 4,
+        "note_length_bin": 0,
+        "reference_count_bin": 2,
+        "selected": 1
+      },
+      {
+        "eligible": 11,
+        "note_length_bin": 1,
+        "reference_count_bin": 0,
+        "selected": 4
+      },
+      {
+        "eligible": 7,
+        "note_length_bin": 1,
+        "reference_count_bin": 1,
+        "selected": 3
+      },
+      {
+        "eligible": 9,
+        "note_length_bin": 1,
+        "reference_count_bin": 2,
+        "selected": 3
+      },
+      {
+        "eligible": 3,
+        "note_length_bin": 2,
+        "reference_count_bin": 0,
+        "selected": 1
+      },
+      {
+        "eligible": 10,
+        "note_length_bin": 2,
+        "reference_count_bin": 1,
+        "selected": 4
+      },
+      {
+        "eligible": 14,
+        "note_length_bin": 2,
+        "reference_count_bin": 2,
+        "selected": 5
+      }
+    ]
+  },
+  "source_hashes": {
+    "exclude_manifest_sha256": "c6e99fd048a93e75e38417ba35f24daee751855da43bddeb4ce2543fb0f2d379",
+    "input_sha256": "e2f1e91fe2f0c66b3caf23d94259262862510b1c19d12606d769aea3fc36667f",
+    "private_subset_input_sha256": "206a54d1d1432700f9571c1c0b83cb9e342b084b216d90d8776758e56ffa1efe",
+    "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a"
+  }
+}

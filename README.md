@@ -23,6 +23,22 @@ python3.12 setup_environment.py
 source .venv/bin/activate
 ```
 
+FastHPOCR is not required for the current RAG-HPO workflow. Researchers who
+want the optional local recognizer and benchmark adapter can install:
+
+```bash
+pip install -e '.[fasthpocr]'
+```
+
+Its current integration findings and limitations are documented in
+[PHASE1_FASTHPOCR_FINDINGS.md](PHASE1_FASTHPOCR_FINDINGS.md) and
+[PHASE2_REGISTRY_FINDINGS.md](PHASE2_REGISTRY_FINDINGS.md). Phase 3 confirmed
+that the deterministic recognizer is a high-confidence aid, not a complete
+annotator, because its recall is too low. The recall-preserving verified mode
+improved precision and F0.5 but remains experimental until integration and
+beginner-facing work are complete. See
+[PHASE3_CASCADE_FINDINGS.md](PHASE3_CASCADE_FINDINGS.md).
+
 Load the Groq key into this terminal without putting it in shell history or a
 repository file:
 
@@ -133,15 +149,66 @@ creates:
 - `hpo_meta.json`
 - `hpo_embedded.npz`
 - `hpo_manifest.json`
+- `hpo_registry.json`
+- `hpo_registry_manifest.json`
+- `hpo_lexical.json`
+- `hpo_lexical_manifest.json`
 - a private cached `hp.obo` when the ontology is downloaded
 
-The manifest records source hashes, parser version, embedding model and
-immutable revision, normalization, dtype, dimensions, counts, and payload
-hashes. Annotation rejects modified, incomplete, or model-mismatched artifacts.
-Advanced options include `--obo-file`, `--obo-url`, `--backend`, `--refresh`,
-and `--offline`. SapBERT is the scientific default; FastEmbed is optional.
+The registry keeps official HPO concepts separate from RAG-HPO add-on phrases
+and records alternate IDs, synonym scopes, hierarchy, status, and lexical
+ambiguities. The manifests link the registry, lexical index, source hashes,
+parser version, embedding model and immutable revision, normalization, dtype,
+dimensions, counts, and payload hashes. Annotation rejects modified,
+incomplete, or model-mismatched artifacts. Advanced options include
+`--obo-file`, `--obo-url`, `--backend`, `--refresh`, and `--offline`. SapBERT
+is the scientific default; FastEmbed is optional.
 
 ## Annotate data
+
+Choose the annotation workflow explicitly:
+
+- `--mode model` preserves the v0.2 compatibility pipeline and remains the
+  default until the staged accuracy gates pass.
+- `--mode balanced` runs native recognition, optional FastHPOCR recognition,
+  two-pass model extraction, hybrid sparse/dense retrieval, and batched
+  mapping/verification. It is experimental while validation is in progress.
+- `--mode high-recall` uses 32 distinct candidates and retains plausible
+  unresolved findings in the review queue.
+- `--mode native --no-model` is deterministic and fully local.
+- `--mode fasthpocr --no-model` adds the optional attributed FastHPOCR
+  recognizer. Install `.[fasthpocr]` and supply `--fasthpocr-index` when the
+  index is not inside the vector directory.
+
+`--recognizer fasthpocr` is repeatable and lets balanced/high-recall users
+choose whether FastHPOCR participates. Native recognition is always available.
+Recognizer-only findings are candidates, not automatically accepted answers.
+
+Staged model modes use `--mapping-prompt zero-shot` by default. This supplies a
+compact context packet for each mention: the exact sentence, section,
+patient-versus-relative subject, and assertion. Preceding/following sentences
+are included only for deterministic ambiguity cues, which limits token use.
+`--mapping-prompt one-shot` adds one fixed synthetic example for controlled
+research comparisons; it never selects examples from benchmark data.
+
+For a network-prohibited run, use `--offline --no-model`. An offline model run
+must use an already-running loopback OpenAI-compatible endpoint, cached model
+and ontology artifacts, and an explicitly configured response mode:
+
+```bash
+RAG_HPO_API_KEY=local \
+rag-hpo annotate \
+  --mode balanced \
+  --offline \
+  --base-url http://127.0.0.1:8000/v1/chat/completions \
+  --model local-model \
+  --text 'Synthetic example: fever.' \
+  --vector-dir artifacts/hpo \
+  --output-dir rag_hpo_output
+```
+
+`--offline` rejects remote model URLs and prevents embedding-model downloads.
+It does not start or install a local language model.
 
 ### Manual text
 
@@ -179,8 +246,17 @@ printf '%s' 'Synthetic example: fever.' | \
 
 Every run writes `rag_hpo_results.csv` and `rag_hpo_results.json`. The stable
 fields are `patient_id`, `phrase`, `category`, `hpo_id`, `hpo_term`,
-`vector_score`, `mapping_status`, `error_code`, and `error_message`. Their
-machine-readable contract is in
+`vector_score`, `mapping_status`, `error_code`, and `error_message`. Staged
+modes append `evidence_start`, `evidence_end`, `assertion_status`,
+`confidence`, `review_status`, `source_methods`, and `candidate_hpo_ids`.
+Accepted findings are the primary automated output; `review` findings are
+preserved for human resolution and `rejected` findings remain auditable.
+
+Evidence text is omitted by default. `--include-evidence-text` displays a
+privacy warning and includes the source sentence in result files. Staged runs
+also write `rag_hpo_run_manifest.json` with hashes, configuration, elapsed
+time, and provider token totals, but never the API key or complete note. The
+machine-readable result contract is in
 [samples/expected_result_schema.json](samples/expected_result_schema.json).
 
 ## Resume and privacy
@@ -220,14 +296,23 @@ python benchmarks/run_benchmark.py \
   --case-id 1 \
   --model openai/gpt-oss-120b \
   --prompt-version 1.0 \
+  --accepted-only \
   --output-dir benchmark-results/case-1
 ```
 
 The runner normalizes alternate HPO IDs, removes duplicate predicted IDs within
 each patient, preserves Cases 67 and 68 as distinct records, and emits explicit
-TP/FP/FN identifiers plus per-case, micro, and macro metrics. A complete live
-repository benchmark is opt-in because published example text is not
-automatically approved for external transmission.
+TP/FP/FN identifiers plus per-case, micro, and macro metrics. Routine live
+evaluation uses fixed, performance-blind 30-case subsets of CSC and GSC,
+stratified by note length and manual-reference count. The CSC subset excludes
+the discovery cases. Selection IDs, seed, strata, and hashes are recorded
+under `benchmarks/results/`; note text remains outside Git. A complete corpus
+run requires an explicit reason and authorization because it costs
+substantially more time and tokens.
+
+Use `--accepted-only` for the primary strict score of staged output. Omitting
+it intentionally scores every mapped row, including unresolved review
+candidates, as a high-recall sensitivity analysis.
 
 Historical Premium, CSC, and GSC workbook calculations remain separately
 labeled. See [benchmarks/README.md](benchmarks/README.md).
@@ -236,6 +321,11 @@ The locked accuracy investigation explains the rebuild's higher aggregate
 precision but lower recall and F1, including ontology-version, candidate
 retrieval, extraction, mapping, and scoring effects. See
 [RAG-HPO_ACCURACY_INVESTIGATION.md](RAG-HPO_ACCURACY_INVESTIGATION.md).
+Phase 3's prompt additions and unchanged base prompts are recorded in
+[PROMPT_CHANGELOG.md](PROMPT_CHANGELOG.md).
+The frozen staged subset evaluation, including confidence intervals and the
+decision not to promote `balanced`, is recorded in
+[PHASE4_70_70_FINDINGS.md](PHASE4_70_70_FINDINGS.md).
 
 ## Notebooks and development
 

@@ -83,6 +83,7 @@ class AnnotationPipeline:
         keep_raw_responses: bool,
         top_k: int = 8,
         backend: EmbeddingBackend | None = None,
+        offline: bool = False,
     ) -> None:
         self.provider = provider
         self.vector_dir = vector_dir
@@ -92,7 +93,10 @@ class AnnotationPipeline:
         self.keep_raw_responses = keep_raw_responses
         self.top_k = top_k
         self.entries, matrix, self.manifest = load_artifacts(vector_dir)
-        self.backend = backend or create_backend(self.manifest.embedding_backend)
+        self.backend = backend or create_backend(
+            self.manifest.embedding_backend,
+            offline=offline,
+        )
         self._validate_backend(self.manifest, self.backend)
         self.index = faiss.IndexFlatIP(matrix.shape[1])
         self.index.add(np.asarray(matrix, dtype=np.float32))
@@ -181,7 +185,10 @@ class AnnotationPipeline:
                 {
                     "phrase": phenotype.phrase,
                     "original_context": row.clinical_note,
-                    "candidates": [candidate.model_dump(mode="json") for candidate in candidates],
+                    "candidates": [
+                        candidate.model_dump(mode="json", exclude_none=True)
+                        for candidate in candidates
+                    ],
                 },
                 ensure_ascii=False,
             )

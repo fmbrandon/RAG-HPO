@@ -64,7 +64,7 @@
         "row": 1526
       }
     ],
-    "scoring_risk": "The exact scorer treats each unsplit cell as one impossible identifier. The source does not state whether the IDs are alternatives or both required."
+    "scoring_risk": "The exact scorer treats each unsplit cell as one impossible identifier. The lab owner confirmed that the IDs are alternatives for one finding."
   },
   "duplicate_patient_id_pairs": [
     {
@@ -98,7 +98,7 @@
     "ontology_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
     "references_sha256": "fe818ca3de907962fecf55a1cc113101994f4369727f765946795dc0a2cc4f3a"
   },
-  "recommended_policy": "Keep the source unchanged. Obtain lab adjudication for compound cells, then encode each as either an alternative-ID group or separate required annotations.",
+  "recommended_policy": "Keep the source unchanged and score each compound cell as one alternative-ID group using deterministic one-to-one matching.",
   "reference_row_count": 1789,
   "schema_version": "1.0"
 }

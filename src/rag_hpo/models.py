@@ -39,6 +39,26 @@ class HPOMapping(StrictModel):
     hpo_id: str | None
 
 
+class SpanPhenotype(Phenotype):
+    start_offset: int = Field(ge=0)
+    end_offset: int = Field(gt=0)
+
+
+class SpanPhenotypeExtraction(StrictModel):
+    phenotypes: list[SpanPhenotype]
+
+
+class MappingDecision(StrictModel):
+    mention_id: str
+    hpo_id: str | None
+    verdict: Literal["supported", "unsupported", "ambiguous"]
+    confidence: Literal["high", "medium", "low"]
+
+
+class MappingDecisionBatch(StrictModel):
+    decisions: list[MappingDecision]
+
+
 class AnnotationInput(StrictModel):
     patient_id: str
     clinical_note: str
@@ -67,12 +87,28 @@ class AnnotationResult(StrictModel):
     ]
     error_code: str | None = None
     error_message: str | None = None
+    evidence_start: int | None = None
+    evidence_end: int | None = None
+    assertion_status: str | None = None
+    confidence: Literal["high", "medium", "low"] | None = None
+    review_status: Literal["accepted", "review", "rejected"] | None = None
+    source_methods: list[str] | None = None
+    candidate_hpo_ids: list[str] | None = None
+    evidence_text: str | None = None
 
 
 class Candidate(StrictModel):
     hpo_id: str
     term: str
     score: float
+    definition: str | None = None
+    synonyms: list[str] | None = None
+    parents: list[str] | None = None
+    dense_rank: int | None = None
+    dense_score: float | None = None
+    lexical_rank: int | None = None
+    lexical_score: float | None = None
+    source_methods: list[str] | None = None
 
 
 class DoctorCheck(StrictModel):
