@@ -418,6 +418,9 @@ passed both thresholds and must remain separately labeled.
 - Calculation-error rows and row-level pipeline failures are now explicitly
   unscorable until repaired, and are excluded from micro/macro aggregates
   instead of being counted as model failures.
+- The hierarchy-sensitivity calculator applies the same scorable-case filter,
+  so its exact, one-edge, and two-edge summaries cannot reintroduce these
+  invalid zeroes.
 - Bumped the staged pipeline identity to 3.2.1 so a 3.2 checkpoint cannot be
   silently reused with the corrected calculation path.
 - No CSC/GSC inference was run after these changes at the user's request.

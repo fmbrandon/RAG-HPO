@@ -9,6 +9,7 @@ from pathlib import Path
 
 from rag_hpo.artifacts import sha256_file
 from rag_hpo.benchmark import (
+    load_prediction_calculation_errors,
     load_prediction_groups,
     load_reference_groups,
 )
@@ -51,6 +52,18 @@ def main() -> int:
     )
     references = load_reference_groups(args.references, ontology.aliases)
     patient_ids = _selection_ids(args.selection_manifest)
+    calculation_errors = load_prediction_calculation_errors(args.predictions)
+    unscorable = {
+        patient_id: calculation_errors.get(patient_id, [])
+        for patient_id in patient_ids
+        if patient_id in calculation_errors
+    }
+    for patient_id in patient_ids:
+        if patient_id not in references:
+            unscorable.setdefault(patient_id, []).append("missing_reference")
+    scorable_ids = [
+        patient_id for patient_id in patient_ids if patient_id not in unscorable
+    ]
     layers = {
         str(distance): summarize_layered(
             score_layered(
@@ -58,7 +71,7 @@ def main() -> int:
                 references,
                 ontology,
                 max_distance=distance,
-                patient_ids=patient_ids,
+                patient_ids=scorable_ids,
             )
         )
         for distance in (0, 1, 2)
@@ -71,6 +84,18 @@ def main() -> int:
                 "distances 1 and 2 count one-to-one parent, child, or sibling "
                 "matches and do not replace the primary score"
             ),
+        },
+        "selection": {
+            "selected_case_count": len(patient_ids),
+            "scored_case_count": len(scorable_ids),
+            "unscorable_case_count": len(unscorable),
+            "unscorable_cases": [
+                {
+                    "patient_id": patient_id,
+                    "error_codes": sorted(set(error_codes)),
+                }
+                for patient_id, error_codes in unscorable.items()
+            ],
         },
         "provenance": {
             "prediction_policy": "accepted-only" if args.accepted_only else "all-mapped",
