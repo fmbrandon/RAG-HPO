@@ -358,3 +358,17 @@ This five-case cohort is a smoke comparison, not a statistically conclusive
 accuracy estimate. Strict micro recall was within one true positive of 0.70,
 but strict micro precision remained below 0.70. The hierarchy sensitivity
 passed both thresholds and must remain separately labeled.
+
+## 2026-07-29 — observable full-corpus launchers
+
+- Added a terminal progress bar backed by the SQLite checkpoint rather than
+  inferred provider activity. It refreshes every second and reports successful
+  cases, elapsed time, retry attempt, and row errors.
+- Progress is enabled by default for corpus evaluation and can be disabled
+  with `--no-progress` for automation.
+- Split the private complete evaluation into independent CSC and GSC shell
+  launchers. Either command can be stopped and rerun without starting or
+  repeating the other corpus.
+- The local launchers force the already-cached Hugging Face model into offline
+  mode, removing unauthenticated Hub checks while leaving Groq inference
+  unchanged.

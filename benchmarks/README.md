@@ -279,6 +279,8 @@ environment. The wrapper:
 
 - writes the selected note input and all outputs outside Git with private
   permissions;
+- displays a checkpoint-backed progress bar with elapsed time, successful
+  cases, current attempt, and recorded errors;
 - retries only unfinished/error rows up to `--max-attempts`;
 - preserves a compatible SQLite checkpoint so the identical command can be
   rerun safely;
@@ -295,6 +297,9 @@ python benchmarks/run_corpus_evaluation.py \
   --all \
   --confirm-external-transmission
 ```
+
+Run GSC as a separate command by changing `--corpus gsc` and the output
+directory. `--no-progress` is available for CI or redirected logs.
 
 The locked subset result is summarized in
 [`staged-70-70-subset-summary.json`](results/staged-70-70-subset-summary.json)

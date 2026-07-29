@@ -343,7 +343,9 @@ candidates, as a high-recall sensitivity analysis.
 Use the corpus runner for a small case list, a locked selection manifest, or a
 complete corpus. It annotates, retries only failed rows, writes a private
 SQLite checkpoint, computes the primary alternative-aware exact score, and
-also writes separate one- and two-edge hierarchy sensitivity scores.
+also writes separate one- and two-edge hierarchy sensitivity scores. A live
+terminal progress bar shows completed cases, elapsed time, current retry
+attempt, and the number of row errors recorded in the checkpoint.
 
 ```bash
 export RAG_HPO_API_KEY="$(security find-generic-password \
@@ -360,8 +362,20 @@ python benchmarks/run_corpus_evaluation.py \
 unset RAG_HPO_API_KEY
 ```
 
-Run the same command with `--corpus gsc` and a different output directory for
-GSC. Repeating an interrupted command resumes only unfinished/error rows.
+Run GSC independently with:
+
+```bash
+python benchmarks/run_corpus_evaluation.py \
+  --corpus gsc \
+  --vector-dir /private/path/to/full-sapbert-artifacts \
+  --ontology /private/path/to/hp.obo \
+  --output-dir /private/path/to/full-gsc-results \
+  --all \
+  --confirm-external-transmission
+```
+
+Repeating an interrupted CSC or GSC command resumes only unfinished/error rows.
+Use `--no-progress` only for noninteractive automation.
 Complete-corpus results are not automatically a tuning set: inspect the exact
 and hierarchy-sensitive reports, then reserve any prompt or policy change for
 a separately selected development subset.

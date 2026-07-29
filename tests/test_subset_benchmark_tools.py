@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sqlite3
 from pathlib import Path
 from types import ModuleType
 
@@ -80,3 +81,20 @@ def test_corpus_runner_writes_only_selected_rows_with_private_permissions(
         "2,second note",
     ]
     assert output.stat().st_mode & 0o077 == 0
+
+
+def test_corpus_runner_reads_live_checkpoint_statuses(tmp_path: Path) -> None:
+    state = tmp_path / "state.sqlite3"
+    with sqlite3.connect(state) as connection:
+        connection.execute("CREATE TABLE rows (patient_id TEXT, status TEXT)")
+        connection.executemany(
+            "INSERT INTO rows(patient_id, status) VALUES (?, ?)",
+            [("1", "complete"), ("2", "error"), ("3", "complete")],
+        )
+    completed, errors = corpus_runner._checkpoint_snapshot(state)
+    assert completed == {"1", "3"}
+    assert errors == {"2"}
+    assert corpus_runner._checkpoint_snapshot(tmp_path / "missing.sqlite3") == (
+        set(),
+        set(),
+    )

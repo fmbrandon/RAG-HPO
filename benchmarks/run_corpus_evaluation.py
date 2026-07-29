@@ -7,10 +7,14 @@ import argparse
 import csv
 import json
 import os
+import sqlite3
 import subprocess  # nosec B404 - fixed local Python entry points, never a shell
 import sys
+import time
 from pathlib import Path
 from urllib.parse import urlparse
+
+from tqdm import tqdm
 
 from rag_hpo.config import DEFAULT_BASE_URL, DEFAULT_MODEL
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
@@ -65,12 +69,92 @@ def _write_selected_input(
     return selected
 
 
-def _run(command: list[str], *, allowed_returncodes: set[int] | None = None) -> int:
-    completed = subprocess.run(command, cwd=REPOSITORY, check=False)  # noqa: S603
+def _run(
+    command: list[str],
+    *,
+    allowed_returncodes: set[int] | None = None,
+    suppress_stdout: bool = False,
+) -> int:
+    completed = subprocess.run(  # noqa: S603
+        command,
+        cwd=REPOSITORY,
+        check=False,
+        stdout=subprocess.DEVNULL if suppress_stdout else None,
+    )
     allowed = allowed_returncodes or {0}
     if completed.returncode not in allowed:
         raise subprocess.CalledProcessError(completed.returncode, command)
     return completed.returncode
+
+
+def _checkpoint_snapshot(path: Path) -> tuple[set[str], set[str]]:
+    """Read committed case statuses without blocking the annotation writer."""
+
+    if not path.exists():
+        return set(), set()
+    try:
+        with sqlite3.connect(
+            f"file:{path}?mode=ro",
+            uri=True,
+            timeout=0.1,
+        ) as connection:
+            rows = connection.execute("SELECT patient_id, status FROM rows").fetchall()
+    except sqlite3.Error:
+        return set(), set()
+    completed = {str(patient_id) for patient_id, status in rows if status == "complete"}
+    errors = {str(patient_id) for patient_id, status in rows if status == "error"}
+    return completed, errors
+
+
+def _run_annotation_with_progress(
+    command: list[str],
+    *,
+    state_path: Path,
+    total_cases: int,
+    corpus: str,
+    attempt: int,
+    show_progress: bool,
+) -> int:
+    if not show_progress:
+        return _run(command, allowed_returncodes={0, 4})
+    process = subprocess.Popen(  # noqa: S603
+        command,
+        cwd=REPOSITORY,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    with tqdm(
+        total=total_cases,
+        desc=f"{corpus.upper()} attempt {attempt}",
+        unit="case",
+        dynamic_ncols=True,
+        mininterval=0.5,
+    ) as progress:
+        while process.poll() is None:
+            completed, errors = _checkpoint_snapshot(state_path)
+            progress.n = min(len(completed), total_cases)
+            progress.set_postfix(
+                errors=len(errors),
+                status="working",
+                refresh=False,
+            )
+            progress.refresh()
+            time.sleep(1)
+        completed, errors = _checkpoint_snapshot(state_path)
+        progress.n = min(len(completed), total_cases)
+        progress.set_postfix(
+            errors=len(errors),
+            status="complete" if process.returncode == 0 else "retry needed",
+            refresh=False,
+        )
+        progress.refresh()
+    if process.stdout is not None:
+        output = process.stdout.read()
+        if output:
+            print(output, end="" if output.endswith("\n") else "\n")
+    if process.returncode not in {0, 4}:
+        raise subprocess.CalledProcessError(process.returncode, command)
+    return process.returncode
 
 
 def main() -> int:
@@ -105,6 +189,11 @@ def main() -> int:
         type=int,
         default=3,
         help="Retry only unfinished/error rows this many times (default: 3).",
+    )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable the live checkpoint-backed case progress bar.",
     )
     args = parser.parse_args()
     if args.max_attempts <= 0:
@@ -148,6 +237,7 @@ def main() -> int:
 
     annotation_dir = args.output_dir / "annotations"
     score_dir = args.output_dir / "score"
+    state_path = annotation_dir / ".rag-hpo-state.sqlite3"
     annotate_command = [
         sys.executable,
         "-m",
@@ -175,7 +265,14 @@ def main() -> int:
     ]
     annotation_returncode = 4
     for attempt in range(1, args.max_attempts + 1):
-        annotation_returncode = _run(annotate_command, allowed_returncodes={0, 4})
+        annotation_returncode = _run_annotation_with_progress(
+            annotate_command,
+            state_path=state_path,
+            total_cases=len(selected_ids),
+            corpus=args.corpus,
+            attempt=attempt,
+            show_progress=not args.no_progress,
+        )
         if annotation_returncode == 0:
             break
         print(
@@ -231,7 +328,8 @@ def main() -> int:
             "--accepted-only",
             "--output",
             str(layered_report),
-        ]
+        ],
+        suppress_stdout=True,
     )
     print(
         json.dumps(
