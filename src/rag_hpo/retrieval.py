@@ -17,8 +17,12 @@ from rag_hpo.registry import HPORegistry, normalize_phrase
 RRF_CONSTANT = 60
 DENSE_WEIGHT = 0.8
 LEXICAL_WEIGHT = 0.2
+# A context-only anatomy match must be able to enter the bounded set even when
+# the short phrase itself strongly retrieves many wrong-organ homonyms.
+CONTEXT_DENSE_WEIGHT = 0.8
 SPARSE_WEIGHT = 0.8
 FUZZY_WEIGHT = 0.2
+RETRIEVAL_POLICY_VERSION = "2.0"
 
 
 @dataclass(frozen=True)
@@ -28,6 +32,8 @@ class RankedCandidate:
     dense_score: float | None
     lexical_rank: int | None
     lexical_score: float | None
+    context_dense_rank: int | None
+    context_dense_score: float | None
     combined_score: float
 
 
@@ -104,19 +110,38 @@ class HybridCandidateRetriever:
         phrases: list[str],
         *,
         distinct_limit: int,
+        contexts: list[str | None] | None = None,
     ) -> list[list[Candidate]]:
         if distinct_limit <= 0:
             raise ValueError("distinct candidate limit must be positive")
         if not phrases:
             return []
-        queries = self.backend.encode(phrases)
+        if contexts is not None and len(contexts) != len(phrases):
+            raise ValueError("retrieval contexts must align with phrases")
+        context_rows = [
+            (index, value)
+            for index, value in enumerate(contexts or [])
+            if value and normalize_phrase(value) != normalize_phrase(phrases[index])
+        ]
+        queries = self.backend.encode([*phrases, *(value for _index, value in context_rows)])
         if queries.ndim != 2 or queries.shape[1] != self._dense_index.d:
             raise ValueError("query embedding dimension does not match vector artifacts")
         raw_limit = min(self.raw_limit, self._dense_index.ntotal)
-        scores, indices = self._dense_index.search(
-            np.asarray(queries, dtype=np.float32),
+        phrase_count = len(phrases)
+        phrase_scores, phrase_indices = self._dense_index.search(
+            np.asarray(queries[:phrase_count], dtype=np.float32),
             raw_limit,
         )
+        context_by_phrase: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+        if context_rows:
+            context_scores, context_indices = self._dense_index.search(
+                np.asarray(queries[phrase_count:], dtype=np.float32),
+                raw_limit,
+            )
+            context_by_phrase = {
+                phrase_index: (context_scores[index], context_indices[index])
+                for index, (phrase_index, _value) in enumerate(context_rows)
+            }
         sparse_limit = min(self.raw_limit, len(self._lexical_phrases))
         sparse_queries = self._sparse_vectorizer.transform(phrases)
         sparse_distances, sparse_indices = self._sparse_index.kneighbors(
@@ -125,11 +150,16 @@ class HybridCandidateRetriever:
         )
         return [
             self._candidates(
-                self._dense_from_search(scores[index], indices[index]),
+                self._dense_from_search(phrase_scores[index], phrase_indices[index]),
                 self._lexical(
                     phrase,
                     sparse_distances=sparse_distances[index],
                     sparse_indices=sparse_indices[index],
+                ),
+                (
+                    self._dense_from_search(*context_by_phrase[index])
+                    if index in context_by_phrase
+                    else {}
                 ),
                 distinct_limit=distinct_limit,
             )
@@ -140,10 +170,11 @@ class HybridCandidateRetriever:
         self,
         dense: dict[str, tuple[int, float]],
         lexical: dict[str, tuple[int, float]],
+        context_dense: dict[str, tuple[int, float]],
         *,
         distinct_limit: int,
     ) -> list[Candidate]:
-        ranked = self._fuse(dense, lexical)
+        ranked = self._fuse(dense, lexical, context_dense)
         output: list[Candidate] = []
         for item in ranked[:distinct_limit]:
             concept = self._concepts[item.hpo_id]
@@ -152,6 +183,8 @@ class HybridCandidateRetriever:
                 methods.append("sapbert")
             if item.lexical_rank is not None:
                 methods.append("lexical")
+            if item.context_dense_rank is not None:
+                methods.append("context-sapbert")
             output.append(
                 Candidate(
                     hpo_id=item.hpo_id,
@@ -164,6 +197,8 @@ class HybridCandidateRetriever:
                     dense_score=item.dense_score,
                     lexical_rank=item.lexical_rank,
                     lexical_score=item.lexical_score,
+                    context_dense_rank=item.context_dense_rank,
+                    context_dense_score=item.context_dense_score,
                     source_methods=methods,
                 )
             )
@@ -257,16 +292,20 @@ class HybridCandidateRetriever:
     def _fuse(
         dense: dict[str, tuple[int, float]],
         lexical: dict[str, tuple[int, float]],
+        context_dense: dict[str, tuple[int, float]],
     ) -> list[RankedCandidate]:
         output: list[RankedCandidate] = []
-        for hp_id in sorted(set(dense) | set(lexical)):
+        for hp_id in sorted(set(dense) | set(lexical) | set(context_dense)):
             dense_value = dense.get(hp_id)
             lexical_value = lexical.get(hp_id)
+            context_value = context_dense.get(hp_id)
             combined = 0.0
             if dense_value is not None:
                 combined += DENSE_WEIGHT / (RRF_CONSTANT + dense_value[0])
             if lexical_value is not None:
                 combined += LEXICAL_WEIGHT / (RRF_CONSTANT + lexical_value[0])
+            if context_value is not None:
+                combined += CONTEXT_DENSE_WEIGHT / (RRF_CONSTANT + context_value[0])
             output.append(
                 RankedCandidate(
                     hpo_id=hp_id,
@@ -274,6 +313,8 @@ class HybridCandidateRetriever:
                     dense_score=dense_value[1] if dense_value else None,
                     lexical_rank=lexical_value[0] if lexical_value else None,
                     lexical_score=lexical_value[1] if lexical_value else None,
+                    context_dense_rank=context_value[0] if context_value else None,
+                    context_dense_score=context_value[1] if context_value else None,
                     combined_score=combined,
                 )
             )
@@ -283,6 +324,7 @@ class HybridCandidateRetriever:
                 -item.combined_score,
                 item.dense_rank or 10**9,
                 item.lexical_rank or 10**9,
+                item.context_dense_rank or 10**9,
                 item.hpo_id,
             ),
         )

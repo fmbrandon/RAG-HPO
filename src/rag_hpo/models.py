@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from enum import StrEnum
 from typing import Literal
 
@@ -116,7 +117,7 @@ class AnnotationInput(StrictModel):
     @field_validator("patient_id", "clinical_note")
     @classmethod
     def require_nonblank(cls, value: str) -> str:
-        value = value.strip()
+        value = unicodedata.normalize("NFC", value.replace("\r\n", "\n")).strip()
         if not value:
             raise ValueError("value must not be blank")
         return value
@@ -146,6 +147,8 @@ class AnnotationResult(StrictModel):
     source_methods: list[str] | None = None
     candidate_hpo_ids: list[str] | None = None
     retrieval_candidate_hpo_ids: list[str] | None = None
+    modifier_hpo_ids: list[str] | None = None
+    evidence_segments: list[tuple[int, int]] | None = None
     mapping_verdict: Literal["supported", "unsupported", "ambiguous"] | None = None
     phenotype_confidence: float | None = Field(default=None, ge=0, le=1)
     mapping_set_confidence: float | None = Field(default=None, ge=0, le=1)
@@ -165,6 +168,8 @@ class Candidate(StrictModel):
     dense_score: float | None = None
     lexical_rank: int | None = None
     lexical_score: float | None = None
+    context_dense_rank: int | None = None
+    context_dense_score: float | None = None
     source_methods: list[str] | None = None
 
 

@@ -28,6 +28,8 @@ FIELDS = [
     "source_methods",
     "candidate_hpo_ids",
     "retrieval_candidate_hpo_ids",
+    "modifier_hpo_ids",
+    "evidence_segments",
     "mapping_verdict",
     "phenotype_confidence",
     "mapping_set_confidence",
@@ -64,6 +66,10 @@ def export_results(results: list[AnnotationResult], output_dir: Path) -> tuple[P
             "source_methods": "|".join(row["source_methods"] or []),
             "candidate_hpo_ids": "|".join(row["candidate_hpo_ids"] or []),
             "retrieval_candidate_hpo_ids": "|".join(row["retrieval_candidate_hpo_ids"] or []),
+            "modifier_hpo_ids": "|".join(row["modifier_hpo_ids"] or []),
+            "evidence_segments": "|".join(
+                f"{start}:{end}" for start, end in (row["evidence_segments"] or [])
+            ),
         }
         for row in rows
     ]

@@ -119,3 +119,11 @@ accepted policy and 0.6800/0.6071/0.6415 when every mapped candidate was
 included. A point-floor calibration reached 0.7011/0.6052/0.6496. Because the
 candidate ceiling did not reach 0.70 recall, schema 1.4 was not promoted and
 no GSC provider run was performed.
+
+## 2026-07-29 — pipeline 3.2 (no prompt-text change)
+
+The stage-loss remediation changed deterministic routing, span alignment,
+clinical-modifier handling, and short-phrase retrieval fusion. Prompt bundle
+schema 1.4 and all prompt texts/hashes remain unchanged. This distinction is
+intentional: the paired five-case smoke measures a machine-pipeline change,
+not a prompt rewrite.

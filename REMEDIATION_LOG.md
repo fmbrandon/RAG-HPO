@@ -311,3 +311,50 @@ Discovery evaluation:
 - Fixed resume cost accounting so future manifests retain per-attempt and
   cumulative token/runtime totals. The evaluation behavior and scores were not
   changed.
+
+## 2026-07-29 — stage-loss remediation and five-case smoke
+
+- Removed balanced mode's pre-mapper deferral. Every abnormal mention with a
+  nonempty bounded candidate pool now reaches the batched mapper, regardless
+  of whether it came from pass one, pass two, native recognition, or optional
+  FastHPOCR.
+- Changed nested-span consolidation to preserve the broader source phrase and
+  its modifiers. Narrow recognizer IDs and methods are attached without
+  replacing clinical meaning.
+- Added ordered non-contiguous evidence alignment for coordinated phrases.
+  Exact source segments are exported separately; no false contiguous offset is
+  invented.
+- Added clause-local assertion boundaries for a new patient, examination, or
+  imaging clause after “and.” This prevents an earlier normal result from
+  making an independent later finding normal.
+- Treats `HP:0012823 Clinical modifier` and all ontology descendants as
+  attributes rather than standalone phenotype mappings. Modifier IDs remain
+  auditable in `modifier_hpo_ids`.
+- Added one batched context-enriched SapBERT query for short phrases. The
+  original phrase query and lexical query remain independent. A context-only
+  rank-one candidate has enough reciprocal-rank weight to survive the
+  16-candidate balanced bound.
+- Versioned the staged pipeline as 3.2 and retrieval policy as 2.0 so old
+  checkpoints/calibrations cannot be mixed with the changed behavior.
+- Added a resumable corpus wrapper that annotates, retries only failed rows,
+  scores bounded alternative sets exactly, and emits one-/two-edge hierarchy
+  sensitivity without additional inference.
+
+Five-case CSC smoke (Cases 1, 4, 34, 67, and 99):
+
+- strict accepted-only micro: TP 41, FP 21, FN 18; precision 0.6613, recall
+  0.6949, F1 0.6777;
+- strict macro: precision 0.7033, recall 0.7131, F1 0.7034;
+- one-/two-edge sensitivity: precision 0.7258, recall 0.7627, F1 0.7438,
+  including four one-edge ancestor/descendant matches;
+- Case 99: precision 1.0, recall 0.8571, F1 0.9231; standalone laterality and
+  spatial-modifier IDs were not counted as phenotypes;
+- the context lane placed `HP:0005227` inside the bounded candidate set for the
+  short “tubular adenoma” mention and it was recovered elsewhere in Case 1;
+- the final run completed with zero row errors in 64 provider requests and
+  420,564 reported tokens.
+
+This five-case cohort is a smoke comparison, not a statistically conclusive
+accuracy estimate. Strict micro recall was within one true positive of 0.70,
+but strict micro precision remained below 0.70. The hierarchy sensitivity
+passed both thresholds and must remain separately labeled.

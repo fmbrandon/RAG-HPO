@@ -16,6 +16,17 @@ AssertionStatus = Literal[
 
 _BOUNDARY = re.compile(r"[\n.!?;]")
 _CLAUSE_BOUNDARY = re.compile(r"(?:[,;:]|\bbut\b|\bhowever\b|\balthough\b)", re.I)
+_INDEPENDENT_AND_BOUNDARY = re.compile(
+    r"\band\b(?=\s+"
+    r"(?:(?:the|a|an|his|her|their|this)\s+)?"
+    r"(?:(?:abdominal|chest|cranial|cardiac|renal|thyroid|pelvic)\s+)?"
+    r"(?:patient|proband|child|adult|examination|exam|imaging|"
+    r"ct|mri|ultrasound|sonography|radiograph|x-ray|scan|biopsy|"
+    r"colonoscopy|endoscopy|echocardiogram|laboratory|labs?|bloodwork)"
+    r"\s+(?:was|were|is|are|had|has|showed|revealed|demonstrated|"
+    r"identified|found|noted)\b)",
+    re.I,
+)
 _SECTION = re.compile(r"^\s*([A-Za-z][A-Za-z /_-]{1,48}):\s*$")
 _FAMILY_SECTION = re.compile(r"\b(?:family|pedigree|maternal|paternal)\b", re.I)
 _FAMILY_CUE = re.compile(
@@ -102,7 +113,11 @@ def _section_at(text: str, start: int) -> str | None:
 
 
 def _last_clause(value: str) -> str:
-    matches = list(_CLAUSE_BOUNDARY.finditer(value))
+    matches = [
+        *_CLAUSE_BOUNDARY.finditer(value),
+        *_INDEPENDENT_AND_BOUNDARY.finditer(value),
+    ]
+    matches.sort(key=lambda match: match.start())
     return value[matches[-1].end() :] if matches else value
 
 
@@ -115,7 +130,10 @@ def analyze_assertion(text: str, start: int, end: int) -> AssertionDecision:
     if start < 0 or end < start or end > len(text):
         raise ValueError("assertion span is outside the source text")
     sentence_start, sentence_end = _sentence_bounds(text, start, end)
-    sentence = text[sentence_start:sentence_end].strip()
+    raw_sentence = text[sentence_start:sentence_end]
+    leading = len(raw_sentence) - len(raw_sentence.lstrip())
+    sentence_start += leading
+    sentence = raw_sentence.strip()
     relative_start = start - sentence_start
     relative_end = end - sentence_start
     before = _last_clause(sentence[:relative_start])[-120:]

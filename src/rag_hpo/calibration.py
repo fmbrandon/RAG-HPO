@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from rag_hpo.models import AnnotationResult, Category
 
 CALIBRATION_SCHEMA_VERSION = "1.0"
-STAGED_PIPELINE_SCHEMA_VERSION = "3.0"
+STAGED_PIPELINE_SCHEMA_VERSION = "3.2"
 
 
 class CalibrationStratum(BaseModel):

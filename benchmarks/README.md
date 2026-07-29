@@ -271,6 +271,31 @@ configuration. Full-corpus provider runs require an explicit, documented
 reason; routine development and regression work must use the fixed subsets or
 smaller synthetic fixtures.
 
+`run_corpus_evaluation.py` is the resumable end-to-end wrapper for authorized
+live evaluation. Exactly one of `--case-id`, `--selection-manifest`, or
+`--all` is required. Remote runs require
+`--confirm-external-transmission`; the API key is read only from the
+environment. The wrapper:
+
+- writes the selected note input and all outputs outside Git with private
+  permissions;
+- retries only unfinished/error rows up to `--max-attempts`;
+- preserves a compatible SQLite checkpoint so the identical command can be
+  rerun safely;
+- produces accepted-only alternative-set exact metrics; and
+- produces distinct one- and two-edge DAG sensitivity reports without new
+  provider calls.
+
+```bash
+python benchmarks/run_corpus_evaluation.py \
+  --corpus csc \
+  --vector-dir /private/artifacts/hpo \
+  --ontology /private/artifacts/hp.obo \
+  --output-dir /private/results/csc-full \
+  --all \
+  --confirm-external-transmission
+```
+
 The locked subset result is summarized in
 [`staged-70-70-subset-summary.json`](results/staged-70-70-subset-summary.json)
 and [the findings report](../PHASE4_70_70_FINDINGS.md). CSC passed the

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from rag_hpo.artifacts import sha256_file
 from rag_hpo.benchmark import (
-    load_prediction_sets,
+    load_prediction_groups,
     load_reference_groups,
 )
 from rag_hpo.diagnostics import parse_obo
@@ -44,7 +44,7 @@ def main() -> int:
     args = parser.parse_args()
 
     ontology = parse_obo(args.ontology)
-    predictions = load_prediction_sets(
+    predictions = load_prediction_groups(
         args.predictions,
         ontology.aliases,
         accepted_only=args.accepted_only,

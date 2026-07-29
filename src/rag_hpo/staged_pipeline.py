@@ -46,7 +46,7 @@ from rag_hpo.privacy import ensure_private_directory, restrict_owner
 from rag_hpo.prompts import load_prompts
 from rag_hpo.provider import ProviderError
 from rag_hpo.registry import load_registry_bundle, normalize_phrase
-from rag_hpo.retrieval import HybridCandidateRetriever
+from rag_hpo.retrieval import RETRIEVAL_POLICY_VERSION, HybridCandidateRetriever
 from rag_hpo.state import PipelineState
 
 
@@ -90,6 +90,9 @@ class Mention:
     category: Category | None = None
     methods: set[str] = field(default_factory=set)
     recognizer_ids: set[str] = field(default_factory=set)
+    modifier_ids: set[str] = field(default_factory=set)
+    evidence_segments: list[tuple[int, int]] = field(default_factory=list)
+    phrase_variants: set[str] = field(default_factory=set)
 
 
 @dataclass(frozen=True)
@@ -124,6 +127,9 @@ _CONTEXT_CUE = re.compile(
     re.I,
 )
 _MAX_ADJACENT_CONTEXT_CHARS = 280
+_TOKEN = re.compile(r"\w+(?:[-'\u2019]\w+)*", re.UNICODE)
+_COORDINATED_MAX_GAP_CHARS = 120
+_CLINICAL_MODIFIER_ROOT = "HP:0012823"
 
 
 def sentence_spans(text: str) -> list[SentenceSpan]:
@@ -150,6 +156,65 @@ def sentence_spans(text: str) -> list[SentenceSpan]:
 
 def _overlaps(start: int, end: int, other_start: int, other_end: int) -> bool:
     return start < other_end and end > other_start
+
+
+def _mention_segments(mention: Mention) -> list[tuple[int, int]]:
+    return mention.evidence_segments or [(mention.start, mention.end)]
+
+
+def _coordinated_alignment(
+    phrase: str,
+    note: str,
+    ranges: list[tuple[int, int]],
+) -> list[tuple[int, int]] | None:
+    """Align an ordered, non-contiguous model phrase without inventing offsets."""
+
+    phrase_tokens = [normalize_phrase(match.group(0)) for match in _TOKEN.finditer(phrase)]
+    if len(phrase_tokens) < 2:
+        return None
+    for range_start, range_end in ranges:
+        source_tokens = [
+            (
+                normalize_phrase(match.group(0)),
+                range_start + match.start(),
+                range_start + match.end(),
+            )
+            for match in _TOKEN.finditer(note[range_start:range_end])
+        ]
+        for source_index, (source_token, start, end) in enumerate(source_tokens):
+            if source_token != phrase_tokens[0]:
+                continue
+            matched = [(start, end)]
+            cursor = source_index + 1
+            for phrase_token in phrase_tokens[1:]:
+                found: tuple[int, int, int] | None = None
+                while cursor < len(source_tokens):
+                    token, token_start, token_end = source_tokens[cursor]
+                    if token_start - matched[-1][1] > _COORDINATED_MAX_GAP_CHARS:
+                        break
+                    if token == phrase_token:
+                        found = (cursor, token_start, token_end)
+                        break
+                    cursor += 1
+                if found is None:
+                    break
+                cursor, token_start, token_end = found
+                matched.append((token_start, token_end))
+                cursor += 1
+            if len(matched) != len(phrase_tokens):
+                continue
+            between = note[matched[0][0] : matched[-1][1]]
+            if re.search(r"[\n.!?]", between):
+                continue
+            segments: list[tuple[int, int]] = []
+            for token_start, token_end in matched:
+                if segments and not note[segments[-1][1] : token_start].strip(" \t-/"):
+                    segments[-1] = (segments[-1][0], token_end)
+                else:
+                    segments.append((token_start, token_end))
+            if len(segments) > 1:
+                return segments
+    return None
 
 
 def build_context_packet(
@@ -305,7 +370,23 @@ class StagedAnnotationPipeline:
         self._concepts = {
             concept.hp_id: concept for concept in self.registry.concepts if not concept.obsolete
         }
+        self._modifier_ids = self._descendants_of(_CLINICAL_MODIFIER_ROOT)
         self.distinct_limit = 32 if mode is AnnotationMode.HIGH_RECALL else 16
+
+    def _descendants_of(self, root_id: str) -> set[str]:
+        children: dict[str, set[str]] = {}
+        for concept in self._concepts.values():
+            for parent_id in concept.parents:
+                children.setdefault(parent_id, set()).add(concept.hp_id)
+        descendants = {root_id} if root_id in self._concepts else set()
+        pending = list(descendants)
+        while pending:
+            parent_id = pending.pop()
+            for child_id in children.get(parent_id, set()):
+                if child_id not in descendants:
+                    descendants.add(child_id)
+                    pending.append(child_id)
+        return descendants
 
     def run(
         self,
@@ -323,6 +404,7 @@ class StagedAnnotationPipeline:
                     "pipeline_schema_version": STAGED_PIPELINE_SCHEMA_VERSION,
                     "mode": self.mode.value,
                     "distinct_limit": self.distinct_limit,
+                    "retrieval_policy_version": RETRIEVAL_POLICY_VERSION,
                     "model_enabled": self.model_enabled,
                     "mapping_prompt": self.mapping_prompt.value,
                     "prompts": sha256_file(Path(__file__).parent / "data" / "system_prompts.json"),
@@ -452,6 +534,7 @@ class StagedAnnotationPipeline:
             "mode": self.mode.value,
             "mapping_prompt": self.mapping_prompt.value,
             "distinct_candidate_limit": self.distinct_limit,
+            "retrieval_policy_version": RETRIEVAL_POLICY_VERSION,
             "input_rows": len(rows),
             "input_sha256": input_sha256,
             "config_sha256": config_sha256,
@@ -630,6 +713,8 @@ class StagedAnnotationPipeline:
                 end=value.end_offset,
                 methods={"native"},
                 recognizer_ids=set(value.candidate_hpo_ids),
+                evidence_segments=[(value.start_offset, value.end_offset)],
+                phrase_variants={value.phrase},
             )
             for value in self.native.recognize(note)
         ]
@@ -643,6 +728,8 @@ class StagedAnnotationPipeline:
                     recognizer_ids=set(
                         value.candidate_hpo_ids or ((value.hpo_id,) if value.hpo_id else ())
                     ),
+                    evidence_segments=[(value.start_offset, value.end_offset)],
+                    phrase_variants={value.phrase},
                 )
                 for value in self.fast.annotate(note)
             )
@@ -674,6 +761,25 @@ class StagedAnnotationPipeline:
             ]
             if not matches:
                 search_ranges = allowed_ranges or [(0, len(note))]
+                segments = _coordinated_alignment(
+                    phenotype.phrase,
+                    note,
+                    search_ranges,
+                )
+                if segments is not None:
+                    start = segments[0][0]
+                    end = segments[-1][1]
+                    values.append(
+                        Mention(
+                            phrase=phenotype.phrase,
+                            start=start,
+                            end=end,
+                            methods={method},
+                            evidence_segments=segments,
+                            phrase_variants={phenotype.phrase},
+                        )
+                    )
+                    continue
                 alignments = []
                 for range_start, range_end in search_ranges:
                     candidate_alignment = fuzz.partial_ratio_alignment(
@@ -699,6 +805,8 @@ class StagedAnnotationPipeline:
                         start=start,
                         end=end,
                         methods={method},
+                        evidence_segments=[(start, end)],
+                        phrase_variants={phenotype.phrase, note[start:end]},
                     )
                 )
                 continue
@@ -714,6 +822,8 @@ class StagedAnnotationPipeline:
                     start=start,
                     end=end,
                     methods={method},
+                    evidence_segments=[(start, end)],
+                    phrase_variants={phenotype.phrase, note[start:end]},
                 )
             )
         return values
@@ -771,10 +881,19 @@ class StagedAnnotationPipeline:
             )
             existing = merged.get(key)
             if existing is None:
+                if not mention.evidence_segments:
+                    mention.evidence_segments = [(mention.start, mention.end)]
+                if not mention.phrase_variants:
+                    mention.phrase_variants = {mention.phrase}
                 merged[key] = mention
             else:
                 existing.methods.update(mention.methods)
                 existing.recognizer_ids.update(mention.recognizer_ids)
+                existing.modifier_ids.update(mention.modifier_ids)
+                existing.phrase_variants.update(mention.phrase_variants or {mention.phrase})
+                for segment in _mention_segments(mention):
+                    if segment not in existing.evidence_segments:
+                        existing.evidence_segments.append(segment)
         values = list(merged.values())
         suppressed: set[int] = set()
         for broad_index, broad in enumerate(values):
@@ -791,10 +910,15 @@ class StagedAnnotationPipeline:
             # ("possible scoliosis" versus "scoliosis"). Multiple nested spans
             # can be a coordinated list and must remain separate.
             if len(nested) == 1:
-                _narrow_index, narrow = nested[0]
-                narrow.methods.update(broad.methods)
-                narrow.recognizer_ids.update(broad.recognizer_ids)
-                suppressed.add(broad_index)
+                narrow_index, narrow = nested[0]
+                broad.methods.update(narrow.methods)
+                broad.recognizer_ids.update(narrow.recognizer_ids)
+                broad.modifier_ids.update(narrow.modifier_ids)
+                broad.phrase_variants.update(narrow.phrase_variants or {narrow.phrase})
+                for segment in _mention_segments(narrow):
+                    if segment not in broad.evidence_segments:
+                        broad.evidence_segments.append(segment)
+                suppressed.add(narrow_index)
         return sorted(
             (value for index, value in enumerate(values) if index not in suppressed),
             key=lambda value: (
@@ -839,6 +963,10 @@ class StagedAnnotationPipeline:
             self.retriever.retrieve_many(
                 [mention.phrase for _mention_id, mention, _assertion in pending],
                 distinct_limit=self.distinct_limit,
+                contexts=[
+                    self._retrieval_context(row.clinical_note, mention)
+                    for _mention_id, mention, _assertion in pending
+                ],
             )
             if self.retriever is not None
             else [[] for _value in pending]
@@ -847,26 +975,24 @@ class StagedAnnotationPipeline:
             (mention_id, mention, assertion),
             retrieved,
         ) in zip(pending, retrieved_batches, strict=True):
+            recognized_modifiers = mention.recognizer_ids & self._modifier_ids
+            mention.modifier_ids.update(recognized_modifiers)
+            mention.recognizer_ids.difference_update(recognized_modifiers)
+            retrieved = [
+                candidate for candidate in retrieved if candidate.hpo_id not in self._modifier_ids
+            ]
             candidates = self._inject_recognizer_candidates(
                 retrieved,
                 mention.recognizer_ids,
             )
-            lower_confidence_addition = (
-                "model-pass-1" not in mention.methods
-                and not {"native", "fasthpocr"} <= mention.methods
-            )
-            if (
-                self.model_enabled
-                and self.mode is AnnotationMode.BALANCED
-                and lower_confidence_addition
-            ):
+            if self.model_enabled and not candidates:
                 results.append(
                     self._result(
                         row,
                         mention,
                         assertion,
-                        candidate_ids=sorted(mention.recognizer_ids)[:3],
-                        retrieval_candidate_ids=[value.hpo_id for value in candidates],
+                        candidate_ids=[],
+                        retrieval_candidate_ids=[],
                         mapping_status="no_candidate_fit",
                         confidence="low",
                         review_status="review",
@@ -1034,6 +1160,33 @@ class StagedAnnotationPipeline:
             row_index,
             self._deduplicate(results),
         )
+
+    @staticmethod
+    def _retrieval_context(note: str, mention: Mention) -> str | None:
+        """Add bounded local anatomy/context to short phrases without replacing them."""
+
+        if len(normalize_phrase(mention.phrase).split()) > 3:
+            return None
+        sentences = sentence_spans(note)
+        sentence_index = next(
+            (
+                index
+                for index, sentence in enumerate(sentences)
+                if _overlaps(sentence.start, sentence.end, mention.start, mention.end)
+            ),
+            None,
+        )
+        if sentence_index is None:
+            return None
+        sentence = sentences[sentence_index].text
+        preceding = (
+            sentences[sentence_index - 1].text[-_MAX_ADJACENT_CONTEXT_CHARS:]
+            if sentence_index > 0
+            else ""
+        )
+        return " ".join(
+            value.strip() for value in (mention.phrase, preceding, sentence) if value.strip()
+        )[: 2 * _MAX_ADJACENT_CONTEXT_CHARS]
 
     @staticmethod
     def _routing_category(
@@ -1247,6 +1400,8 @@ class StagedAnnotationPipeline:
             "dense_score": candidate.dense_score,
             "lexical_rank": candidate.lexical_rank,
             "lexical_score": candidate.lexical_score,
+            "context_dense_rank": candidate.context_dense_rank,
+            "context_dense_score": candidate.context_dense_score,
             "source_methods": candidate.source_methods or [],
         }
 
@@ -1258,6 +1413,8 @@ class StagedAnnotationPipeline:
         by_id = {value.hpo_id: value for value in candidates}
         injected: list[Candidate] = []
         for hp_id in sorted(recognizer_ids):
+            if hp_id in self._modifier_ids:
+                continue
             concept = self._concepts.get(hp_id)
             if concept is None or hp_id in by_id:
                 continue
@@ -1311,6 +1468,8 @@ class StagedAnnotationPipeline:
                 "source_methods": sorted(mention.methods),
                 "candidate_hpo_ids": candidate_ids,
                 "retrieval_candidate_hpo_ids": retrieval_candidate_ids,
+                "modifier_hpo_ids": sorted(mention.modifier_ids),
+                "evidence_segments": _mention_segments(mention),
                 "mapping_verdict": mapping_verdict,
                 "confidence_basis": "uncalibrated-evidence",
                 "evidence_text": assertion.sentence if self.include_evidence_text else None,

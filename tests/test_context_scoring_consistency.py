@@ -74,6 +74,19 @@ def test_layered_scoring_preserves_exact_and_catalogs_neighbors(tmp_path: Path) 
     )
     assert sibling.relation_counts == {"sibling": 1}
 
+    alternative_prediction = score_layered_case(
+        "1",
+        [{"HP:0000001", "HP:0000003"}],
+        [{"HP:0000003"}],
+        ontology,
+        max_distance=0,
+    )
+    assert (
+        alternative_prediction.exact_tp,
+        alternative_prediction.fp,
+        alternative_prediction.fn,
+    ) == (1, 0, 0)
+
     summary = summarize_layered(
         score_layered(
             {"1": {"HP:0000004"}},

@@ -54,6 +54,7 @@ from rag_hpo.models import (
 )
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
 from rag_hpo.provider import RETRYABLE_STATUSES, OpenAICompatibleProvider, ProviderError
+from rag_hpo.registry import normalize_phrase
 from rag_hpo.retrieval import HybridCandidateRetriever
 from rag_hpo.staged_pipeline import (
     AnnotationMode,
@@ -374,15 +375,31 @@ class TracingRetriever:
         phrases: list[str],
         *,
         distinct_limit: int,
+        contexts: list[str | None] | None = None,
     ) -> list[list[Candidate]]:
         if not phrases:
             return []
-        queries = self.base.backend.encode(phrases)
+        context_rows = [
+            (index, value)
+            for index, value in enumerate(contexts or [])
+            if value and normalize_phrase(value) != normalize_phrase(phrases[index])
+        ]
+        queries = self.base.backend.encode([*phrases, *(value for _index, value in context_rows)])
         raw_limit = min(self.base.raw_limit, self.base._dense_index.ntotal)
         scores, indices = self.base._dense_index.search(
-            np.asarray(queries, dtype=np.float32),
+            np.asarray(queries[: len(phrases)], dtype=np.float32),
             raw_limit,
         )
+        context_by_phrase: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+        if context_rows:
+            context_scores, context_indices = self.base._dense_index.search(
+                np.asarray(queries[len(phrases) :], dtype=np.float32),
+                raw_limit,
+            )
+            context_by_phrase = {
+                phrase_index: (context_scores[index], context_indices[index])
+                for index, (phrase_index, _value) in enumerate(context_rows)
+            }
         sparse_limit = min(self.base.raw_limit, len(self.base._lexical_phrases))
         sparse_queries = self.base._sparse_vectorizer.transform(phrases)
         sparse_distances, sparse_indices = self.base._sparse_index.kneighbors(
@@ -398,10 +415,16 @@ class TracingRetriever:
                 sparse_distances=sparse_distances[index],
                 sparse_indices=sparse_indices[index],
             )
-            fused = self.base._fuse(dense, lexical)
+            context_dense = (
+                self.base._dense_from_search(*context_by_phrase[index])
+                if index in context_by_phrase
+                else {}
+            )
+            fused = self.base._fuse(dense, lexical, context_dense)
             candidates = self.base._candidates(
                 dense,
                 lexical,
+                context_dense,
                 distinct_limit=distinct_limit,
             )
             output.append(candidates)
@@ -534,8 +557,7 @@ class TracePipeline(StagedAnnotationPipeline):
                 value.phrase
                 for value in extraction.phenotypes
                 if not any(
-                    value.phrase.casefold() == mention.phrase.casefold()
-                    for mention in values
+                    value.phrase.casefold() == mention.phrase.casefold() for mention in values
                 )
             ],
             allowed_ranges=allowed_ranges,
@@ -561,9 +583,7 @@ class TracePipeline(StagedAnnotationPipeline):
 
     def _merge_mentions(self, mentions: list[Mention]) -> list[Mention]:
         values = StagedAnnotationPipeline._merge_mentions(mentions)
-        output_keys = {
-            (value.start, value.end, value.phrase.casefold()) for value in values
-        }
+        output_keys = {(value.start, value.end, value.phrase.casefold()) for value in values}
         suppressed = [
             {
                 **mention_dict(value),
@@ -889,14 +909,10 @@ def force_stored_deferred(
             "phrase": mention.phrase,
             "start_char": mention.start,
             "end_char": mention.end,
-            "stored_candidate_hpo_ids": source_by_id[mention_id].get(
-                "candidate_hpo_ids", []
-            ),
+            "stored_candidate_hpo_ids": source_by_id[mention_id].get("candidate_hpo_ids", []),
             "forced_payload_hpo_ids": [value.hpo_id for value in candidates],
             "decision": (
-                decisions[mention_id].model_dump(mode="json")
-                if mention_id in decisions
-                else None
+                decisions[mention_id].model_dump(mode="json") if mention_id in decisions else None
             ),
             "assertion": asdict(assertion),
         }
@@ -1039,14 +1055,11 @@ def build_recall_checkpoints(
 ) -> dict[str, Any]:
     output: dict[str, Any] = {}
     for patient_id in CASE_IDS:
-        patient_records = [
-            value for value in retrieval if value["patient_id"] == patient_id
-        ]
+        patient_records = [value for value in retrieval if value["patient_id"] == patient_id]
         normal_payloads = [
             value
             for value in mapper_payloads
-            if value["patient_id"] == patient_id
-            and not value["stage"].startswith("forced-")
+            if value["patient_id"] == patient_id and not value["stage"].startswith("forced-")
         ]
         payload_ids = {
             hp_id
@@ -1064,13 +1077,11 @@ def build_recall_checkpoints(
             ):
                 for k in (1, 8, 16, 32, 64):
                     present = any(
-                        bool(group & ids_at(record, key, k))
-                        for record in patient_records
+                        bool(group & ids_at(record, key, k)) for record in patient_records
                     )
                     row[f"{lane}@{k}"] = present
             row["bounded16"] = any(
-                bool(group & ids_at(record, "bounded", 16))
-                for record in patient_records
+                bool(group & ids_at(record, "bounded", 16)) for record in patient_records
             )
             row["mapper_payload"] = bool(group & payload_ids)
             rows.append(row)
@@ -1107,25 +1118,15 @@ def build_loss_ledger(
         accepted_by_identity: dict[frozenset[str], AnnotationResult] = {}
         for value in case_results:
             identity = frozenset(output_group_ids(value))
-            if (
-                value.mapping_status == "mapped"
-                and value.review_status == "accepted"
-                and identity
-            ):
+            if value.mapping_status == "mapped" and value.review_status == "accepted" and identity:
                 accepted_by_identity.setdefault(identity, value)
         accepted_results = list(accepted_by_identity.values())
-        accepted_groups = [
-            output_group_ids(value)
-            for value in accepted_results
-        ]
-        patient_retrieval = [
-            value for value in retrieval if value["patient_id"] == patient_id
-        ]
+        accepted_groups = [output_group_ids(value) for value in accepted_results]
+        patient_retrieval = [value for value in retrieval if value["patient_id"] == patient_id]
         payload_ids = {
             hp_id
             for payload in mapper_payloads
-            if payload["patient_id"] == patient_id
-            and not payload["stage"].startswith("forced-")
+            if payload["patient_id"] == patient_id and not payload["stage"].startswith("forced-")
             for item in payload["items"]
             for hp_id in item["candidate_hpo_ids"]
         }
@@ -1143,27 +1144,17 @@ def build_loss_ledger(
         for group in references.get(patient_id, []):
             if any(group & prediction for prediction in accepted_groups):
                 continue
-            recognizer_span = any(
-                group & mention.recognizer_ids for mention in patient_mentions
-            )
+            recognizer_span = any(group & mention.recognizer_ids for mention in patient_mentions)
             dense_lexical = any(
-                group
-                & (
-                    ids_at(record, "dense_top64")
-                    | ids_at(record, "lexical_top64")
-                )
+                group & (ids_at(record, "dense_top64") | ids_at(record, "lexical_top64"))
                 for record in patient_retrieval
             )
-            bounded = any(
-                group & ids_at(record, "bounded", 16)
-                for record in patient_retrieval
-            )
+            bounded = any(group & ids_at(record, "bounded", 16) for record in patient_retrieval)
             in_payload = bool(group & payload_ids)
             deferred_rows = [
                 value
                 for value in case_results
-                if value.mapping_status == "no_candidate_fit"
-                and group & output_group_ids(value)
+                if value.mapping_status == "no_candidate_fit" and group & output_group_ids(value)
             ]
             forced_rows = [
                 value
@@ -1176,9 +1167,7 @@ def build_loss_ledger(
                 for value in forced_rows
             )
             mapped_nonaccepted = [
-                value
-                for value in case_results
-                if group & output_group_ids(value)
+                value for value in case_results if group & output_group_ids(value)
             ]
             if not (recognizer_span or dense_lexical):
                 cause = "[1] Extraction Miss"
@@ -1190,9 +1179,7 @@ def build_loss_ledger(
                 cause = "[4] Candidate Pool Truncation"
             elif deferred_rows or (bounded and not in_payload):
                 cause = (
-                    "[5] Premature Deferral"
-                    if forced_selected
-                    else "[6] Mapper Reasoning Error"
+                    "[5] Premature Deferral" if forced_selected else "[6] Mapper Reasoning Error"
                 )
             elif in_payload and not mapped_nonaccepted:
                 cause = "[6] Mapper Reasoning Error"
@@ -1384,31 +1371,21 @@ def main() -> int:
         run_a_results = [
             AnnotationResult.model_validate(value)
             for value in json.loads(
-                (
-                    writer.root
-                    / "run-a-reproduction"
-                    / "rag_hpo_results.json"
-                ).read_text(encoding="utf-8")
+                (writer.root / "run-a-reproduction" / "rag_hpo_results.json").read_text(
+                    encoding="utf-8"
+                )
             )
         ]
         control = json.loads(
-            (writer.root / "run-b-temp0-extraction" / "results.json").read_text(
-                encoding="utf-8"
-            )
+            (writer.root / "run-b-temp0-extraction" / "results.json").read_text(encoding="utf-8")
         )
         forced = json.loads(
-            (writer.root / "forced-deferred-mapping" / "results.json").read_text(
-                encoding="utf-8"
-            )
+            (writer.root / "forced-deferred-mapping" / "results.json").read_text(encoding="utf-8")
         )
         fast_overlay = json.loads(
-            (writer.root / "offline-fasthpocr" / "results.json").read_text(
-                encoding="utf-8"
-            )
+            (writer.root / "offline-fasthpocr" / "results.json").read_text(encoding="utf-8")
         )
-        events = json.loads(
-            (writer.root / "stage-events.json").read_text(encoding="utf-8")
-        )
+        events = json.loads((writer.root / "stage-events.json").read_text(encoding="utf-8"))
         mapper_payloads = json.loads(
             (writer.root / "mapper-payloads.json").read_text(encoding="utf-8")
         )
@@ -1530,9 +1507,7 @@ def main() -> int:
         references,
     )
     writer.write_json("analysis/retrieval-recall.json", checkpoints)
-    merge_events = [
-        value for value in events if value["stage"] == "mention-merge"
-    ]
+    merge_events = [value for value in events if value["stage"] == "mention-merge"]
     ledger = build_loss_ledger(
         run_a_results,
         references=references,
@@ -1548,15 +1523,12 @@ def main() -> int:
         patient_id: [
             mention
             for event in events
-            if event["patient_id"] == patient_id
-            and event["stage"] == "coverage-extract"
+            if event["patient_id"] == patient_id and event["stage"] == "coverage-extract"
             for mention in event["validated_mentions"]
         ]
         for patient_id in CASE_IDS
     }
-    run_b_pass1 = {
-        value["patient_id"]: value["mentions"] for value in control
-    }
+    run_b_pass1 = {value["patient_id"]: value["mentions"] for value in control}
     determinism = {
         patient_id: {
             "temperature_0_2_count": len(run_a_pass1[patient_id]),
@@ -1579,9 +1551,7 @@ def main() -> int:
     old_manifest = json.loads(args.historical_manifest.read_text(encoding="utf-8"))
     new_manifest = json.loads(args.regression_manifest.read_text(encoding="utf-8"))
     writer.write_json("analysis/config-diff.json", config_diff(old_manifest, new_manifest))
-    current_prompt = (
-        Path(__file__).parents[1] / "src" / "rag_hpo" / "data" / "system_prompts.json"
-    )
+    current_prompt = Path(__file__).parents[1] / "src" / "rag_hpo" / "data" / "system_prompts.json"
     prompt_diff = "".join(
         difflib.unified_diff(
             args.historical_prompt.read_text(encoding="utf-8").splitlines(keepends=True),
@@ -1593,9 +1563,7 @@ def main() -> int:
     writer.write_text("analysis/prompt-schema.diff", prompt_diff)
 
     loss_counts = Counter(
-        item["primary_cause"]
-        for patient in ledger.values()
-        for item in patient["false_negatives"]
+        item["primary_cause"] for patient in ledger.values() for item in patient["false_negatives"]
     )
     report = [
         "# CSC Case 1 and Case 99 Root-Cause Audit",

@@ -338,6 +338,34 @@ Use `--accepted-only` for the primary strict score of staged output. Omitting
 it intentionally scores every mapped row, including unresolved review
 candidates, as a high-recall sensitivity analysis.
 
+### One-command resumable corpus evaluation
+
+Use the corpus runner for a small case list, a locked selection manifest, or a
+complete corpus. It annotates, retries only failed rows, writes a private
+SQLite checkpoint, computes the primary alternative-aware exact score, and
+also writes separate one- and two-edge hierarchy sensitivity scores.
+
+```bash
+export RAG_HPO_API_KEY="$(security find-generic-password \
+  -a "$USER" -s rag-hpo-audit-groq -w)"
+
+python benchmarks/run_corpus_evaluation.py \
+  --corpus csc \
+  --vector-dir /private/path/to/full-sapbert-artifacts \
+  --ontology /private/path/to/hp.obo \
+  --output-dir /private/path/to/full-csc-results \
+  --all \
+  --confirm-external-transmission
+
+unset RAG_HPO_API_KEY
+```
+
+Run the same command with `--corpus gsc` and a different output directory for
+GSC. Repeating an interrupted command resumes only unfinished/error rows.
+Complete-corpus results are not automatically a tuning set: inspect the exact
+and hierarchy-sensitive reports, then reserve any prompt or policy change for
+a separately selected development subset.
+
 Historical Premium, CSC, and GSC workbook calculations remain separately
 labeled. See [benchmarks/README.md](benchmarks/README.md).
 

@@ -19,6 +19,7 @@ def _load_script(name: str) -> ModuleType:
 bootstrap = _load_script("bootstrap_subset_metrics")
 selector = _load_script("prepare_stratified_subset")
 runner = _load_script("run_benchmark")
+corpus_runner = _load_script("run_corpus_evaluation")
 
 
 def test_rank_bins_cover_requested_range_deterministically() -> None:
@@ -61,3 +62,21 @@ def test_runner_reads_locked_subset_ids(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert runner._selection_ids(manifest) == ["3", "7", "11"]
+
+
+def test_corpus_runner_writes_only_selected_rows_with_private_permissions(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "input.csv"
+    source.write_text(
+        "patient_id,clinical_note\n1,first note\n2,second note\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "selected.csv"
+    selected = corpus_runner._write_selected_input(source, output, ["2"])
+    assert selected == ["2"]
+    assert output.read_text(encoding="utf-8").splitlines() == [
+        "patient_id,clinical_note",
+        "2,second note",
+    ]
+    assert output.stat().st_mode & 0o077 == 0
