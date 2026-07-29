@@ -364,11 +364,14 @@ class HybridCandidateRetriever:
                 sparse_rank += 1
                 sparse[hp_id] = (sparse_rank, float(1.0 - distance))
 
+        fuzzy_candidates = list(
+            dict.fromkeys(self._lexical_phrases[int(idx)] for idx in sparse_indices)
+        )
         matches = process.extract(
             normalized,
-            self._lexical_phrases,
+            fuzzy_candidates,
             scorer=fuzz.WRatio,
-            limit=min(self.raw_limit, len(self._lexical_phrases)),
+            limit=min(self.raw_limit, len(fuzzy_candidates)),
         )
         fuzzy: dict[str, tuple[int, float]] = {}
         rank = 0

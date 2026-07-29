@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -1162,19 +1163,38 @@ class StagedAnnotationPipeline:
                 )
             return self._deduplicate(results)
 
+        batches = [
+            (batch_index, abnormal[start : start + MAPPING_BATCH_SIZE])
+            for batch_index, start in enumerate(range(0, len(abnormal), MAPPING_BATCH_SIZE))
+        ]
         decisions: dict[str, Any] = {}
-        for batch_index, start in enumerate(range(0, len(abnormal), MAPPING_BATCH_SIZE)):
-            items = abnormal[start : start + MAPPING_BATCH_SIZE]
-            batch_decisions = self._request_mapping_items(
+        if len(batches) == 1:
+            batch_index, items = batches[0]
+            decisions = self._request_mapping_items(
                 items,
                 note=row.clinical_note,
                 sentences=note_context.sentences,
                 row_index=row_index,
                 stage=f"batch-map-{batch_index:03d}",
             )
-            if set(decisions) & set(batch_decisions):
-                raise ValueError("batched mapper returned duplicate decisions")
-            decisions.update(batch_decisions)
+        elif batches:
+            with ThreadPoolExecutor(max_workers=min(4, len(batches))) as executor:
+                future_to_batch = {
+                    executor.submit(
+                        self._request_mapping_items,
+                        items,
+                        note=row.clinical_note,
+                        sentences=note_context.sentences,
+                        row_index=row_index,
+                        stage=f"batch-map-{batch_index:03d}",
+                    ): batch_index
+                    for batch_index, items in batches
+                }
+                for future in as_completed(future_to_batch):
+                    batch_decisions = future.result()
+                    if set(decisions) & set(batch_decisions):
+                        raise ValueError("batched mapper returned duplicate decisions")
+                    decisions.update(batch_decisions)
         for mention_id, mention, assertion, candidates in abnormal:
             decision = decisions.get(mention_id)
             if decision is None:

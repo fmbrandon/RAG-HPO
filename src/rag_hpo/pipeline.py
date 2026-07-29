@@ -81,7 +81,8 @@ class AnnotationPipeline:
         resume: bool,
         keep_state: bool,
         keep_raw_responses: bool,
-        top_k: int = 8,
+        top_k: int = 64,
+
         backend: EmbeddingBackend | None = None,
         offline: bool = False,
     ) -> None:
