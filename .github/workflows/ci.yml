@@ -45,9 +45,25 @@ jobs:
       - name: Detect secrets
         shell: bash
         run: |
+          scan_path="${RUNNER_TEMP}/rag-hpo-secrets-scan.json"
           detect-secrets scan \
-            --exclude-files '(^|/)requirements(/|\.txt$)|(^|/)benchmarks/results/.*\.json$|.*\.(pptx|xlsx)$' > secrets-scan.json
-          python -c "import json; data=json.load(open('secrets-scan.json')); raise SystemExit(bool(data['results']))"
+            --exclude-files '(^|/)requirements(/|\.txt$)|(^|/)benchmarks/results/.*\.json$|(^|/)benchmarks/provenance/.*\.json$|(^|/)benchmarks/prompts/historical-2025-07\.json$|.*\.(pptx|xlsx)$' \
+            > "${scan_path}"
+          python - "${scan_path}" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              results = json.load(handle)["results"]
+          for filename, findings in sorted(results.items()):
+              for finding in findings:
+                  print(
+                      filename,
+                      finding.get("line_number"),
+                      finding.get("type"),
+                  )
+          raise SystemExit(any(results.values()))
+          PY
       - run: pip-audit
       - name: License policy
         shell: bash

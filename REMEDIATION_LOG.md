@@ -216,6 +216,13 @@ Phase 3 validation performed:
   613,573 tokens, versus repeating complete extraction and retrieval.
 - Neither context prompt met the predeclared 0.70 precision screening floor,
   so no multi-run confirmation was launched.
+- Moved the CI secret-scan report outside the checkout so the detector cannot
+  scan its own partially written high-entropy JSON output. Failure diagnostics
+  now expose only filename, line number, and detector type.
+- Narrowly excluded benchmark provenance JSON and the archived historical
+  prompt record from secret scanning. Their flagged values are documented Git
+  commit and SHA-256 identifiers; executable source and current prompts remain
+  scanned.
 - Added performance-blind subset selection stratified by note length and
   manual-reference count. The fixed seed is 20260728. The 30-case untouched
   CSC confirmation subset contains 446 references; the independent 30-case
