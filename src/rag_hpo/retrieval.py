@@ -49,7 +49,8 @@ class HybridCandidateRetriever:
         entries: list[ArtifactEntry],
         matrix: np.ndarray,
         backend: EmbeddingBackend,
-        raw_limit: int = 64,
+        raw_limit: int = 128,
+
         cache_size: int = 4096,
     ) -> None:
         if cache_size <= 0:
