@@ -29,7 +29,13 @@ def test_metric_calculation() -> None:
 
 def test_published_workbook_yields_tidy_rows() -> None:
     module = _module()
-    workbook = Path(__file__).parents[1] / "RAG-HPO Tests and Data Analysis copy.xlsx"
+    workbook = (
+        Path(__file__).parents[1]
+        / "legacy_original_app"
+        / "RAG-HPO Tests and Data Analysis copy.xlsx"
+    )
+
+
     rows = module.extract(workbook)
     assert rows
     assert all(row.patient_id for row in rows)

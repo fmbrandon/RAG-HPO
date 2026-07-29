@@ -59,7 +59,7 @@ The published workbook stores TP, FP, and FN counts as static values.
 
 ```bash
 python benchmarks/recompute_metrics.py \
-  "RAG-HPO Tests and Data Analysis copy.xlsx" \
+  "legacy_original_app/RAG-HPO Tests and Data Analysis copy.xlsx" \
   --output benchmark-results/historical-metrics.csv
 ```
 
@@ -86,7 +86,7 @@ notes and provider predictions are deliberately kept outside the repository.
 
 The result does not show an accuracy improvement over historical LLaMa
 4-Scout: micro F1 was 0.6451 versus 0.6653, macro F1 was 0.6449 versus 0.6554,
-and the paired 95% interval included zero. See [VALIDATION.md](../VALIDATION.md)
+and the paired 95% interval included zero. See [VALIDATION.md](../reports_and_logs/VALIDATION.md)
 for the interpretation and retry record.
 
 ## Accuracy investigation
@@ -122,7 +122,7 @@ prompts, thresholds, or candidate counts against those confirmation results.
 The locked 82-case confirmation found rebuild micro F1 0.6534 versus
 historical 0.7002. The paired F1 interval excluded zero in the negative
 direction; see `results/csc-confirmation-82-analysis.json` and
-[the investigation report](../RAG-HPO_ACCURACY_INVESTIGATION.md).
+[the investigation report](../reports_and_logs/RAG-HPO_ACCURACY_INVESTIGATION.md).
 
 ## Confidence calibration and cutoff selection
 
@@ -176,7 +176,7 @@ pip install -e '.[fasthpocr]'
 
 `run_fasthpocr.py` builds or validates a private, provenance-recorded index and
 emits span-level predictions plus alternative-aware metrics. The index and
-note-level results belong outside Git. `summarize_historical_metrics.py`
+note-level results belong outside Git. `legacy_original_app/benchmarks/summarize_historical_metrics.py`
 creates the corpus-aware historical comparison, and
 `compare_recognizer_predictions.py` measures overlap without mixing CSC and
 GSC identifiers.
@@ -184,7 +184,7 @@ GSC identifiers.
 Phase 1 found that longest-span filtering improved precision-weighted and F1
 results on both CSC and GSC. A raw union with RAG-HPO increased recall but
 reduced precision and F1, while exact-ID agreement reached 0.937 precision.
-See [the Phase 1 report](../PHASE1_FASTHPOCR_FINDINGS.md) and
+See [the Phase 1 report](../reports_and_logs/PHASE1_FASTHPOCR_FINDINGS.md) and
 [`fasthpocr-phase1-summary.json`](results/fasthpocr-phase1-summary.json).
 
 ## Canonical registry and Phase 2
@@ -215,7 +215,7 @@ written outside Git.
 The deterministic lane is not a complete annotator: its CSC recall was 0.208.
 The corrected confirmation hybrid retained 0.602 recall while increasing
 precision from 0.704 to 0.749. It did not reach the 0.80 precision requirement
-for default promotion. See [the Phase 3 report](../PHASE3_CASCADE_FINDINGS.md)
+for default promotion. See [the Phase 3 report](../reports_and_logs/PHASE3_CASCADE_FINDINGS.md)
 and the sanitized
 [`phase3-hybrid-summary.json`](results/phase3-hybrid-summary.json).
 
@@ -304,7 +304,7 @@ directory. `--no-progress` is available for CI or redirected logs.
 
 The locked subset result is summarized in
 [`staged-70-70-subset-summary.json`](results/staged-70-70-subset-summary.json)
-and [the findings report](../PHASE4_70_70_FINDINGS.md). CSC passed the
+and [the findings report](../reports_and_logs/PHASE4_70_70_FINDINGS.md). CSC passed the
 accepted-only 0.70/0.70 point gate. GSC precision was 0.858 and recall was
 0.698, one true positive below the recall gate, so `balanced` was not promoted
 to the default.
@@ -362,4 +362,4 @@ runtime identity when the run manifests are available.
 
 The no-new-inference hierarchy results and the historical 20-case consistency
 baseline are summarized in
-[CONTEXT_CONSISTENCY_FINDINGS.md](../CONTEXT_CONSISTENCY_FINDINGS.md).
+[CONTEXT_CONSISTENCY_FINDINGS.md](../reports_and_logs/CONTEXT_CONSISTENCY_FINDINGS.md).

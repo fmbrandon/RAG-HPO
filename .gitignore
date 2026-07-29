@@ -33,4 +33,10 @@ rag_hpo_results*.json
 *.rag-hpo-state.sqlite3-*
 raw_responses/
 security-reports/
+archived_builds/
+legacy_original_app/
+reports_and_logs/
 sbom/
+
+
+

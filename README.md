@@ -9,6 +9,16 @@ RAG-HPO sends note text to the configured language-model endpoint. Never submit
 identifiable or restricted data unless your institution has approved both the
 endpoint and workflow. See [SECURITY.md](SECURITY.md).
 
+## Repository Architecture & File Delineation
+
+This workspace is structured with strict separation between **production application files**, **original/legacy artifacts**, and **development & testing tools**:
+
+| Category | Directories & Files | Description |
+| :--- | :--- | :--- |
+| **🟢 Production App** *(Updated Application)* | • [`src/rag_hpo/`](src/rag_hpo)<br>• [`system_prompts.json`](system_prompts.json)<br>• [`HPO_addons.csv`](HPO_addons.csv)<br>• [`RAG-HPO.ipynb`](RAG-HPO.ipynb)<br>• [`pyproject.toml`](pyproject.toml)<br>• [`requirements.txt`](requirements.txt) | Core production code, installed `rag-hpo` package (`doctor`, `demo`, `vectorize`, `annotate`), runtime system prompts, ontology expansion data, user notebook, and package dependencies. |
+| **🟡 Original App** *(Legacy Content)* | • [`legacy_original_app/`](legacy_original_app/) | Isolated folder containing historical artifacts: original Excel analysis workbook, presentation poster, original vectorization notebook, and historical baseline retrieval scripts. |
+| **🔵 Dev & Build Tools** *(Engineering & Testing)* | • [`tests/`](tests/)<br>• [`benchmarks/`](benchmarks/)<br>• [`scripts/`](scripts/)<br>• [`sample_inputs/`](sample_inputs/)<br>• [`reports_and_logs/`](reports_and_logs/)<br>• [`requirements/`](requirements/) | Pytest automated test suite, benchmark evaluation framework & reference datasets, release build & compilation scripts, synthetic test inputs, research remediation logs, and CI pin files. |
+
 ## Five-minute macOS quick start
 
 The validated development baseline is an Apple Silicon Mac with Python 3.12.
@@ -31,13 +41,13 @@ pip install -e '.[fasthpocr]'
 ```
 
 Its current integration findings and limitations are documented in
-[PHASE1_FASTHPOCR_FINDINGS.md](PHASE1_FASTHPOCR_FINDINGS.md) and
-[PHASE2_REGISTRY_FINDINGS.md](PHASE2_REGISTRY_FINDINGS.md). Phase 3 confirmed
+[reports_and_logs/PHASE1_FASTHPOCR_FINDINGS.md](reports_and_logs/PHASE1_FASTHPOCR_FINDINGS.md) and
+[reports_and_logs/PHASE2_REGISTRY_FINDINGS.md](reports_and_logs/PHASE2_REGISTRY_FINDINGS.md). Phase 3 confirmed
 that the deterministic recognizer is a high-confidence aid, not a complete
 annotator, because its recall is too low. The recall-preserving verified mode
 improved precision and F0.5 but remains experimental until integration and
 beginner-facing work are complete. See
-[PHASE3_CASCADE_FINDINGS.md](PHASE3_CASCADE_FINDINGS.md).
+[reports_and_logs/PHASE3_CASCADE_FINDINGS.md](reports_and_logs/PHASE3_CASCADE_FINDINGS.md).
 
 Load the Groq key into this terminal without putting it in shell history or a
 repository file:
@@ -234,11 +244,11 @@ rag-hpo annotate \
 
 The required column is `clinical_note`. `patient_id` is optional and remains a
 string. The legacy `Case` column is also accepted. A safe example is provided
-at [samples/synthetic_input.csv](samples/synthetic_input.csv).
+at [sample_inputs/synthetic_input.csv](sample_inputs/synthetic_input.csv).
 
 ```bash
 rag-hpo annotate \
-  --input samples/synthetic_input.csv \
+  --input sample_inputs/synthetic_input.csv \
   --vector-dir artifacts/hpo \
   --output-dir rag_hpo_output
 ```
@@ -276,7 +286,7 @@ privacy warning and includes the source sentence in result files. Staged runs
 also write `rag_hpo_run_manifest.json` with hashes, configuration, elapsed
 time, and provider token totals, but never the API key or complete note. The
 machine-readable result contract is in
-[samples/expected_result_schema.json](samples/expected_result_schema.json).
+[sample_inputs/expected_result_schema.json](sample_inputs/expected_result_schema.json).
 
 ## Resume and privacy
 
@@ -389,24 +399,24 @@ labeled. See [benchmarks/README.md](benchmarks/README.md).
 The locked accuracy investigation explains the rebuild's higher aggregate
 precision but lower recall and F1, including ontology-version, candidate
 retrieval, extraction, mapping, and scoring effects. See
-[RAG-HPO_ACCURACY_INVESTIGATION.md](RAG-HPO_ACCURACY_INVESTIGATION.md).
+[reports_and_logs/RAG-HPO_ACCURACY_INVESTIGATION.md](reports_and_logs/RAG-HPO_ACCURACY_INVESTIGATION.md).
 Phase 3's prompt additions and unchanged base prompts are recorded in
-[PROMPT_CHANGELOG.md](PROMPT_CHANGELOG.md).
+[reports_and_logs/PROMPT_CHANGELOG.md](reports_and_logs/PROMPT_CHANGELOG.md).
 The frozen staged subset evaluation, including confidence intervals and the
 decision not to promote `balanced`, is recorded in
-[PHASE4_70_70_FINDINGS.md](PHASE4_70_70_FINDINGS.md).
+[reports_and_logs/PHASE4_70_70_FINDINGS.md](reports_and_logs/PHASE4_70_70_FINDINGS.md).
 
 The newer three-category/bounded-alternative pipeline also remains
 experimental. On its fixed 30-case CSC discovery cohort, a
 precision-constrained calibration reached strict precision 0.701, recall
 0.605, and F1 0.650. Including every mapped candidate raised recall only to
 0.607, so the revision did not advance to GSC confirmation and did not replace
-the default workflow. See [REMEDIATION_LOG.md](REMEDIATION_LOG.md) for the
+the default workflow. See [reports_and_logs/REMEDIATION_LOG.md](reports_and_logs/REMEDIATION_LOG.md) for the
 provider-recovery and token-cost findings.
 
 ## Notebooks and development
 
-`RAG-HPO.ipynb` and `HPO_Vectorization.ipynb` are thin, network-free examples.
+`RAG-HPO.ipynb` (and legacy `legacy_original_app/HPO_Vectorization.ipynb`) are thin, network-free examples.
 They import the package and contain no application implementation, keys,
 hard-coded local paths, or unconditional downloads.
 

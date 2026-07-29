@@ -41,7 +41,7 @@ python scripts/build_vector_bundle.py \
   "${vector_dir}" \
   --output "${release_dir}/rag-hpo-v0.2.0-sapbert-vectors.zip"
 python benchmarks/recompute_metrics.py \
-  "RAG-HPO Tests and Data Analysis copy.xlsx" \
+  "legacy_original_app/RAG-HPO Tests and Data Analysis copy.xlsx" \
   --output "${release_dir}/benchmark-metrics.csv"
 cp benchmarks/results/*.json "${release_dir}/benchmarks/"
 cyclonedx-py environment --output-file "${release_dir}/sbom/environment.cdx.json"
@@ -49,8 +49,10 @@ pip-audit --format json --output "${release_dir}/security/pip-audit.json"
 pip-licenses --format=json --output-file="${release_dir}/security/licenses.json"
 python scripts/check_licenses.py "${release_dir}/security/licenses.json"
 
-cp "RAG-HPO ASHG Poster.pptx" "${release_dir}/"
-cp "RAG-HPO Tests and Data Analysis copy.xlsx" "${release_dir}/"
+cp "legacy_original_app/RAG-HPO ASHG Poster.pptx" "${release_dir}/"
+cp "legacy_original_app/RAG-HPO Tests and Data Analysis copy.xlsx" "${release_dir}/"
+
+
 
 python - <<'PY' > "${release_dir}/provenance.json"
 import json
