@@ -76,6 +76,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     annotate.add_argument("--resume", action="store_true")
     annotate.add_argument("--keep-state", action="store_true")
+    annotate.add_argument(
+        "--max-row-attempts",
+        type=_positive_int,
+        default=1,
+        help=(
+            "Retry failed rows inside the loaded process so models, indexes, and "
+            "successful stage responses are reused (default: 1)."
+        ),
+    )
     annotate.add_argument("--raw-responses", action="store_true")
     annotate.add_argument(
         "--mode",
@@ -237,7 +246,16 @@ def _annotate(args: argparse.Namespace) -> int:
                 confidence_calibration=args.confidence_calibration,
                 mapping_prompt=MappingPromptMode(args.mapping_prompt),
             )
-        results = pipeline.run(rows, initial_errors=errors)
+        if isinstance(pipeline, StagedAnnotationPipeline):
+            results = pipeline.run(
+                rows,
+                initial_errors=errors,
+                max_attempts=args.max_row_attempts,
+            )
+        else:
+            if args.max_row_attempts != 1:
+                raise ValueError("--max-row-attempts requires a staged annotation mode")
+            results = pipeline.run(rows, initial_errors=errors)
     failures = sum(result.mapping_status == "error" for result in results)
     summary = {
         "input_rows": len(rows) + len(errors),

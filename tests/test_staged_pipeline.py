@@ -556,9 +556,16 @@ def test_short_phrase_retrieval_batches_phrase_and_local_context(tmp_path: Path)
         contexts=["tubular adenoma Colonoscopy found polyps. Biopsy showed tubular adenoma."],
         distinct_limit=16,
     )
+    retriever.retrieve_many(
+        ["tubular adenoma"],
+        contexts=["tubular adenoma Colonoscopy found polyps. Biopsy showed tubular adenoma."],
+        distinct_limit=16,
+    )
     assert len(backend.calls) == 1
     assert backend.calls[0][0] == "tubular adenoma"
     assert "Colonoscopy" in backend.calls[0][1]
+    assert retriever.cache_info()["candidate_hits"] == 1
+    assert retriever.cache_info()["candidate_entries"] == 1
 
 
 def test_context_only_top_match_survives_sixteen_candidate_bound() -> None:
@@ -745,6 +752,64 @@ def test_resume_manifest_accumulates_attempt_usage(tmp_path: Path) -> None:
     assert len(manifest["attempts"]) == 2
 
 
+def test_internal_retry_reuses_successful_provider_stages_and_retrieval(
+    tmp_path: Path,
+) -> None:
+    class RetryFinalProvider(StagedProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.failed_final = False
+
+        def request(
+            self,
+            *,
+            system_message: str,
+            user_message: str,
+            response_model: type[Any],
+            temperature: float = 0.2,
+        ) -> tuple[Any, str]:
+            if response_model is FinalCategoryDecisionBatch and not self.failed_final:
+                self.calls.append("categorize")
+                self.failed_final = True
+                raise ProviderError("rate_limit", "retry later", 429)
+            return super().request(
+                system_message=system_message,
+                user_message=user_message,
+                response_model=response_model,
+                temperature=temperature,
+            )
+
+    vector_dir = tmp_path / "vectors"
+    output_dir = tmp_path / "output"
+    _vector_bundle(vector_dir)
+    provider = RetryFinalProvider()
+    pipeline = StagedAnnotationPipeline(
+        provider=provider,  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=output_dir,
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=True,
+        keep_state=True,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    results = pipeline.run(
+        [AnnotationInput(patient_id="1", clinical_note="Fever was present.")],
+        max_attempts=2,
+    )
+
+    assert all(result.mapping_status != "error" for result in results)
+    assert provider.calls == ["extract", "map", "categorize", "categorize"]
+    manifest = json.loads((output_dir / "rag_hpo_run_manifest.json").read_text())
+    assert manifest["run_attempt_count"] == 2
+    assert manifest["cache"]["provider_response_hits"] == 2
+    assert manifest["cache"]["candidate_hits"] >= 1
+
+
 def test_cli_exposes_modes_and_repeatable_recognizers() -> None:
     args = build_parser().parse_args(
         [
@@ -765,6 +830,8 @@ def test_cli_exposes_modes_and_repeatable_recognizers() -> None:
             "--no-model",
             "--mapping-prompt",
             "one-shot",
+            "--max-row-attempts",
+            "3",
         ]
     )
     assert args.mode == "high-recall"
@@ -772,6 +839,7 @@ def test_cli_exposes_modes_and_repeatable_recognizers() -> None:
     assert args.offline is True
     assert args.no_model is True
     assert args.mapping_prompt == MappingPromptMode.ONE_SHOT.value
+    assert args.max_row_attempts == 3
 
 
 def test_provider_config_allows_only_http_loopback() -> None:

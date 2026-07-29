@@ -6,6 +6,7 @@ import platform
 import re
 import sys
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -104,6 +105,28 @@ class ContextPacket:
     preceding_sentence: str | None
     following_sentence: str | None
     extended_context_reason: str | None
+
+
+@dataclass(frozen=True)
+class NoteContext:
+    """Per-note parsing shared by extraction, retrieval, and mapping stages."""
+
+    text: str
+    sentences: tuple[SentenceSpan, ...]
+
+    @classmethod
+    def build(cls, text: str) -> NoteContext:
+        return cls(text=text, sentences=tuple(sentence_spans(text)))
+
+    def sentence_index(self, start: int, end: int) -> int | None:
+        return next(
+            (
+                index
+                for index, sentence in enumerate(self.sentences)
+                if _overlaps(sentence.start, sentence.end, start, end)
+            ),
+            None,
+        )
 
 
 _SENTENCE = re.compile(r"[^\n.!?]+(?:[.!?]+|(?=\n)|$)", re.UNICODE)
@@ -222,14 +245,16 @@ def build_context_packet(
     mention: Mention,
     assertion: AssertionDecision,
     candidates: list[Candidate],
+    *,
+    sentences: Sequence[SentenceSpan] | None = None,
 ) -> ContextPacket:
     """Build bounded, deterministic context without another model call."""
 
-    sentences = sentence_spans(note)
+    parsed_sentences = sentences if sentences is not None else sentence_spans(note)
     sentence_index = next(
         (
             index
-            for index, sentence in enumerate(sentences)
+            for index, sentence in enumerate(parsed_sentences)
             if _overlaps(sentence.start, sentence.end, mention.start, mention.end)
         ),
         None,
@@ -260,9 +285,13 @@ def build_context_packet(
     following: str | None = None
     if reason is not None and sentence_index is not None:
         if sentence_index > 0:
-            preceding = sentences[sentence_index - 1].text[-_MAX_ADJACENT_CONTEXT_CHARS:]
-        if sentence_index + 1 < len(sentences):
-            following = sentences[sentence_index + 1].text[:_MAX_ADJACENT_CONTEXT_CHARS]
+            preceding = parsed_sentences[sentence_index - 1].text[
+                -_MAX_ADJACENT_CONTEXT_CHARS:
+            ]
+        if sentence_index + 1 < len(parsed_sentences):
+            following = parsed_sentences[sentence_index + 1].text[
+                :_MAX_ADJACENT_CONTEXT_CHARS
+            ]
 
     return ContextPacket(
         section=assertion.section,
@@ -372,6 +401,11 @@ class StagedAnnotationPipeline:
         }
         self._modifier_ids = self._descendants_of(_CLINICAL_MODIFIER_ROOT)
         self.distinct_limit = 32 if mode is AnnotationMode.HIGH_RECALL else 16
+        self._active_provider_cache: dict[str, tuple[Any, str]] | None = None
+        self._cache_stats = {
+            "provider_response_hits": 0,
+            "provider_response_misses": 0,
+        }
 
     def _descendants_of(self, root_id: str) -> set[str]:
         children: dict[str, set[str]] = {}
@@ -393,8 +427,10 @@ class StagedAnnotationPipeline:
         rows: list[AnnotationInput],
         *,
         initial_errors: list[AnnotationResult] | None = None,
+        max_attempts: int = 1,
     ) -> list[AnnotationResult]:
-        started = time.perf_counter()
+        if max_attempts <= 0:
+            raise ValueError("max_attempts must be positive")
         ensure_private_directory(self.output_dir)
         state_path = self.output_dir / ".rag-hpo-state.sqlite3"
         config_hash = hashlib.sha256(
@@ -415,7 +451,8 @@ class StagedAnnotationPipeline:
                 sort_keys=True,
             ).encode("utf-8")
         ).hexdigest()
-        all_results = list(initial_errors or [])
+        all_results: list[AnnotationResult] = []
+        retry_caches: dict[int, dict[str, tuple[Any, str]]] = {}
         completed_successfully = False
         try:
             with PipelineState(
@@ -425,54 +462,89 @@ class StagedAnnotationPipeline:
                 pipeline_version=__version__,
                 resume=self.resume,
             ) as state:
-                for row_index, row in enumerate(rows):
-                    note_hash = hashlib.sha256(row.clinical_note.encode("utf-8")).hexdigest()
-                    cached = state.completed(row_index, note_hash) if self.resume else None
-                    if cached is not None:
-                        all_results.extend(cached)
-                        continue
-                    try:
-                        results = self._annotate_row(row, row_index)
-                        state.save_complete(
-                            row_index,
-                            row.patient_id,
-                            note_hash,
-                            results,
+                for attempt_index in range(max_attempts):
+                    started = time.perf_counter()
+                    usage_before = self._provider_usage()
+                    all_results = list(initial_errors or [])
+                    row_failures = 0
+                    for row_index, row in enumerate(rows):
+                        note_hash = hashlib.sha256(
+                            row.clinical_note.encode("utf-8")
+                        ).hexdigest()
+                        cached = (
+                            state.completed(row_index, note_hash)
+                            if self.resume or attempt_index > 0
+                            else None
                         )
-                        all_results.extend(results)
-                    except (ProviderError, ValueError, RuntimeError) as exc:
-                        code = exc.code if isinstance(exc, ProviderError) else "row_failure"
-                        message = _short_error(exc)
-                        state.save_error(
+                        if cached is not None:
+                            all_results.extend(cached)
+                            retry_caches.pop(row_index, None)
+                            continue
+                        self._active_provider_cache = retry_caches.setdefault(
                             row_index,
-                            row.patient_id,
-                            note_hash,
-                            code,
-                            message,
+                            {},
                         )
-                        all_results.append(
-                            AnnotationResult(
-                                patient_id=row.patient_id,
-                                phrase="",
-                                category=None,
-                                mapping_status="error",
-                                error_code=code,
-                                error_message=message,
-                                review_status="rejected",
+                        try:
+                            results = self._annotate_row(row, row_index)
+                            state.save_complete(
+                                row_index,
+                                row.patient_id,
+                                note_hash,
+                                results,
                             )
-                        )
-                export_results(all_results, self.output_dir)
-                self._write_run_manifest(
-                    rows=rows,
-                    results=all_results,
-                    input_sha256=hash_inputs(rows),
-                    config_sha256=config_hash,
-                    elapsed_seconds=time.perf_counter() - started,
-                )
+                            all_results.extend(results)
+                            retry_caches.pop(row_index, None)
+                        except (ProviderError, ValueError, RuntimeError) as exc:
+                            row_failures += 1
+                            code = (
+                                exc.code if isinstance(exc, ProviderError) else "row_failure"
+                            )
+                            message = _short_error(exc)
+                            state.save_error(
+                                row_index,
+                                row.patient_id,
+                                note_hash,
+                                code,
+                                message,
+                            )
+                            all_results.append(
+                                AnnotationResult(
+                                    patient_id=row.patient_id,
+                                    phrase="",
+                                    category=None,
+                                    mapping_status="error",
+                                    error_code=code,
+                                    error_message=message,
+                                    review_status="rejected",
+                                )
+                            )
+                        finally:
+                            self._active_provider_cache = None
+                    export_results(all_results, self.output_dir)
+                    elapsed_seconds = time.perf_counter() - started
+                    usage_after = self._provider_usage()
+                    attempt_usage = (
+                        usage_after
+                        if attempt_index == 0
+                        else self._usage_delta(usage_after, usage_before)
+                    )
+                    self._write_run_manifest(
+                        rows=rows,
+                        results=all_results,
+                        input_sha256=hash_inputs(rows),
+                        config_sha256=config_hash,
+                        elapsed_seconds=elapsed_seconds,
+                        provider_usage=attempt_usage,
+                        append_existing=self.resume or attempt_index > 0,
+                    )
+                    if row_failures == 0:
+                        break
                 completed_successfully = not any(
                     result.mapping_status == "error" for result in all_results
                 )
         finally:
+            self._active_provider_cache = None
+            retry_caches.clear()
             if completed_successfully and not self.keep_state:
                 state_path.unlink(missing_ok=True)
                 Path(f"{state_path}-wal").unlink(missing_ok=True)
@@ -487,17 +559,13 @@ class StagedAnnotationPipeline:
         input_sha256: str,
         config_sha256: str,
         elapsed_seconds: float,
+        provider_usage: dict[str, int],
+        append_existing: bool,
     ) -> None:
-        provider_usage = getattr(self.provider, "usage", None) or {
-            "requests": 0,
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-        }
         provider_config = getattr(self.provider, "config", None)
         path = self.output_dir / "rag_hpo_run_manifest.json"
         prior_attempts: list[dict[str, Any]] = []
-        if self.resume and path.exists():
+        if append_existing and path.exists():
             try:
                 prior = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
@@ -578,6 +646,21 @@ class StagedAnnotationPipeline:
                 "embedding_model": self.manifest.embedding_model,
                 "embedding_revision": self.manifest.embedding_revision,
             },
+            "cache": {
+                **self._cache_stats,
+                **(
+                    self.retriever.cache_info()
+                    if self.retriever is not None
+                    else {
+                        "embedding_hits": 0,
+                        "embedding_misses": 0,
+                        "embedding_entries": 0,
+                        "candidate_hits": 0,
+                        "candidate_misses": 0,
+                        "candidate_entries": 0,
+                    }
+                ),
+            },
             "provider_usage": cumulative_usage,
             "latest_attempt_provider_usage": provider_usage,
             "elapsed_seconds": round(
@@ -608,6 +691,7 @@ class StagedAnnotationPipeline:
         row_index: int,
     ) -> list[AnnotationResult]:
         note = row.clinical_note
+        note_context = NoteContext.build(note)
         mentions = self._recognizer_mentions(note)
         if self.model_enabled:
             first_mentions = self._extract_with_strict_chunk_fallback(
@@ -617,9 +701,15 @@ class StagedAnnotationPipeline:
                 stage="coverage-extract",
                 method="model-pass-1",
                 temperature=0.2,
+                sentences=note_context.sentences,
             )
             mentions.extend(first_mentions)
-            targets = self._coverage_targets(note, mentions, first_mentions)
+            targets = self._coverage_targets(
+                note,
+                mentions,
+                first_mentions,
+                sentences=note_context.sentences,
+            )
             if targets:
                 payload = json.dumps(
                     {
@@ -645,11 +735,12 @@ class StagedAnnotationPipeline:
                     temperature=0.0,
                     primary_payload=payload,
                     allowed_ranges=[(value.start, value.end) for value in targets],
+                    sentences=note_context.sentences,
                 )
                 mentions.extend(second_mentions)
         merged = self._merge_mentions(mentions)
         return apply_calibration(
-            self._map_mentions(row, row_index, merged),
+            self._map_mentions(row, row_index, merged, note_context),
             self.calibration,
         )
 
@@ -664,6 +755,7 @@ class StagedAnnotationPipeline:
         temperature: float,
         primary_payload: str | None = None,
         allowed_ranges: list[tuple[int, int]] | None = None,
+        sentences: Sequence[SentenceSpan] | None = None,
     ) -> list[Mention]:
         try:
             extraction, raw = self.provider_request(
@@ -684,7 +776,8 @@ class StagedAnnotationPipeline:
                 raise
 
         fallback_ranges = allowed_ranges or [
-            (value.start, value.end) for value in sentence_spans(note)
+            (value.start, value.end)
+            for value in (sentences if sentences is not None else sentence_spans(note))
         ]
         values: list[Mention] = []
         for chunk_index, (start, end) in enumerate(fallback_ranges):
@@ -833,9 +926,11 @@ class StagedAnnotationPipeline:
         note: str,
         all_mentions: list[Mention],
         first_mentions: list[Mention],
+        *,
+        sentences: Sequence[SentenceSpan] | None = None,
     ) -> list[SentenceSpan]:
         targets: list[SentenceSpan] = []
-        for sentence in sentence_spans(note):
+        for sentence in sentences if sentences is not None else sentence_spans(note):
             sentence_mentions = [
                 value
                 for value in all_mentions
@@ -933,6 +1028,7 @@ class StagedAnnotationPipeline:
         row: AnnotationInput,
         row_index: int,
         mentions: list[Mention],
+        note_context: NoteContext,
     ) -> list[AnnotationResult]:
         results: list[AnnotationResult] = []
         abnormal: list[tuple[str, Mention, AssertionDecision, list[Candidate]]] = []
@@ -964,7 +1060,7 @@ class StagedAnnotationPipeline:
                 [mention.phrase for _mention_id, mention, _assertion in pending],
                 distinct_limit=self.distinct_limit,
                 contexts=[
-                    self._retrieval_context(row.clinical_note, mention)
+                    self._retrieval_context(note_context, mention)
                     for _mention_id, mention, _assertion in pending
                 ],
             )
@@ -1048,6 +1144,7 @@ class StagedAnnotationPipeline:
             batch_decisions = self._request_mapping_items(
                 items,
                 note=row.clinical_note,
+                sentences=note_context.sentences,
                 row_index=row_index,
                 stage=f"batch-map-{batch_index:03d}",
             )
@@ -1162,20 +1259,16 @@ class StagedAnnotationPipeline:
         )
 
     @staticmethod
-    def _retrieval_context(note: str, mention: Mention) -> str | None:
+    def _retrieval_context(
+        note_context: NoteContext,
+        mention: Mention,
+    ) -> str | None:
         """Add bounded local anatomy/context to short phrases without replacing them."""
 
         if len(normalize_phrase(mention.phrase).split()) > 3:
             return None
-        sentences = sentence_spans(note)
-        sentence_index = next(
-            (
-                index
-                for index, sentence in enumerate(sentences)
-                if _overlaps(sentence.start, sentence.end, mention.start, mention.end)
-            ),
-            None,
-        )
+        sentences = note_context.sentences
+        sentence_index = note_context.sentence_index(mention.start, mention.end)
         if sentence_index is None:
             return None
         sentence = sentences[sentence_index].text
@@ -1305,6 +1398,7 @@ class StagedAnnotationPipeline:
         items: list[tuple[str, Mention, AssertionDecision, list[Candidate]]],
         *,
         note: str,
+        sentences: Sequence[SentenceSpan],
         row_index: int,
         stage: str,
     ) -> dict[str, Any]:
@@ -1321,6 +1415,7 @@ class StagedAnnotationPipeline:
                                 mention,
                                 assertion,
                                 candidates,
+                                sentences=sentences,
                             ).__dict__.items()
                             if value is not None
                         },
@@ -1359,12 +1454,14 @@ class StagedAnnotationPipeline:
             left = self._request_mapping_items(
                 items[:midpoint],
                 note=note,
+                sentences=sentences,
                 row_index=row_index,
                 stage=f"{stage}-a",
             )
             right = self._request_mapping_items(
                 items[midpoint:],
                 note=note,
+                sentences=sentences,
                 row_index=row_index,
                 stage=f"{stage}-b",
             )
@@ -1505,7 +1602,59 @@ class StagedAnnotationPipeline:
     def provider_request(self, **kwargs: Any) -> tuple[Any, str]:
         if self.provider is None:
             raise RuntimeError("this annotation mode requires a model provider")
-        return self.provider.request(**kwargs)
+        cache = self._active_provider_cache
+        if cache is None:
+            return self.provider.request(**kwargs)
+        response_model = kwargs.get("response_model")
+        key_payload = {
+            "system_message": kwargs.get("system_message"),
+            "user_message": kwargs.get("user_message"),
+            "temperature": kwargs.get("temperature", 0.2),
+            "response_model": (
+                f"{response_model.__module__}.{response_model.__qualname__}"
+                if isinstance(response_model, type)
+                else str(response_model)
+            ),
+        }
+        cache_key = hashlib.sha256(
+            json.dumps(
+                key_payload,
+                ensure_ascii=False,
+                sort_keys=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        cached = cache.get(cache_key)
+        if cached is not None:
+            self._cache_stats["provider_response_hits"] += 1
+            value, raw = cached
+            return (
+                value.model_copy(deep=True) if isinstance(value, BaseModel) else value,
+                raw,
+            )
+        self._cache_stats["provider_response_misses"] += 1
+        value, raw = self.provider.request(**kwargs)
+        cache[cache_key] = (
+            value.model_copy(deep=True) if isinstance(value, BaseModel) else value,
+            raw,
+        )
+        return value, raw
+
+    def _provider_usage(self) -> dict[str, int]:
+        usage = getattr(self.provider, "usage", None) or {}
+        return {
+            key: int(usage.get(key, 0))
+            for key in ("requests", "input_tokens", "output_tokens", "total_tokens")
+        }
+
+    @staticmethod
+    def _usage_delta(
+        after: dict[str, int],
+        before: dict[str, int],
+    ) -> dict[str, int]:
+        return {
+            key: max(0, after.get(key, 0) - before.get(key, 0))
+            for key in ("requests", "input_tokens", "output_tokens", "total_tokens")
+        }
 
     def _write_raw(self, row_index: int, stage: str, content: str) -> None:
         if not self.keep_raw_responses:

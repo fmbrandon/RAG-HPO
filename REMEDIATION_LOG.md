@@ -372,3 +372,26 @@ passed both thresholds and must remain separately labeled.
 - The local launchers force the already-cached Hugging Face model into offline
   mode, removing unauthenticated Hub checks while leaving Groq inference
   unchanged.
+
+## 2026-07-29 — pipeline cache and shared-state pass
+
+- Kept every extraction, coverage-audit, deterministic assignment, mapping,
+  final-categorization, checkpoint, and export stage.
+- Added bounded, in-memory caches for query embeddings and complete retrieval
+  results. Cache keys are SHA-256 digests, so note text is not retained as a
+  cache key or written to disk.
+- Parsed sentence boundaries once per note and shared them across coverage
+  selection, short-phrase context retrieval, mapping context, and strict
+  extraction fallback.
+- Added in-memory reuse of successful provider responses only while retrying
+  the same failed row. The cache is discarded after row success or when the
+  run ends; provider output is not newly persisted.
+- Moved corpus row retries inside one annotation process. SapBERT, FAISS,
+  sparse retrieval indexes, provider connections, and successful stage
+  responses now survive retries instead of being reloaded.
+- Added cache counters to the redacted run manifest.
+- Verified identical HPO candidate IDs on a repeated 70-mention retrieval.
+  The first retrieval took 6.70 seconds and its cached repeat took 0.0001
+  seconds on the development Mac.
+- Ruff, strict mypy, all 160 tests, wheel build, and source-distribution build
+  passed.

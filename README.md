@@ -344,8 +344,10 @@ Use the corpus runner for a small case list, a locked selection manifest, or a
 complete corpus. It annotates, retries only failed rows, writes a private
 SQLite checkpoint, computes the primary alternative-aware exact score, and
 also writes separate one- and two-edge hierarchy sensitivity scores. A live
-terminal progress bar shows completed cases, elapsed time, current retry
-attempt, and the number of row errors recorded in the checkpoint.
+terminal progress bar shows completed cases, elapsed time, and the number of
+row errors recorded in the checkpoint. Failed rows are retried inside the
+already-loaded process, so SapBERT, retrieval indexes, and successful stage
+responses are reused instead of being rebuilt.
 
 ```bash
 export RAG_HPO_API_KEY="$(security find-generic-password \
@@ -375,6 +377,7 @@ python benchmarks/run_corpus_evaluation.py \
 ```
 
 Repeating an interrupted CSC or GSC command resumes only unfinished/error rows.
+Use `--max-attempts N` to control in-process row retries (default: 3).
 Use `--no-progress` only for noninteractive automation.
 Complete-corpus results are not automatically a tuning set: inspect the exact
 and hierarchy-sensitive reports, then reserve any prompt or policy change for

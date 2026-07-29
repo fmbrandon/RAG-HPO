@@ -280,8 +280,9 @@ environment. The wrapper:
 - writes the selected note input and all outputs outside Git with private
   permissions;
 - displays a checkpoint-backed progress bar with elapsed time, successful
-  cases, current attempt, and recorded errors;
-- retries only unfinished/error rows up to `--max-attempts`;
+  cases, and recorded errors;
+- retries only unfinished/error rows up to `--max-attempts` inside one loaded
+  process, reusing SapBERT, retrieval indexes, and successful stage responses;
 - preserves a compatible SQLite checkpoint so the identical command can be
   rerun safely;
 - produces accepted-only alternative-set exact metrics; and

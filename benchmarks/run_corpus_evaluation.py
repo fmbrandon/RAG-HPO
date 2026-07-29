@@ -112,7 +112,6 @@ def _run_annotation_with_progress(
     state_path: Path,
     total_cases: int,
     corpus: str,
-    attempt: int,
     show_progress: bool,
 ) -> int:
     if not show_progress:
@@ -125,7 +124,7 @@ def _run_annotation_with_progress(
     )
     with tqdm(
         total=total_cases,
-        desc=f"{corpus.upper()} attempt {attempt}",
+        desc=corpus.upper(),
         unit="case",
         dynamic_ncols=True,
         mininterval=0.5,
@@ -188,7 +187,10 @@ def main() -> int:
         "--max-attempts",
         type=int,
         default=3,
-        help="Retry only unfinished/error rows this many times (default: 3).",
+        help=(
+            "Retry unfinished/error rows this many times inside one loaded "
+            "annotation process (default: 3)."
+        ),
     )
     parser.add_argument(
         "--no-progress",
@@ -261,25 +263,17 @@ def main() -> int:
         args.model,
         "--resume",
         "--keep-state",
+        "--max-row-attempts",
+        str(args.max_attempts),
         "--json",
     ]
-    annotation_returncode = 4
-    for attempt in range(1, args.max_attempts + 1):
-        annotation_returncode = _run_annotation_with_progress(
-            annotate_command,
-            state_path=state_path,
-            total_cases=len(selected_ids),
-            corpus=args.corpus,
-            attempt=attempt,
-            show_progress=not args.no_progress,
-        )
-        if annotation_returncode == 0:
-            break
-        print(
-            f"Annotation attempt {attempt} retained row errors; "
-            "retrying only unfinished rows from the private checkpoint.",
-            file=sys.stderr,
-        )
+    annotation_returncode = _run_annotation_with_progress(
+        annotate_command,
+        state_path=state_path,
+        total_cases=len(selected_ids),
+        corpus=args.corpus,
+        show_progress=not args.no_progress,
+    )
     if annotation_returncode != 0:
         raise RuntimeError(
             "annotation still has row errors after the configured attempts; "

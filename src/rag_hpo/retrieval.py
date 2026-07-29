@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from collections import defaultdict
+import hashlib
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
+from typing import Any
 
 import faiss
 import numpy as np
@@ -48,11 +50,22 @@ class HybridCandidateRetriever:
         matrix: np.ndarray,
         backend: EmbeddingBackend,
         raw_limit: int = 64,
+        cache_size: int = 4096,
     ) -> None:
+        if cache_size <= 0:
+            raise ValueError("cache_size must be positive")
         self.registry = registry
         self.entries = entries
         self.backend = backend
         self.raw_limit = raw_limit
+        self.cache_size = cache_size
+        self._embedding_cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self._candidate_cache: OrderedDict[
+            tuple[str, str, int],
+            tuple[Candidate, ...],
+        ] = OrderedDict()
+        self._cache_hits = {"embeddings": 0, "candidates": 0}
+        self._cache_misses = {"embeddings": 0, "candidates": 0}
         self._concepts = {
             concept.hp_id: concept for concept in registry.concepts if not concept.obsolete
         }
@@ -118,12 +131,58 @@ class HybridCandidateRetriever:
             return []
         if contexts is not None and len(contexts) != len(phrases):
             raise ValueError("retrieval contexts must align with phrases")
+        aligned_contexts = contexts or [None] * len(phrases)
+        keys = [
+            self._candidate_key(phrase, context, distinct_limit)
+            for phrase, context in zip(phrases, aligned_contexts, strict=True)
+        ]
+        output: list[list[Candidate] | None] = [None] * len(phrases)
+        pending: OrderedDict[
+            tuple[str, str, int],
+            tuple[str, str | None],
+        ] = OrderedDict()
+        for index, (key, phrase, context) in enumerate(
+            zip(keys, phrases, aligned_contexts, strict=True)
+        ):
+            cached = self._candidate_cache.get(key)
+            if cached is None:
+                self._cache_misses["candidates"] += 1
+                pending.setdefault(key, (phrase, context))
+                continue
+            self._cache_hits["candidates"] += 1
+            self._candidate_cache.move_to_end(key)
+            output[index] = list(cached)
+
+        if pending:
+            pending_values = list(pending.values())
+            computed = self._retrieve_uncached(
+                [value[0] for value in pending_values],
+                distinct_limit=distinct_limit,
+                contexts=[value[1] for value in pending_values],
+            )
+            for key, candidates in zip(pending, computed, strict=True):
+                self._remember(self._candidate_cache, key, tuple(candidates))
+
+        for index, key in enumerate(keys):
+            if output[index] is None:
+                output[index] = list(self._candidate_cache[key])
+        return [value for value in output if value is not None]
+
+    def _retrieve_uncached(
+        self,
+        phrases: list[str],
+        *,
+        distinct_limit: int,
+        contexts: list[str | None],
+    ) -> list[list[Candidate]]:
         context_rows = [
             (index, value)
-            for index, value in enumerate(contexts or [])
+            for index, value in enumerate(contexts)
             if value and normalize_phrase(value) != normalize_phrase(phrases[index])
         ]
-        queries = self.backend.encode([*phrases, *(value for _index, value in context_rows)])
+        queries = self._encode_cached(
+            [*phrases, *(value for _index, value in context_rows)]
+        )
         if queries.ndim != 2 or queries.shape[1] != self._dense_index.d:
             raise ValueError("query embedding dimension does not match vector artifacts")
         raw_limit = min(self.raw_limit, self._dense_index.ntotal)
@@ -165,6 +224,66 @@ class HybridCandidateRetriever:
             )
             for index, phrase in enumerate(phrases)
         ]
+
+    def _encode_cached(self, texts: list[str]) -> np.ndarray:
+        keys = [self._text_key(value) for value in texts]
+        missing: OrderedDict[str, str] = OrderedDict()
+        for key, value in zip(keys, texts, strict=True):
+            if key in self._embedding_cache:
+                self._cache_hits["embeddings"] += 1
+                self._embedding_cache.move_to_end(key)
+            else:
+                self._cache_misses["embeddings"] += 1
+                missing.setdefault(key, value)
+        if missing:
+            encoded = self.backend.encode(list(missing.values()))
+            if encoded.ndim != 2 or encoded.shape[0] != len(missing):
+                raise ValueError("embedding backend returned an unexpected batch shape")
+            for key, row in zip(missing, encoded, strict=True):
+                self._remember(
+                    self._embedding_cache,
+                    key,
+                    np.asarray(row, dtype=np.float32).copy(),
+                )
+        return np.stack([self._embedding_cache[key] for key in keys])
+
+    @staticmethod
+    def _text_key(value: str) -> str:
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+    @classmethod
+    def _candidate_key(
+        cls,
+        phrase: str,
+        context: str | None,
+        distinct_limit: int,
+    ) -> tuple[str, str, int]:
+        return (
+            cls._text_key(phrase),
+            cls._text_key(context) if context else "",
+            distinct_limit,
+        )
+
+    def _remember(
+        self,
+        cache: OrderedDict[Any, Any],
+        key: Any,
+        value: Any,
+    ) -> None:
+        cache[key] = value
+        cache.move_to_end(key)
+        while len(cache) > self.cache_size:
+            cache.popitem(last=False)
+
+    def cache_info(self) -> dict[str, int]:
+        return {
+            "embedding_hits": self._cache_hits["embeddings"],
+            "embedding_misses": self._cache_misses["embeddings"],
+            "embedding_entries": len(self._embedding_cache),
+            "candidate_hits": self._cache_hits["candidates"],
+            "candidate_misses": self._cache_misses["candidates"],
+            "candidate_entries": len(self._candidate_cache),
+        }
 
     def _candidates(
         self,
