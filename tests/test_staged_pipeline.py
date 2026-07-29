@@ -19,6 +19,7 @@ from rag_hpo.cli import build_parser
 from rag_hpo.config import ProviderConfig
 from rag_hpo.models import (
     AnnotationInput,
+    AnnotationResult,
     Candidate,
     Category,
     FinalCategoryDecisionBatch,
@@ -687,6 +688,119 @@ def test_incomplete_final_category_keeps_abnormal_finding_for_review(
     assert results[0].category_confidence == "low"
     assert results[0].review_status == "review"
     assert results[0].error_code == "incomplete_final_category"
+
+
+def test_final_categorization_splits_oversized_batches(tmp_path: Path) -> None:
+    class LimitedFinalProvider(StagedProvider):
+        def request(
+            self,
+            *,
+            system_message: str,
+            user_message: str,
+            response_model: type[Any],
+            temperature: float = 0.2,
+        ) -> tuple[Any, str]:
+            if response_model is FinalCategoryDecisionBatch:
+                payload = json.loads(user_message)
+                if len(payload["items"]) > 2:
+                    raise ProviderError("invalid_request", "batch too large", 400)
+            return super().request(
+                system_message=system_message,
+                user_message=user_message,
+                response_model=response_model,
+                temperature=temperature,
+            )
+
+    vector_dir = tmp_path / "vectors"
+    _vector_bundle(vector_dir)
+    pipeline = StagedAnnotationPipeline(
+        provider=LimitedFinalProvider(),  # type: ignore[arg-type]
+        vector_dir=vector_dir,
+        output_dir=tmp_path / "output",
+        mode=AnnotationMode.BALANCED,
+        recognizers={"native"},
+        fasthpocr_index=None,
+        resume=False,
+        keep_state=False,
+        keep_raw_responses=False,
+        include_evidence_text=False,
+        offline=False,
+        backend=FakeBackend(),
+    )
+    note = "Fever one. Fever two. Fever three. Fever four. Fever five."
+    results = [
+        AnnotationResult(
+            patient_id="1",
+            phrase=f"Fever {index}",
+            category=None,
+            hpo_id="HP:0000001",
+            hpo_term="Fever",
+            candidate_hpo_ids=["HP:0000001"],
+            mapping_status="mapped",
+            review_status="accepted",
+            assertion_status="affirmed",
+            evidence_start=index,
+            evidence_end=index + 1,
+        )
+        for index in range(5)
+    ]
+    finalized = pipeline._finalize_categories(
+        AnnotationInput(patient_id="1", clinical_note=note),
+        0,
+        results,
+    )
+    assert all(result.category is Category.ABNORMAL for result in finalized)
+    assert all(result.error_code is None for result in finalized)
+
+
+def test_final_category_repair_reuses_existing_mapping_without_vector_load(
+    tmp_path: Path,
+) -> None:
+    provider = StagedProvider()
+    pipeline = StagedAnnotationPipeline.for_final_category_repair(
+        provider=provider,  # type: ignore[arg-type]
+        output_dir=tmp_path / "output",
+    )
+    failed = AnnotationResult(
+        patient_id="1",
+        phrase="Fever",
+        category=Category.ABNORMAL,
+        hpo_id="HP:0000001",
+        hpo_term="Fever",
+        mapping_status="mapped",
+        error_code="incomplete_final_category",
+        error_message="retained for review",
+        evidence_start=0,
+        evidence_end=5,
+        assertion_status="affirmed",
+        confidence="high",
+        category_confidence="low",
+        review_status="review",
+        source_methods=["model-pass-1"],
+        candidate_hpo_ids=["HP:0000001"],
+        mapping_verdict="supported",
+    )
+    unaffected = failed.model_copy(
+        update={
+            "phrase": "Short stature",
+            "category": Category.ABNORMAL,
+            "error_code": None,
+            "error_message": None,
+            "review_status": "accepted",
+        }
+    )
+
+    repaired = pipeline.repair_final_categories(
+        AnnotationInput(patient_id="1", clinical_note="Fever was present."),
+        0,
+        [failed, unaffected],
+    )
+
+    assert provider.calls == ["categorize"]
+    assert repaired[0].category is Category.ABNORMAL
+    assert repaired[0].review_status == "accepted"
+    assert repaired[0].error_code is None
+    assert repaired[1] == unaffected
 
 
 @pytest.mark.parametrize("rejected_stage", ["mapping", "final"])

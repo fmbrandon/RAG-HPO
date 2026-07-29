@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 from tqdm import tqdm
 
+from rag_hpo.calibration import STAGED_PIPELINE_SCHEMA_VERSION
 from rag_hpo.config import DEFAULT_BASE_URL, DEFAULT_MODEL
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
 
@@ -301,7 +302,7 @@ def main() -> int:
             "--model",
             args.model,
             "--prompt-version",
-            "staged-pipeline-3.2",
+            f"staged-pipeline-{STAGED_PIPELINE_SCHEMA_VERSION}",
             "--output-dir",
             str(score_dir),
         ]

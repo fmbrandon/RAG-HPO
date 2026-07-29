@@ -97,7 +97,12 @@ def evaluate_consistency(
     }
     per_case_ranges: list[float] = []
     for case_index, _patient_id in enumerate(patient_ids):
-        values = [scores[case_index].f1 for scores in run_scores]
+        values: list[float] = []
+        for scores in run_scores:
+            value = scores[case_index].f1
+            if value is None:
+                raise ValueError("consistency scoring received an unscorable case")
+            values.append(value)
         per_case_ranges.append(max(values) - min(values))
 
     disposition_agreement: float | None = None

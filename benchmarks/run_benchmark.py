@@ -10,9 +10,11 @@ from pathlib import Path
 from rag_hpo.artifacts import sha256_file
 from rag_hpo.benchmark import (
     load_hpo_aliases,
+    load_prediction_calculation_errors,
     load_prediction_groups,
     load_prediction_sets,
     load_reference_groups,
+    mark_unscorable_cases,
     score_prediction_groups,
     score_reference_groups,
     summarize,
@@ -95,6 +97,10 @@ def main() -> int:
             accepted_only=args.accepted_only,
         )
         scores = score_reference_groups(predictions, references, patient_ids=case_ids)
+    scores = mark_unscorable_cases(
+        scores,
+        load_prediction_calculation_errors(args.predictions),
+    )
     if not scores:
         parser.error("no benchmark cases were selected")
     csv_path, json_path = write_benchmark_report(

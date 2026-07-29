@@ -8,10 +8,12 @@ import pytest
 
 from rag_hpo.benchmark import (
     load_hpo_aliases,
+    load_prediction_calculation_errors,
     load_prediction_groups,
     load_prediction_sets,
     load_reference_groups,
     load_reference_sets,
+    mark_unscorable_cases,
     score_prediction_groups,
     score_reference_groups,
     score_sets,
@@ -232,6 +234,53 @@ def test_group_scoring_excludes_prediction_only_cases() -> None:
         {"1": [{"HP:0000001"}]},
     )
     assert [score.patient_id for score in scores] == ["1"]
+
+
+def test_missing_reference_and_calculation_failure_are_unscorable(
+    tmp_path: Path,
+) -> None:
+    predictions = tmp_path / "predictions.json"
+    predictions.write_text(
+        json.dumps(
+            [
+                {
+                    "patient_id": "1",
+                    "hpo_id": "HP:0000001",
+                    "mapping_status": "mapped",
+                    "review_status": "accepted",
+                },
+                {
+                    "patient_id": "2",
+                    "hpo_id": "HP:0000002",
+                    "mapping_status": "mapped",
+                    "review_status": "review",
+                    "error_code": "incomplete_final_category",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    scores = score_prediction_groups(
+        load_prediction_groups(predictions, {}, accepted_only=True),
+        {"2": [{"HP:0000002"}]},
+        patient_ids=["1", "2"],
+    )
+    marked = mark_unscorable_cases(
+        scores,
+        load_prediction_calculation_errors(predictions),
+    )
+
+    assert [score.scoring_status for score in marked] == [
+        "unscorable",
+        "unscorable",
+    ]
+    assert marked[0].error_codes == ["missing_reference"]
+    assert marked[1].error_codes == ["incomplete_final_category"]
+    assert marked[0].f1 is None
+    summary = summarize(marked)
+    assert summary["case_count"] == 0
+    assert summary["selected_case_count"] == 2
+    assert summary["unscorable_case_count"] == 2
 
 
 def test_exported_reference_corpora_are_separate_and_case_68_is_repaired() -> None:

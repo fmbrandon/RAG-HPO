@@ -395,3 +395,30 @@ passed both thresholds and must remain separately labeled.
   seconds on the development Mac.
 - Ruff, strict mypy, all 160 tests, wheel build, and source-distribution build
   passed.
+
+## 2026-07-29 — zero-F1 calculation audit
+
+- Audited all nine zero-F1 rows in the completed 116-case CSC score output.
+- Cases 22, 25, 44, and 89 had no corresponding reference rows. The scorer
+  had treated those missing standards as empty gold sets and reported false
+  zeroes. Missing-reference cases are now retained as `unscorable`, with blank
+  metrics and an explicit `missing_reference` error.
+- Cases 53, 65, 72, 76, and 86 contained mapped HPO results, but an oversized
+  final categorization request received HTTP 400. The old fallback silently
+  stamped the whole batch `incomplete_final_category`, moved it to review, and
+  allowed accepted-only scoring to see an empty prediction set.
+- The same final-stage calculation error affected eleven additional nonzero
+  cases: 2, 11, 34, 46, 61, 64, 73, 87, 112, 115, and 116.
+- Final categorization now uses bounded 16-item batches. HTTP 400 responses
+  are recursively split, and omitted decisions are retried in smaller groups
+  rather than silently converting the complete case to an empty result.
+- Added a targeted repair command that reuses existing extraction and mapping
+  rows and recalculates only failed final categories. It does not load
+  SapBERT or repeat retrieval.
+- Calculation-error rows and row-level pipeline failures are now explicitly
+  unscorable until repaired, and are excluded from micro/macro aggregates
+  instead of being counted as model failures.
+- Bumped the staged pipeline identity to 3.2.1 so a 3.2 checkpoint cannot be
+  silently reused with the corrected calculation path.
+- No CSC/GSC inference was run after these changes at the user's request.
+  Synthetic validation passed: 163 tests, Ruff, and strict mypy.

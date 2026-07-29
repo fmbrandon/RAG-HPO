@@ -144,6 +144,7 @@ _STRUCTURAL_CUE = re.compile(
     re.I,
 )
 MAPPING_BATCH_SIZE = 8
+FINAL_CATEGORY_BATCH_SIZE = 16
 _CONTEXT_CUE = re.compile(
     r"\b(?:it|this|these|those|they|former|latter|respectively|"
     r"however|therefore|subsequently|also|both)\b",
@@ -306,6 +307,28 @@ def build_context_packet(
 
 class StagedAnnotationPipeline:
     """Recall-expanded annotation with provider-neutral batched mapping."""
+
+    @classmethod
+    def for_final_category_repair(
+        cls,
+        *,
+        provider: StagedProvider,
+        output_dir: Path,
+        keep_raw_responses: bool = False,
+    ) -> StagedAnnotationPipeline:
+        """Create a lightweight final-stage repair worker without loading vectors."""
+
+        instance = cls.__new__(cls)
+        instance.provider = provider
+        instance.output_dir = output_dir
+        instance.keep_raw_responses = keep_raw_responses
+        instance.prompts = load_prompts()
+        instance._active_provider_cache = {}
+        instance._cache_stats = {
+            "provider_response_hits": 0,
+            "provider_response_misses": 0,
+        }
+        return instance
 
     def __init__(
         self,
@@ -637,6 +660,7 @@ class StagedAnnotationPipeline:
                 "mapping_batch_size": MAPPING_BATCH_SIZE,
                 "mapping_prompt": self.mapping_prompt.value,
                 "final_categorization_temperature": 0.0,
+                "final_categorization_batch_size": FINAL_CATEGORY_BATCH_SIZE,
                 "final_category_values": [value.value for value in Category],
                 "maximum_mapping_alternatives": 3,
                 "deterministic_candidate_order": True,
@@ -1311,47 +1335,20 @@ class StagedAnnotationPipeline:
         ]
         if not targets:
             return results
-        payload = json.dumps(
-            {
-                "note": row.clinical_note,
-                "items": [
-                    {
-                        "mention_id": mention_id,
-                        "phrase": result.phrase,
-                        "start_offset": result.evidence_start,
-                        "end_offset": result.evidence_end,
-                        "assertion_hint": result.assertion_status,
-                        "candidate_hpo_ids": result.candidate_hpo_ids or [],
-                    }
-                    for mention_id, _position, result in targets
-                ],
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-        )
-        try:
-            batch, raw = self.provider_request(
-                system_message=self.prompts["final_categorization"],
-                user_message=payload,
-                response_model=FinalCategoryDecisionBatch,
-                temperature=0.0,
+        decisions: dict[str, Any] = {}
+        for batch_index, start in enumerate(
+            range(0, len(targets), FINAL_CATEGORY_BATCH_SIZE)
+        ):
+            items = targets[start : start + FINAL_CATEGORY_BATCH_SIZE]
+            batch_decisions = self._request_final_category_items(
+                items,
+                note=row.clinical_note,
+                row_index=row_index,
+                stage=f"final-categorization-{batch_index:03d}",
             )
-        except ProviderError as exc:
-            if exc.status_code != 400:
-                raise
-            batch = FinalCategoryDecisionBatch(decisions=[])
-            raw = ""
-        if raw:
-            self._write_raw(row_index, "final-categorization", raw)
-        expected = {mention_id for mention_id, _position, _result in targets}
-        counts: dict[str, int] = {}
-        for decision in batch.decisions:
-            counts[decision.mention_id] = counts.get(decision.mention_id, 0) + 1
-        decisions = {
-            decision.mention_id: decision
-            for decision in batch.decisions
-            if decision.mention_id in expected and counts[decision.mention_id] == 1
-        }
+            if set(decisions) & set(batch_decisions):
+                raise ValueError("final categorizer returned duplicate decisions")
+            decisions.update(batch_decisions)
         updated = list(results)
         for mention_id, position, result in targets:
             decision = decisions.get(mention_id)
@@ -1392,6 +1389,151 @@ class StagedAnnotationPipeline:
                 changes["review_status"] = "review"
             updated[position] = result.model_copy(update=changes)
         return updated
+
+    def repair_final_categories(
+        self,
+        row: AnnotationInput,
+        row_index: int,
+        results: list[AnnotationResult],
+    ) -> list[AnnotationResult]:
+        """Recalculate only failed final-category decisions for a completed row."""
+
+        repaired_inputs: list[AnnotationResult] = []
+        for result in results:
+            if result.error_code != "incomplete_final_category":
+                repaired_inputs.append(result)
+                continue
+            repaired_inputs.append(
+                result.model_copy(
+                    update={
+                        "category": None,
+                        "category_confidence": None,
+                        "review_status": self._pre_final_review_status(result),
+                        "error_code": None,
+                        "error_message": None,
+                    }
+                )
+            )
+        return self._finalize_categories(row, row_index, repaired_inputs)
+
+    @staticmethod
+    def _pre_final_review_status(
+        result: AnnotationResult,
+    ) -> str:
+        """Reconstruct the review state immediately before final categorization."""
+
+        if result.assertion_status != "affirmed":
+            return "review"
+        candidate_ids = result.candidate_hpo_ids or []
+        if (
+            result.mapping_status == "mapped"
+            and candidate_ids
+            and result.mapping_verdict in {"supported", "ambiguous"}
+            and result.confidence in {"high", "medium"}
+        ):
+            return "accepted"
+        if result.mapping_verdict == "unsupported" and result.confidence == "high":
+            return "rejected"
+        return "review"
+
+    def _request_final_category_items(
+        self,
+        items: list[tuple[str, int, AnnotationResult]],
+        *,
+        note: str,
+        row_index: int,
+        stage: str,
+    ) -> dict[str, Any]:
+        payload = json.dumps(
+            {
+                "note": note,
+                "items": [
+                    {
+                        "mention_id": mention_id,
+                        "phrase": result.phrase,
+                        "start_offset": result.evidence_start,
+                        "end_offset": result.evidence_end,
+                        "assertion_hint": result.assertion_status,
+                        "candidate_hpo_ids": result.candidate_hpo_ids or [],
+                    }
+                    for mention_id, _position, result in items
+                ],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        try:
+            batch, raw = self.provider_request(
+                system_message=self.prompts["final_categorization"],
+                user_message=payload,
+                response_model=FinalCategoryDecisionBatch,
+                temperature=0.0,
+            )
+        except ProviderError as exc:
+            if exc.status_code != 400:
+                raise
+            return self._split_final_category_items(
+                items,
+                note=note,
+                row_index=row_index,
+                stage=stage,
+            )
+        self._write_raw(row_index, stage, raw)
+        expected = {mention_id for mention_id, _position, _result in items}
+        counts: dict[str, int] = {}
+        for decision in batch.decisions:
+            counts[decision.mention_id] = counts.get(decision.mention_id, 0) + 1
+        decisions = {
+            decision.mention_id: decision
+            for decision in batch.decisions
+            if decision.mention_id in expected and counts[decision.mention_id] == 1
+        }
+        missing = [item for item in items if item[0] not in decisions]
+        if missing:
+            recovered = (
+                self._split_final_category_items(
+                    missing,
+                    note=note,
+                    row_index=row_index,
+                    stage=f"{stage}-missing",
+                )
+                if len(missing) == len(items)
+                else self._request_final_category_items(
+                    missing,
+                    note=note,
+                    row_index=row_index,
+                    stage=f"{stage}-missing",
+                )
+            )
+            decisions.update(recovered)
+        return decisions
+
+    def _split_final_category_items(
+        self,
+        items: list[tuple[str, int, AnnotationResult]],
+        *,
+        note: str,
+        row_index: int,
+        stage: str,
+    ) -> dict[str, Any]:
+        if len(items) <= 1:
+            return {}
+        midpoint = len(items) // 2
+        left = self._request_final_category_items(
+            items[:midpoint],
+            note=note,
+            row_index=row_index,
+            stage=f"{stage}-a",
+        )
+        right = self._request_final_category_items(
+            items[midpoint:],
+            note=note,
+            row_index=row_index,
+            stage=f"{stage}-b",
+        )
+        if set(left) & set(right):
+            raise ValueError("final categorizer returned duplicate decisions")
+        return {**left, **right}
 
     def _request_mapping_items(
         self,

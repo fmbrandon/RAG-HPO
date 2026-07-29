@@ -3,13 +3,17 @@ from __future__ import annotations
 import csv
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 from rag_hpo.artifacts import sha256_file
 
 HPO_ID = re.compile(r"HP:\d{7}")
+CALCULATION_ERROR_CODES = {
+    "incomplete_final_category",
+    "incomplete_mapping_decision",
+}
 
 
 @dataclass(frozen=True)
@@ -23,9 +27,11 @@ class CaseScore:
     tp: int
     fp: int
     fn: int
-    precision: float
-    recall: float
-    f1: float
+    precision: float | None
+    recall: float | None
+    f1: float | None
+    scoring_status: str = "scored"
+    error_codes: list[str] = field(default_factory=list)
 
 
 def _ratio(numerator: int | float, denominator: int | float) -> float:
@@ -243,6 +249,67 @@ def load_prediction_groups(
     return predictions
 
 
+def load_prediction_calculation_errors(path: Path) -> dict[str, list[str]]:
+    """Return case-level calculation failures that make exact scoring invalid."""
+
+    if path.suffix.lower() == ".json":
+        raw_rows: Any = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw_rows, list):
+            raise ValueError("prediction JSON must contain a list of result objects")
+        rows = raw_rows
+    else:
+        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+    errors: dict[str, set[str]] = {}
+    for raw_row in rows:
+        if not isinstance(raw_row, dict):
+            raise ValueError("each prediction must be an object")
+        patient_id = str(raw_row.get("patient_id") or "").strip()
+        if not patient_id:
+            continue
+        error_code = str(raw_row.get("error_code") or "").strip()
+        if raw_row.get("mapping_status") == "error":
+            errors.setdefault(patient_id, set()).add(error_code or "row_failure")
+        elif error_code in CALCULATION_ERROR_CODES:
+            errors.setdefault(patient_id, set()).add(error_code)
+    return {patient_id: sorted(values) for patient_id, values in errors.items()}
+
+
+def mark_unscorable_cases(
+    scores: list[CaseScore],
+    calculation_errors: dict[str, list[str]] | None = None,
+) -> list[CaseScore]:
+    """Keep invalid cases visible without treating missing calculations as zero."""
+
+    calculation_errors = calculation_errors or {}
+    output: list[CaseScore] = []
+    for score in scores:
+        error_codes = list(calculation_errors.get(score.patient_id, []))
+        if not score.reference_ids:
+            error_codes.append("missing_reference")
+        if not error_codes:
+            output.append(score)
+            continue
+        output.append(
+            replace(
+                score,
+                true_positive_ids=[],
+                false_positive_ids=[],
+                false_negative_ids=[],
+                tp=0,
+                fp=0,
+                fn=0,
+                precision=None,
+                recall=None,
+                f1=None,
+                scoring_status="unscorable",
+                error_codes=sorted(set(error_codes)),
+            )
+        )
+    return output
+
+
 def score_sets(
     predictions: dict[str, set[str]],
     references: dict[str, set[str]],
@@ -431,13 +498,29 @@ def score_prediction_groups(
 
 
 def summarize(scores: list[CaseScore]) -> dict[str, Any]:
-    tp = sum(score.tp for score in scores)
-    fp = sum(score.fp for score in scores)
-    fn = sum(score.fn for score in scores)
+    scored = [score for score in scores if score.scoring_status == "scored"]
+    unscorable = [score for score in scores if score.scoring_status != "scored"]
+    tp = sum(score.tp for score in scored)
+    fp = sum(score.fp for score in scored)
+    fn = sum(score.fn for score in scored)
+    precision_values = [
+        score.precision for score in scored if score.precision is not None
+    ]
+    recall_values = [score.recall for score in scored if score.recall is not None]
+    f1_values = [score.f1 for score in scored if score.f1 is not None]
     precision, recall, f1 = _metrics(tp, fp, fn)
-    count = len(scores)
+    count = len(scored)
     return {
         "case_count": count,
+        "selected_case_count": len(scores),
+        "unscorable_case_count": len(unscorable),
+        "unscorable_cases": [
+            {
+                "patient_id": score.patient_id,
+                "error_codes": score.error_codes,
+            }
+            for score in unscorable
+        ],
         "micro": {
             "tp": tp,
             "fp": fp,
@@ -447,9 +530,9 @@ def summarize(scores: list[CaseScore]) -> dict[str, Any]:
             "f1": f1,
         },
         "macro": {
-            "precision": sum(score.precision for score in scores) / count if count else 0.0,
-            "recall": sum(score.recall for score in scores) / count if count else 0.0,
-            "f1": sum(score.f1 for score in scores) / count if count else 0.0,
+            "precision": sum(precision_values) / count if count else 0.0,
+            "recall": sum(recall_values) / count if count else 0.0,
+            "f1": sum(f1_values) / count if count else 0.0,
         },
     }
 
@@ -481,6 +564,7 @@ def write_benchmark_report(
                 "true_positive_ids",
                 "false_positive_ids",
                 "false_negative_ids",
+                "error_codes",
             ):
                 row[key] = "|".join(row[key])
             writer.writerow(row)
@@ -504,7 +588,7 @@ def write_benchmark_report(
             provenance[f"{prefix}_sha256"] = sha256_file(path)
 
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "provenance": provenance,
         "summary": summarize(scores),
         "cases": [asdict(score) for score in scores],
