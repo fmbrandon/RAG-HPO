@@ -60,7 +60,8 @@ not pass, so the hybrid remains benchmark-only/experimental. See
 
 ## Phase 4A — Recall expansion and better mapping
 
-Status: implemented; discovery validation is in progress.
+Status: implemented and discovery-screened; context prompts did not qualify
+for confirmation.
 
 - Added `model`, `balanced`, `high-recall`, `native`, and `fasthpocr` modes,
   repeatable recognizer selection, `--offline`, `--no-model`, and opt-in
@@ -84,13 +85,18 @@ Status: implemented; discovery validation is in progress.
 - Added run manifests containing hashes, mode, redacted provider
   configuration, elapsed time, and token totals without note text or secrets.
 
-Remaining acceptance work:
+Acceptance outcome:
 
-- Complete the discovery run and quantify pre-verification candidate recall,
-  precision, tokens, and runtime.
-- Freeze the general ranking and extraction configuration before any
-  independent evaluation.
-- Do not add any case ID, reference answer, or case-specific phrase to
+- Candidate retrieval and the staged pipeline were evaluated on locked
+  subsets. Context zero-shot and fixed synthetic one-shot mapping were then
+  screened on a performance-blind 10-case discovery slice while reusing
+  extraction and candidates.
+- Zero-shot reached precision 0.648 and recall 0.603; one-shot reached
+  precision 0.656 and recall 0.615. Both improved the reused baseline but
+  failed the predeclared 0.70 precision floor.
+- No prompt was frozen for confirmation and no expensive repeated
+  confirmation run was started.
+- No case ID, reference answer, or case-specific phrase was added to
   production logic or prompts.
 
 ## Phase 4B — Recall-preserving verification and final validation

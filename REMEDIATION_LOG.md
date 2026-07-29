@@ -198,6 +198,24 @@ Phase 3 validation performed:
 - Stopped the in-progress full CSC and GSC provider runs after the evaluation
   policy was narrowed to save time and tokens. Their partial outputs remain
   private and are not used as final evidence.
+
+## 2026-07-29 — CI repair and bounded context-prompt screen
+
+- Replaced four runtime `assert` statements in the diagnostic OBO parser with
+  direct typed-container operations. Full Bandit now reports no findings.
+- Added linked-artifact failure tests for incomplete provenance, unsupported
+  registry schema, and loaded registry/lexical identity mismatches.
+- Reached 100% branch coverage in every safety-critical target and 85.80%
+  overall branch-aware coverage; 124 tests pass.
+- Added a mapping-only ablation runner so extraction, embedding, and candidate
+  retrieval are reused rather than recomputed.
+- Corrected an initial resource pilot that over-supplied candidate metadata,
+  then corrected a policy pilot that incorrectly remapped review-only
+  recognizer findings. Neither pilot was used as accuracy evidence.
+- Final zero-shot and one-shot arms each used 37 requests. Together they used
+  613,573 tokens, versus repeating complete extraction and retrieval.
+- Neither context prompt met the predeclared 0.70 precision screening floor,
+  so no multi-run confirmation was launched.
 - Added performance-blind subset selection stratified by note length and
   manual-reference count. The fixed seed is 20260728. The 30-case untouched
   CSC confirmation subset contains 446 references; the independent 30-case

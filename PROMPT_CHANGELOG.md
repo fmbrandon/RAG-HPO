@@ -67,4 +67,14 @@ Bundle SHA-256:
 
 Zero-shot remains the staged-mode default. One-shot is an explicit discovery
 ablation selected with `--mapping-prompt one-shot`; it must be frozen before
-confirmation use. No new live inference was performed for this prompt change.
+confirmation use. No live inference had been performed when the prompt was
+introduced; the later screening evidence is recorded below.
+
+### 2026-07-29 screening evidence
+
+The controlled 10-case mapping-only screen held extraction and candidates
+fixed. Zero-shot reached precision 0.648, recall 0.603, and F0.5 0.639.
+One-shot reached precision 0.656, recall 0.615, and F0.5 0.648. Both improved
+the reused staged baseline, but neither met the predeclared 0.70 precision
+eligibility floor. Therefore one-shot was not promoted and no prompt was
+advanced to repeated confirmation.

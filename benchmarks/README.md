@@ -237,6 +237,13 @@ Context-aware zero-shot and fixed synthetic one-shot mapping use the same
 extraction and retrieval calls. Select them with `--mapping-prompt`; do not
 choose a prompt on the locked confirmation subsets.
 
+The completed prompt screen used `run_context_mapping_ablation.py` to reuse
+fixed discovery extraction and candidates. Zero-shot reached precision 0.648
+and recall 0.603; one-shot reached precision 0.656 and recall 0.615. Neither
+met the predeclared 0.70 precision floor, so no prompt advanced to expensive
+three-run confirmation. See
+[`context-prompt-screen-summary.json`](results/context-prompt-screen-summary.json).
+
 Keep strict alternative-aware exact scoring as the primary result. Produce
 separate one- and two-edge sensitivity results without new inference:
 

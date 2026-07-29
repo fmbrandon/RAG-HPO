@@ -29,6 +29,11 @@ descendants, and two sibling matches. These are not automatically correct
 answers. They show that a measurable part of strict disagreement is nearby in
 the ontology and belongs in a small human-adjudication packet.
 
+The complete locked-subset packet contains 318 determinations: 220 CSC and 98
+GSC. Each one-to-one related pair counts once; each remaining unmatched false
+positive or false negative counts once. This is not 318 separate patient
+records—the discrepancies come from 60 selected cases.
+
 ## Historical repeat-run consistency baseline
 
 The earlier three runs on the same 20 CSC cases produced:
@@ -57,10 +62,25 @@ from the earlier pipeline, not a validation of the new context prompt.
 - Repeatability can now be measured from existing prediction files before any
   additional inference is authorized.
 
-## Next controlled evaluation
+## Context-prompt screening result
 
-Use a newly locked 10–20 case subset, three runs, and identical artifacts.
-Compare zero-shot with one-shot only on discovery data, freeze one prompt, then
-run the frozen prompt on the new subset. Do not run the full CSC or GSC corpus.
-The consistency gate remains: metric ranges at most 0.02, mean pairwise Jaccard
-at least 0.85, and all-run accepted-ID recurrence at least 0.90.
+A performance-blind 10-case slice of the previously locked CSC discovery
+cohort was used to replay mapping only. Notes, extracted spans, candidates,
+registry, model, temperature, and acceptance policy were fixed.
+
+| Mapping policy | Precision | Recall | F1 | F0.5 | Tokens |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Existing staged baseline | 0.493 | 0.603 | 0.543 | 0.512 | reused |
+| Context zero-shot | 0.648 | 0.603 | 0.625 | 0.639 | 303,807 |
+| Context one-shot | 0.656 | 0.615 | 0.635 | 0.648 | 309,766 |
+
+Both context prompts materially reduced false positives. One-shot was slightly
+better, but neither reached the predeclared 0.70 exact-precision screening
+floor. No prompt was frozen and the expensive three-run confirmation was not
+started. This is a completed negative screening result, not a reason to tune
+against individual cases. Aggregate evidence is in
+`benchmarks/results/context-prompt-screen-summary.json`.
+
+The consistency gate remains available for a future eligible prompt: metric
+ranges at most 0.02, mean pairwise Jaccard at least 0.85, and all-run accepted
+ID recurrence at least 0.90.

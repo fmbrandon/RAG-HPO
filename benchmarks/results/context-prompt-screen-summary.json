@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-07-29",
+  "design": {
+    "case_count": 10,
+    "corpus": "CSC discovery",
+    "selection": "every third position in the previously locked 30-case discovery order",
+    "controlled_components": [
+      "source notes",
+      "extracted mention spans",
+      "candidate IDs and order",
+      "ontology registry",
+      "provider model",
+      "temperature"
+    ],
+    "replayed_component": "batched context-aware mapping only",
+    "eligibility_rule": "exact accepted-only precision must be at least 0.70",
+    "ranking_rule": "maximize exact F0.5, then exact F1, then minimize provider tokens"
+  },
+  "baseline": {
+    "tp": 105,
+    "fp": 108,
+    "fn": 69,
+    "precision": 0.49295774647887325,
+    "recall": 0.603448275862069,
+    "f1": 0.5426356589147286,
+    "f0_5": 0.5116959064327485
+  },
+  "context_zero_shot": {
+    "tp": 105,
+    "fp": 57,
+    "fn": 69,
+    "precision": 0.6481481481481481,
+    "recall": 0.603448275862069,
+    "f1": 0.625,
+    "f0_5": 0.6386861313868614,
+    "requests": 37,
+    "input_tokens": 246222,
+    "output_tokens": 57585,
+    "total_tokens": 303807,
+    "elapsed_seconds": 156.070401,
+    "output_sha256": "e7def580eda528ae52a95f976865dba95ff45a72f963c288f5a8f7df4b42c63f"
+  },
+  "context_one_shot": {
+    "tp": 107,
+    "fp": 56,
+    "fn": 67,
+    "precision": 0.656441717791411,
+    "recall": 0.6149425287356322,
+    "f1": 0.6350148367952523,
+    "f0_5": 0.6476997578692494,
+    "requests": 37,
+    "input_tokens": 248479,
+    "output_tokens": 61287,
+    "total_tokens": 309766,
+    "elapsed_seconds": 163.251861,
+    "output_sha256": "227c3ca2433833cb434d62c1c418831cca3a9dc03a36951ace61b9fd5f1140c2"
+  },
+  "decision": {
+    "zero_shot_eligible": false,
+    "one_shot_eligible": false,
+    "selected_prompt": null,
+    "confirmation_repetition_run": false,
+    "reason": "Both prompts improved the baseline but failed the predeclared 0.70 precision screening floor. Expensive confirmation runs were stopped."
+  },
+  "privacy": {
+    "raw_notes_committed": false,
+    "prediction_rows_committed": false,
+    "provider_responses_committed": false,
+    "credentials_committed": false
+  }
+}

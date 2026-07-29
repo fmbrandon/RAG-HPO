@@ -5,8 +5,15 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import pytest
 
-from rag_hpo.artifacts import ArtifactEntry, sha256_file, write_artifacts
+from rag_hpo import registry as registry_module
+from rag_hpo.artifacts import (
+    ArtifactEntry,
+    load_artifacts,
+    sha256_file,
+    write_artifacts,
+)
 from rag_hpo.assertion import analyze_assertion
 from rag_hpo.cli import build_parser
 from rag_hpo.config import ProviderConfig
@@ -25,6 +32,7 @@ from rag_hpo.registry import (
     HPORegistry,
     RegistryConcept,
     RegistryPhrase,
+    load_registry_bundle,
     write_registry_bundle,
 )
 from rag_hpo.retrieval import HybridCandidateRetriever
@@ -161,6 +169,54 @@ def test_hybrid_retrieval_returns_distinct_active_ids(tmp_path: Path) -> None:
     ]
     assert candidates[0].lexical_rank == 1
     assert candidates[0].source_methods == ["sapbert", "lexical"]
+
+
+def test_linked_artifact_manifest_rejects_incomplete_and_unknown_registry(
+    tmp_path: Path,
+) -> None:
+    _vector_bundle(tmp_path)
+    manifest_path = tmp_path / "hpo_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["registry_sha256"] = None
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="incomplete registry provenance"):
+        load_artifacts(tmp_path)
+
+    _vector_bundle(tmp_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["registry_schema_version"] = "99"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="unsupported registry schema"):
+        load_artifacts(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("manifest_kind", "field", "message"),
+    [
+        ("registry", "registry_sha256", "registry identity"),
+        ("lexical", "lexical_sha256", "lexical identity"),
+    ],
+)
+def test_linked_artifact_rejects_loaded_manifest_identity_mismatch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    manifest_kind: str,
+    field: str,
+    message: str,
+) -> None:
+    _vector_bundle(tmp_path)
+    registry, registry_manifest, lexical_manifest = load_registry_bundle(tmp_path)
+    if manifest_kind == "registry":
+        registry_manifest = registry_manifest.model_copy(update={field: "mismatch"})
+    else:
+        lexical_manifest = lexical_manifest.model_copy(update={field: "mismatch"})
+    monkeypatch.setattr(
+        registry_module,
+        "load_registry_bundle",
+        lambda _: (registry, registry_manifest, lexical_manifest),
+    )
+    with pytest.raises(ValueError, match=message):
+        load_artifacts(tmp_path)
 
 
 def test_sentence_spans_preserve_absolute_offsets() -> None:

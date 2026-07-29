@@ -146,23 +146,15 @@ def parse_obo(path: Path) -> OntologySnapshot:
                 match = re.match(r'^def:\s+"((?:[^"\\]|\\.)*)"', line)
                 current["definition"] = match.group(1) if match else ""
             elif match := _SYNONYM.match(line):
-                synonyms = current["synonyms"]
-                assert isinstance(synonyms, list)
-                synonyms.append(match.group(1).replace(r"\"", '"'))
+                current["synonyms"].append(match.group(1).replace(r"\"", '"'))
             elif line.startswith("is_a: HP:"):
-                parents = current["parents"]
-                assert isinstance(parents, list)
-                parents.append(line.removeprefix("is_a: ").partition(" !")[0].strip())
+                current["parents"].append(line.removeprefix("is_a: ").partition(" !")[0].strip())
             elif line.startswith("alt_id: HP:"):
-                alternate_ids = current["alternate_ids"]
-                assert isinstance(alternate_ids, list)
-                alternate_ids.append(line.removeprefix("alt_id: ").strip())
+                current["alternate_ids"].append(line.removeprefix("alt_id: ").strip())
             elif line == "is_obsolete: true":
                 current["obsolete"] = True
             elif line.startswith("replaced_by: HP:"):
-                replaced_by = current["replaced_by"]
-                assert isinstance(replaced_by, list)
-                replaced_by.append(line.removeprefix("replaced_by: ").strip())
+                current["replaced_by"].append(line.removeprefix("replaced_by: ").strip())
     finish()
     if not terms:
         raise ValueError(f"no HPO terms were parsed from {path}")
