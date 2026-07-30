@@ -68,7 +68,7 @@ def main() -> None:
 
     vector_dir = Path(
         "/Users/cameegarcia/Documents/RAG-HPO Setup/"
-        "RAG-HPO_AUDIT_ARTIFACTS/phase2-registry/full-sapbert-first"
+        "RAG-HPO_AUDIT_ARTIFACTS/phase2-registry/full-sapbert-first"  # pragma: allowlist secret
     )
     output_dir = Path("rag_hpo_output/10_case_trial")
     output_dir.mkdir(parents=True, exist_ok=True)
