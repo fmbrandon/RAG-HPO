@@ -210,4 +210,4 @@ class OpenAICompatibleProvider:
                     return min(60.0, max(0.0, seconds))
                 except (TypeError, ValueError, OverflowError):
                     pass
-        return min(60.0, float(2 ** (attempt - 1)) + self._jitter())
+        return min(60.0, float(5 * attempt) + self._jitter())

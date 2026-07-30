@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run 10 randomly selected CSC benchmark cases using Groq API (openai/gpt-oss-120b)."""
+"""Run 10 randomly selected CSC benchmark cases using Groq API."""
 
 import csv
 import json
@@ -88,16 +88,30 @@ def main() -> None:
         offline=False,
     )
 
-    # Run Pipeline Annotations Case by Case
+    # Run Pipeline Annotations Case by Case with rate-limit pacing
     results = []
-    print("\nStarting pipeline inference...")
+    print("\nStarting pipeline inference with rate-limit pacing...")
     for idx, cid in enumerate(TARGET_CASES, start=1):
         if cid in notes:
             print(f"[{idx:2d}/10] Processing Case {cid:3s}...", end="", flush=True)
-            res = pipeline.run([AnnotationInput(patient_id=cid, clinical_note=notes[cid])])
+            res = []
+            for attempt in range(1, 6):
+                res = pipeline.run([AnnotationInput(patient_id=cid, clinical_note=notes[cid])])
+                # Check if inference succeeded (more than 1 result or not an error phrase)
+                valid_res = [r for r in res if r.mapping_status != "error" and r.phrase]
+                if valid_res:
+                    res = valid_res
+                    break
+                backoff_sec = 5.0 * attempt
+                print(
+                    f" (Attempt {attempt} rate-limited, waiting {backoff_sec:.0f}s...)",
+                    end="",
+                    flush=True,
+                )
+                time.sleep(backoff_sec)
             results.extend(res)
             print(f" Done ({len(res)} mentions found).")
-            time.sleep(1.0)  # Rate-limit pause to prevent 429 quota spikes
+            time.sleep(4.0)  # Paced delay between cases to respect Groq API limits
 
     # Save Annotations Output JSON
     output_file = output_dir / "predictions.json"
