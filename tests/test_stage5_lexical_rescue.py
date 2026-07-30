@@ -44,3 +44,12 @@ def test_lexical_rescue_opacification_to_opacity() -> None:
     variants = engine.generate_variants("corneal opacification")
     assert len(variants) == 1
     assert variants[0].variant_phrase == "corneal opacity"
+
+
+def test_bare_dislocation_does_not_invent_anatomy() -> None:
+    engine = LexicalRescueEngine()
+    # Bare 'dislocation' or 'dehiscence' should produce NO variants because anatomy is missing
+    variants = engine.generate_variants("dislocation")
+    assert len(variants) == 0
+    variants_dehiscence = engine.generate_variants("dehiscence")
+    assert len(variants_dehiscence) == 0

@@ -19,8 +19,6 @@ MORPHOLOGICAL_ALLOWLIST: dict[str, str] = {
     "atrophic": "atrophy",
     "opacification": "opacity",
     "opacified": "opacity",
-    "dehiscence": "zonular dehiscence",
-    "dislocation": "lens dislocation",
 }
 
 # Exclusion list of disease/syndrome entities that must NEVER undergo phenotype rescue
