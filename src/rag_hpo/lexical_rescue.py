@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from rag_hpo.lexical import normalize_phrase
+from rag_hpo.registry import normalize_phrase
 
 # Explicit allowlist of morphological adjectival -> noun and nominalization equivalences
 MORPHOLOGICAL_ALLOWLIST: dict[str, str] = {
