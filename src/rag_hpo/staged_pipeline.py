@@ -34,6 +34,7 @@ from rag_hpo.embeddings import EmbeddingBackend, create_backend
 from rag_hpo.export import export_results
 from rag_hpo.fasthpocr import FastHPORecognizer
 from rag_hpo.lexical import NativeLexicalRecognizer, SINGLE_TOKEN_MODIFIER_BLOCKLIST
+from rag_hpo.lexical_rescue import LexicalRescueEngine
 from rag_hpo.registry import HPORegistry, HPOTermRegistry, load_registry_bundle
 from rag_hpo.models import (
     AnnotationInput,
@@ -421,6 +422,7 @@ class StagedAnnotationPipeline:
             concept.hp_id: concept for concept in self.registry.concepts if not concept.obsolete
         }
         self.term_registry = HPOTermRegistry.from_hpo_registry(self.registry)
+        self.lexical_rescue = LexicalRescueEngine()
         self._modifier_ids = self._descendants_of(_CLINICAL_MODIFIER_ROOT)
         self.distinct_limit = 32 if mode is AnnotationMode.HIGH_RECALL else 16
         self._active_provider_cache: dict[str, tuple[Any, str]] | None = None
