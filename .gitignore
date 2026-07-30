@@ -35,6 +35,7 @@ raw_responses/
 security-reports/
 archived_builds/
 legacy_original_app/
+!legacy_original_app/RAG-HPO Tests and Data Analysis copy.xlsx
 reports_and_logs/
 sbom/
 
