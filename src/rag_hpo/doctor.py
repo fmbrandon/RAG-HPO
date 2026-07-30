@@ -59,7 +59,16 @@ def run_doctor(
             )
         )
 
-    if vector_dir is None:
+    target_vector_dir: Path | None = vector_dir
+    if target_vector_dir is None:
+        try:
+            from rag_hpo.bundle import resolve_vector_dir
+
+            target_vector_dir = resolve_vector_dir(None)
+        except (RuntimeError, FileNotFoundError, ValueError):
+            target_vector_dir = None
+
+    if target_vector_dir is None:
         checks.append(
             DoctorCheck(
                 name="vector-artifacts",
@@ -67,13 +76,13 @@ def run_doctor(
                 detail="no vector directory supplied",
                 action=(
                     "Pass --vector-dir PATH, or build one with: rag-hpo vectorize "
-                    "--output-dir vectors --hpo-addons HPO_addons.csv"
+                    "--output-dir artifacts/hpo --hpo-addons HPO_addons.csv"
                 ),
             )
         )
     else:
         try:
-            entries, matrix, manifest = load_artifacts(vector_dir)
+            entries, matrix, manifest = load_artifacts(target_vector_dir)
             checks.append(
                 DoctorCheck(
                     name="vector-artifacts",
