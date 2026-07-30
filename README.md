@@ -37,7 +37,7 @@ This workspace is structured with strict separation between **production applica
 ## ⚡ Five-minute macOS quick start
 
 The validated development baseline is an Apple Silicon Mac with Python 3.12.
-The prebuilt SapBERT vector download is approximately 150 MB; allow at least 500 MB of free disk space for the bundle, environment, and outputs.
+Running `setup_environment.py` automatically creates the virtual environment, installs dependencies, extracts/preloads the Hugging Face SapBERT embedding model, and executes an initial vectorization run to generate the HPO vector database into `artifacts/hpo` and user cache root.
 
 ```bash
 git clone https://github.com/fmbrandon/RAG-HPO-rebuild.git

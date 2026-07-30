@@ -1,0 +1,14 @@
+{
+  "addons_sha256": "bda67a203384afc4b54b8839f86cca8b45f0648b04f6ad533319cc1b7d1d9927",
+  "ambiguity_group_count": 15,
+  "concept_count": 20413,
+  "extension_phrase_count": 3047,
+  "hpo_sha256": "a5092cbdf605f568403cf7380d9173014015692433b2cc631bc5c1b053876b1b",
+  "hpo_source": "https://purl.obolibrary.org/obo/hp.obo",
+  "official_phrase_count": 45397,
+  "parser": "pronto",
+  "parser_version": "2.7.3",
+  "registry_sha256": "e47253f1aac6a256248b7be9162e054ae84adbf7b2f89e107beee41e831c35b9",
+  "schema_version": "1.0",
+  "utf8_validated": true
+}
