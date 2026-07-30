@@ -36,6 +36,7 @@ security-reports/
 archived_builds/
 legacy_original_app/
 !legacy_original_app/RAG-HPO Tests and Data Analysis copy.xlsx
+!legacy_original_app/HPO_Vectorization.ipynb
 reports_and_logs/
 sbom/
 
