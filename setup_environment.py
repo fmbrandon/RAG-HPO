@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Create the project environment, extract HF embedding models, and build initial HPO vector database."""
+"""Create the environment, extract HF models, and build HPO vector DB."""
 
 from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
@@ -24,13 +23,13 @@ def run(command: list[str]) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Bootstrap RAG-HPO environment, preload HF embedding models, and build HPO vector database."
+        description="Bootstrap RAG-HPO environment, preload HF models, and build vector DB."
     )
     parser.add_argument(
         "--vector-dir",
         type=Path,
         default=DEFAULT_VECTOR_DIR,
-        help=f"Target directory for generated HPO vector artifacts (default: {DEFAULT_VECTOR_DIR})",
+        help=f"Target directory for HPO vector artifacts (default: {DEFAULT_VECTOR_DIR})",
     )
     parser.add_argument(
         "--backend",
@@ -41,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--skip-vectorize",
         action="store_true",
-        help="Skip downloading HF embedding models and creating the initial HPO vector database.",
+        help="Skip downloading HF embedding models and creating initial HPO vector DB.",
     )
     return parser
 
