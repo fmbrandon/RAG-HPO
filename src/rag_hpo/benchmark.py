@@ -503,9 +503,7 @@ def summarize(scores: list[CaseScore]) -> dict[str, Any]:
     tp = sum(score.tp for score in scored)
     fp = sum(score.fp for score in scored)
     fn = sum(score.fn for score in scored)
-    precision_values = [
-        score.precision for score in scored if score.precision is not None
-    ]
+    precision_values = [score.precision for score in scored if score.precision is not None]
     recall_values = [score.recall for score in scored if score.recall is not None]
     f1_values = [score.f1 for score in scored if score.f1 is not None]
     precision, recall, f1 = _metrics(tp, fp, fn)

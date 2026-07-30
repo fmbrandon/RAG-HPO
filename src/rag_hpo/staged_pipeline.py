@@ -287,13 +287,9 @@ def build_context_packet(
     following: str | None = None
     if reason is not None and sentence_index is not None:
         if sentence_index > 0:
-            preceding = parsed_sentences[sentence_index - 1].text[
-                -_MAX_ADJACENT_CONTEXT_CHARS:
-            ]
+            preceding = parsed_sentences[sentence_index - 1].text[-_MAX_ADJACENT_CONTEXT_CHARS:]
         if sentence_index + 1 < len(parsed_sentences):
-            following = parsed_sentences[sentence_index + 1].text[
-                :_MAX_ADJACENT_CONTEXT_CHARS
-            ]
+            following = parsed_sentences[sentence_index + 1].text[:_MAX_ADJACENT_CONTEXT_CHARS]
 
     return ContextPacket(
         section=assertion.section,
@@ -492,9 +488,7 @@ class StagedAnnotationPipeline:
                     all_results = list(initial_errors or [])
                     row_failures = 0
                     for row_index, row in enumerate(rows):
-                        note_hash = hashlib.sha256(
-                            row.clinical_note.encode("utf-8")
-                        ).hexdigest()
+                        note_hash = hashlib.sha256(row.clinical_note.encode("utf-8")).hexdigest()
                         cached = (
                             state.completed(row_index, note_hash)
                             if self.resume or attempt_index > 0
@@ -520,9 +514,7 @@ class StagedAnnotationPipeline:
                             retry_caches.pop(row_index, None)
                         except (ProviderError, ValueError, RuntimeError) as exc:
                             row_failures += 1
-                            code = (
-                                exc.code if isinstance(exc, ProviderError) else "row_failure"
-                            )
+                            code = exc.code if isinstance(exc, ProviderError) else "row_failure"
                             message = _short_error(exc)
                             state.save_error(
                                 row_index,
@@ -1356,9 +1348,7 @@ class StagedAnnotationPipeline:
         if not targets:
             return results
         decisions: dict[str, Any] = {}
-        for batch_index, start in enumerate(
-            range(0, len(targets), FINAL_CATEGORY_BATCH_SIZE)
-        ):
+        for batch_index, start in enumerate(range(0, len(targets), FINAL_CATEGORY_BATCH_SIZE)):
             items = targets[start : start + FINAL_CATEGORY_BATCH_SIZE]
             batch_decisions = self._request_final_category_items(
                 items,

@@ -61,9 +61,7 @@ def main() -> int:
     for patient_id in patient_ids:
         if patient_id not in references:
             unscorable.setdefault(patient_id, []).append("missing_reference")
-    scorable_ids = [
-        patient_id for patient_id in patient_ids if patient_id not in unscorable
-    ]
+    scorable_ids = [patient_id for patient_id in patient_ids if patient_id not in unscorable]
     layers = {
         str(distance): summarize_layered(
             score_layered(

@@ -50,7 +50,6 @@ class HybridCandidateRetriever:
         matrix: np.ndarray,
         backend: EmbeddingBackend,
         raw_limit: int = 128,
-
         cache_size: int = 4096,
     ) -> None:
         if cache_size <= 0:
@@ -181,9 +180,7 @@ class HybridCandidateRetriever:
             for index, value in enumerate(contexts)
             if value and normalize_phrase(value) != normalize_phrase(phrases[index])
         ]
-        queries = self._encode_cached(
-            [*phrases, *(value for _index, value in context_rows)]
-        )
+        queries = self._encode_cached([*phrases, *(value for _index, value in context_rows)])
         if queries.ndim != 2 or queries.shape[1] != self._dense_index.d:
             raise ValueError("query embedding dimension does not match vector artifacts")
         raw_limit = min(self.raw_limit, self._dense_index.ntotal)

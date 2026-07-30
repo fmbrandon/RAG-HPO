@@ -48,11 +48,7 @@ def _load_results(path: Path) -> list[AnnotationResult]:
 
 def _affected_cases(results: list[AnnotationResult]) -> list[str]:
     return sorted(
-        {
-            result.patient_id
-            for result in results
-            if result.error_code == CALCULATION_ERROR
-        },
+        {result.patient_id for result in results if result.error_code == CALCULATION_ERROR},
         key=lambda value: (not value.isdigit(), int(value) if value.isdigit() else value),
     )
 
@@ -118,15 +114,9 @@ def main() -> int:
                 row_index,
                 by_case[patient_id],
             )
-            remaining = [
-                result
-                for result in repaired
-                if result.error_code == CALCULATION_ERROR
-            ]
+            remaining = [result for result in repaired if result.error_code == CALCULATION_ERROR]
             if remaining:
-                raise RuntimeError(
-                    f"case {patient_id} still has {len(remaining)} failed decisions"
-                )
+                raise RuntimeError(f"case {patient_id} still has {len(remaining)} failed decisions")
             by_case[patient_id] = repaired
         usage = dict(provider.usage)
 

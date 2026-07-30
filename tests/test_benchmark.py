@@ -35,7 +35,6 @@ def test_published_workbook_yields_tidy_rows() -> None:
         / "RAG-HPO Tests and Data Analysis copy.xlsx"
     )
 
-
     rows = module.extract(workbook)
     assert rows
     assert all(row.patient_id for row in rows)
