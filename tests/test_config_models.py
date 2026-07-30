@@ -7,10 +7,14 @@ from rag_hpo.config import DEFAULT_BASE_URL, DEFAULT_MODEL, ProviderConfig, Resp
 from rag_hpo.models import (
     AnnotationInput,
     Category,
+    MappingDecision,
+    MappingDecisionBatch,
     MappingSetDecision,
+    MappingSetDecisionBatch,
     Phenotype,
     PhenotypeExtraction,
     PhenotypeSpan,
+    _normalize_batch_dict,
 )
 
 
@@ -134,3 +138,54 @@ def test_span_only_extraction_strips_and_rejects_blank_phrases() -> None:
     assert PhenotypeSpan(phrase="  fever ").phrase == "fever"
     with pytest.raises(ValidationError, match="phrase must not be blank"):
         PhenotypeSpan(phrase="   ")
+
+
+def test_mapping_decision_and_batch_normalization() -> None:
+    d1 = MappingDecision.model_validate({"mention_id": "m1", "hpo_id": "HP:0001234"})
+    assert d1.verdict == "supported"
+    assert d1.confidence == "medium"
+
+    d2 = MappingDecision.model_validate({"mention_id": "m2", "hpo_id": None})
+    assert d2.verdict == "unsupported"
+
+    b1 = MappingDecisionBatch.model_validate({"results": [{"mention_id": "m1", "hpo_id": "HP:0001234"}]})
+    assert len(b1.decisions) == 1
+
+    b2 = MappingDecisionBatch.model_validate({"decision": {"mention_id": "m1", "hpo_id": "HP:0001234"}})
+    assert len(b2.decisions) == 1
+
+    b3 = MappingDecisionBatch.model_validate({"items": [{"mention_id": "m1", "hpo_id": "HP:0001234"}]})
+    assert len(b3.decisions) == 1
+
+    b4 = MappingDecisionBatch.model_validate({"m1": {"hpo_id": "HP:0001234"}})
+    assert len(b4.decisions) == 1
+
+    ms = MappingSetDecision.model_validate({"mention_id": "m1", "candidate_hpo_ids": ["HP:0001234"]})
+    assert ms.verdict == "supported"
+    assert ms.confidence == "medium"
+
+    ms_un = MappingSetDecision.model_validate({"mention_id": "m1", "candidate_hpo_ids": []})
+    assert ms_un.verdict == "unsupported"
+
+    b5 = MappingSetDecisionBatch.model_validate({"results": [{"mention_id": "m1", "candidate_hpo_ids": ["HP:0001234"]}]})
+    assert len(b5.decisions) == 1
+
+
+def test_models_edge_cases_for_100_percent_coverage() -> None:
+    with pytest.raises(ValidationError):
+        MappingDecision.model_validate(123)
+
+    d = MappingDecision.model_validate({"mention_id": "m1", "verdict": "supported", "confidence": "high", "hpo_id": "HP:0001234"})
+    assert d.confidence == "high"
+
+    assert _normalize_batch_dict([1, 2, 3]) == [1, 2, 3]
+    assert _normalize_batch_dict({"empty": 123}) == {"empty": 123}
+
+    b2 = MappingDecisionBatch.model_validate({"m1": {"mention_id": "m1", "hpo_id": "HP:0001234"}})
+    assert len(b2.decisions) == 1
+
+    with pytest.raises(ValidationError):
+        MappingSetDecision.model_validate(123)
+
+    ms = MappingSetDecision.model_validate({"mention_id": "m1", "candidate_hpo_ids": ["HP:0001234"], "verdict": "supported", "confidence": "high"})
+    assert ms.confidence == "high"
