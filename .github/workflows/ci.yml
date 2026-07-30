@@ -39,7 +39,7 @@ jobs:
       - run: python -m pip install --no-deps -e .
       - run: ruff check .
       - run: ruff format --check .
-      - run: nbqa ruff RAG-HPO.ipynb HPO_Vectorization.ipynb
+      - run: nbqa ruff RAG-HPO.ipynb legacy_original_app/HPO_Vectorization.ipynb
       - run: mypy src/rag_hpo
       - run: bandit -c pyproject.toml -r src/rag_hpo
       - name: Detect secrets
@@ -71,4 +71,4 @@ jobs:
           pip-licenses --format=json --output-file=licenses.json
           python scripts/check_licenses.py licenses.json
       - run: jupyter nbconvert --execute --to notebook --stdout RAG-HPO.ipynb > /dev/null
-      - run: jupyter nbconvert --execute --to notebook --stdout HPO_Vectorization.ipynb > /dev/null
+      - run: jupyter nbconvert --execute --to notebook --stdout legacy_original_app/HPO_Vectorization.ipynb > /dev/null
