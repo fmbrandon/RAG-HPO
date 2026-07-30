@@ -50,28 +50,29 @@ Whenever code is pushed to GitHub, GitHub Actions ([`.github/workflows/ci.yml`](
 
 ---
 
-## ⚡ Pre-Push Checklist: Guaranteed First-Time CI Success
+## ⚡ Pre-Push Checklist: Canonical CI Validation
 
-To prevent CI failures on push, run these two steps locally before committing and pushing:
+To prevent CI failures on push, run the canonical developer validation script locally before pushing:
 
-### Step 1: Run the 1-Line Pre-Push Validation Command
+### Step 1: Run the Canonical Developer Validation Command
 
-Run this command in your terminal inside the virtual environment:
+Run this command in your terminal inside your activated virtual environment:
 
 ```bash
-.venv/bin/pytest --cov=rag_hpo --cov-branch --cov-report=json && \
-.venv/bin/python scripts/check_coverage_targets.py coverage.json && \
-.venv/bin/mypy src/rag_hpo && \
-.venv/bin/ruff check .
+python scripts/validate.py
+```
+
+Or for a fast pre-push check:
+
+```bash
+python scripts/validate.py --fast
 ```
 
 If the command completes with:
 ```text
-============================= 185 passed in 8.07s =============================
-Safety-critical module branch coverage: 100%
-All checks passed!
+All validation checks passed cleanly. Local workspace reproduces CI.
 ```
-Your push is **100% guaranteed to pass CI on GitHub Actions**.
+Passing this command reproduces the repository's current CI commands locally and should prevent deterministic quality failures on GitHub Actions.
 
 ---
 

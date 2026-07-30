@@ -8,16 +8,10 @@ source .venv/bin/activate
 pip install -e '.[vectorize,notebook,test,dev,benchmark]'
 ```
 
-Before opening a pull request, run:
+Before opening a pull request, run the canonical developer validation suite:
 
 ```bash
-ruff check .
-ruff format --check .
-mypy src/rag_hpo
-pytest --cov=rag_hpo --cov-branch
-bandit -c pyproject.toml -r src/rag_hpo
-detect-secrets scan
-python -m build
+python scripts/validate.py
 ```
 
 Tests must use synthetic notes. Network and live-provider tests must be marked

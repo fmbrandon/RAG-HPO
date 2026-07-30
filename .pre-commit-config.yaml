@@ -10,3 +10,12 @@ repos:
     hooks:
       - id: detect-secrets
         exclude: '(^|/)requirements(/|\.txt$)|\.(pptx|xlsx)$|^artifacts/|^benchmarks/'
+
+  - repo: local
+    hooks:
+      - id: quality
+        name: Full quality suite
+        entry: .venv/bin/python scripts/quality.py --fast
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
