@@ -195,8 +195,20 @@ def test_models_edge_cases_for_100_percent_coverage() -> None:
     )
     assert d.confidence == "high"
 
+    assert _normalize_batch_dict(123) == 123
+    assert _normalize_batch_dict({"decisions": []}) == {"decisions": []}
+    assert _normalize_batch_dict([]) == []
     assert _normalize_batch_dict([1, 2, 3]) == [1, 2, 3]
+    assert _normalize_batch_dict([{"hpo_id": "HP:0001234"}]) == {
+        "decisions": [{"hpo_id": "HP:0001234"}]
+    }
+    assert _normalize_batch_dict({"hpo_id": "HP:0001234"}) == {
+        "decisions": [{"hpo_id": "HP:0001234"}]
+    }
     assert _normalize_batch_dict({"empty": 123}) == {"empty": 123}
+
+    d_def = MappingDecision.model_validate({"hpo_id": "HP:0001234"})
+    assert d_def.mention_id == "default"
 
     b2 = MappingDecisionBatch.model_validate({"m1": {"mention_id": "m1", "hpo_id": "HP:0001234"}})
     assert len(b2.decisions) == 1

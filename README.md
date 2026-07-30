@@ -105,7 +105,7 @@ The convenience provider defaults are:
 
 ```text
 RAG_HPO_BASE_URL=https://api.groq.com/openai/v1/chat/completions
-RAG_HPO_MODEL=llama-3.3-70b-versatile
+RAG_HPO_MODEL=openai/gpt-oss-120b
 RAG_HPO_RESPONSE_MODE=json-object
 ```
 

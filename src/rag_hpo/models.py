@@ -75,6 +75,8 @@ class MappingDecision(StrictModel):
     @classmethod
     def fill_defaults(cls, data: Any) -> Any:
         if isinstance(data, dict):
+            if "mention_id" not in data:
+                data["mention_id"] = "default"
             if "verdict" not in data:
                 data["verdict"] = "supported" if data.get("hpo_id") else "unsupported"
             if "confidence" not in data:
@@ -83,8 +85,13 @@ class MappingDecision(StrictModel):
 
 
 def _normalize_batch_dict(data: Any) -> Any:
+    if isinstance(data, list):
+        if data and isinstance(data[0], dict):
+            return {"decisions": data}
+        return data
     if isinstance(data, dict):
         if "decisions" not in data:
+            data = dict(data)
             if "results" in data and isinstance(data["results"], list):
                 data["decisions"] = data["results"]
             elif "decision" in data:
@@ -92,6 +99,8 @@ def _normalize_batch_dict(data: Any) -> Any:
                 data["decisions"] = dec if isinstance(dec, list) else [dec]
             elif "items" in data and isinstance(data["items"], list):
                 data["decisions"] = data["items"]
+            elif "hpo_id" in data or "candidate_hpo_ids" in data or "verdict" in data:
+                return {"decisions": [data]}
             else:
                 items = []
                 for k, v in data.items():
