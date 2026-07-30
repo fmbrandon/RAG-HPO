@@ -35,6 +35,7 @@ class PhenotypeExtraction(StrictModel):
 
 
 class PhenotypeSpan(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     phrase: str = Field(min_length=1)
 
     @field_validator("phrase")
@@ -64,21 +65,73 @@ class SpanPhenotypeExtraction(StrictModel):
 
 
 class MappingDecision(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     mention_id: str
-    hpo_id: str | None
-    verdict: Literal["supported", "unsupported", "ambiguous"]
-    confidence: Literal["high", "medium", "low"]
+    hpo_id: str | None = None
+    verdict: Literal["supported", "unsupported", "ambiguous"] = "supported"
+    confidence: Literal["high", "medium", "low"] = "medium"
+
+    @model_validator(mode="before")
+    @classmethod
+    def fill_defaults(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "verdict" not in data:
+                data["verdict"] = "supported" if data.get("hpo_id") else "unsupported"
+            if "confidence" not in data:
+                data["confidence"] = "medium"
+        return data
+
+
+def _normalize_batch_dict(data: Any) -> Any:
+    if isinstance(data, dict):
+        if "decisions" not in data:
+            if "results" in data and isinstance(data["results"], list):
+                data["decisions"] = data["results"]
+            elif "decision" in data:
+                dec = data["decision"]
+                data["decisions"] = dec if isinstance(dec, list) else [dec]
+            elif "items" in data and isinstance(data["items"], list):
+                data["decisions"] = data["items"]
+            else:
+                items = []
+                for k, v in data.items():
+                    if isinstance(v, dict):
+                        item = dict(v)
+                        if "mention_id" not in item:
+                            item["mention_id"] = k
+                        items.append(item)
+                if items:
+                    data["decisions"] = items
+    return data
 
 
 class MappingDecisionBatch(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     decisions: list[MappingDecision]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_batch(cls, data: Any) -> Any:
+        return _normalize_batch_dict(data)
 
 
 class MappingSetDecision(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     mention_id: str
-    candidate_hpo_ids: list[str] = Field(max_length=3)
-    verdict: Literal["supported", "unsupported", "ambiguous"]
-    confidence: Literal["high", "medium", "low"]
+    candidate_hpo_ids: list[str] = Field(default_factory=list, max_length=3)
+    verdict: Literal["supported", "unsupported", "ambiguous"] = "supported"
+    confidence: Literal["high", "medium", "low"] = "medium"
+
+    @model_validator(mode="before")
+    @classmethod
+    def fill_defaults(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "verdict" not in data:
+                c_ids = data.get("candidate_hpo_ids")
+                data["verdict"] = "supported" if c_ids else "unsupported"
+            if "confidence" not in data:
+                data["confidence"] = "medium"
+        return data
 
     @field_validator("candidate_hpo_ids")
     @classmethod
@@ -97,17 +150,30 @@ class MappingSetDecision(StrictModel):
 
 
 class MappingSetDecisionBatch(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     decisions: list[MappingSetDecision]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_batch(cls, data: Any) -> Any:
+        return _normalize_batch_dict(data)
 
 
 class FinalCategoryDecision(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     mention_id: str
     category: Category
-    confidence: Literal["high", "medium", "low"]
+    confidence: Literal["high", "medium", "low"] = "medium"
 
 
 class FinalCategoryDecisionBatch(StrictModel):
+    model_config = ConfigDict(extra="ignore")
     decisions: list[FinalCategoryDecision]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_batch(cls, data: Any) -> Any:
+        return _normalize_batch_dict(data)
 
 
 class AnnotationInput(StrictModel):

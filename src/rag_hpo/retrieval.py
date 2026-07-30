@@ -379,17 +379,39 @@ class HybridCandidateRetriever:
                 rank += 1
                 fuzzy[hp_id] = (rank, float(score))
 
+        query_tokens = {t for t in normalized.split() if len(t) > 2}
+        token_overlap: dict[str, tuple[int, float]] = {}
+        if query_tokens:
+            overlap_matches: list[tuple[str, float]] = []
+            for phrase_cand in fuzzy_candidates:
+                p_tokens = set(phrase_cand.split())
+                intersection = query_tokens & p_tokens
+                if intersection:
+                    score = (len(intersection) / len(query_tokens)) * 100.0
+                    overlap_matches.append((phrase_cand, score))
+            overlap_matches.sort(key=lambda x: -x[1])
+            o_rank = 0
+            for matched_phrase, score in overlap_matches:
+                for hp_id in self._lexical_ids[matched_phrase]:
+                    if hp_id not in token_overlap:
+                        o_rank += 1
+                        token_overlap[hp_id] = (o_rank, score)
+
         exact_ids = self._lexical_ids.get(normalized, ())
         scored: list[tuple[str, float, float]] = []
-        for hp_id in sorted(set(sparse) | set(fuzzy)):
+        all_candidate_ids = set(sparse) | set(fuzzy) | set(token_overlap)
+        for hp_id in sorted(all_candidate_ids):
             combined = 0.0
             if hp_id in sparse:
                 combined += SPARSE_WEIGHT / (RRF_CONSTANT + sparse[hp_id][0])
             if hp_id in fuzzy:
                 combined += FUZZY_WEIGHT / (RRF_CONSTANT + fuzzy[hp_id][0])
+            if hp_id in token_overlap:
+                combined += (FUZZY_WEIGHT * 0.5) / (RRF_CONSTANT + token_overlap[hp_id][0])
             lexical_score = max(
                 sparse.get(hp_id, (0, 0.0))[1] * 100.0,
                 fuzzy.get(hp_id, (0, 0.0))[1],
+                token_overlap.get(hp_id, (0, 0.0))[1],
             )
             scored.append((hp_id, combined, lexical_score))
         scored.sort(

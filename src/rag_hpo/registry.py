@@ -5,6 +5,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import re
 import tempfile
 import unicodedata
 import warnings
@@ -514,3 +515,115 @@ def registry_aliases(registry: HPORegistry) -> dict[str, str]:
 
 def registry_labels(registry: HPORegistry) -> dict[str, str]:
     return {concept.hp_id: concept.label for concept in registry.concepts}
+
+
+class HPOTermRegistry:
+    def __init__(
+        self,
+        raw_ontology_terms: dict[str, dict] | None = None,
+        acronym_dictionary_path: str | Path | None = None,
+    ):
+        """
+        raw_ontology_terms: Parsed HPO obo/json dictionary structure.
+        acronym_dictionary_path: Optional path to external medical JSON mappings.
+        """
+        self.raw_terms: dict[str, dict] = raw_ontology_terms or {}
+        self.active_terms: dict[str, dict] = {}
+        self.obsolete_map: dict[str, str] = {}
+        self.acronym_dict: dict[str, str] = {}
+
+        if acronym_dictionary_path:
+            self.load_acronym_dictionary(acronym_dictionary_path)
+
+        if raw_ontology_terms:
+            self._build_resolved_registry()
+
+    def load_acronym_dictionary(self, path: str | Path) -> None:
+        """Loads external UMLS/ADAM acronym dictionary JSON."""
+        path_obj = Path(path)
+        with path_obj.open("r", encoding="utf-8") as f:
+            external_data = json.load(f)
+            self.acronym_dict.update(external_data)
+
+    def _build_resolved_registry(self) -> None:
+        """
+        Processes HPO terms:
+        1. Resolves obsolete IDs (replaced_by -> consider).
+        2. Extracts acronyms dynamically from exact/broad HPO synonyms.
+        """
+        for term_id, term_data in self.raw_terms.items():
+            if term_data.get("is_obsolete", False) or term_data.get("obsolete", False):
+                replacement = term_data.get("replaced_by")
+                if not replacement and term_data.get("consider"):
+                    consider_list = term_data.get("consider")
+                    if isinstance(consider_list, list) and consider_list:
+                        replacement = consider_list[0]
+
+                if replacement:
+                    self.obsolete_map[term_id] = replacement
+            else:
+                self.active_terms[term_id] = term_data
+
+                synonyms = term_data.get("synonyms", [])
+                primary_name = term_data.get("name") or term_data.get("label", "")
+
+                for syn in synonyms:
+                    if isinstance(syn, dict):
+                        syn_str = syn.get("phrase", "")
+                    else:
+                        syn_str = str(syn)
+                    if re.match(r"^[A-Z0-9]{2,8}$", syn_str):
+                        if syn_str not in self.acronym_dict and primary_name:
+                            self.acronym_dict[syn_str] = primary_name
+
+    def resolve_term_id(self, hpo_id: str) -> str:
+        """Recursively resolves deprecated HPO IDs to active terms with loop protection."""
+        visited: set[str] = set()
+        current_id = hpo_id
+
+        while current_id in self.obsolete_map:
+            if current_id in visited:
+                break
+            visited.add(current_id)
+            current_id = self.obsolete_map[current_id]
+
+        return current_id
+
+    def expand_acronyms(self, text: str) -> str:
+        """Applies word-boundary expansion across all registered acronyms."""
+        if not self.acronym_dict:
+            return text
+
+        def replace_match(match: re.Match) -> str:
+            word = match.group(0)
+            expansion = self.acronym_dict.get(word)
+            if expansion:
+                return f"{word} ({expansion})"
+            return word
+
+        pattern = re.compile(r"\b[A-Z0-9]{2,8}\b")
+        return pattern.sub(replace_match, text)
+
+    @classmethod
+    def from_hpo_registry(
+        cls,
+        registry: HPORegistry,
+        acronym_dictionary_path: str | Path | None = None,
+    ) -> HPOTermRegistry:
+        """Constructs an HPOTermRegistry directly from an HPORegistry instance."""
+        terms: dict[str, dict] = {}
+        for concept in registry.concepts:
+            syn_phrases = [p.phrase for p in concept.phrases if p.source == "hpo-synonym"]
+            terms[concept.hp_id] = {
+                "name": concept.label,
+                "label": concept.label,
+                "is_obsolete": concept.obsolete,
+                "obsolete": concept.obsolete,
+                "synonyms": syn_phrases,
+            }
+            for alt_id in concept.alternate_ids:
+                terms[alt_id] = {
+                    "is_obsolete": True,
+                    "replaced_by": concept.hp_id,
+                }
+        return cls(raw_ontology_terms=terms, acronym_dictionary_path=acronym_dictionary_path)

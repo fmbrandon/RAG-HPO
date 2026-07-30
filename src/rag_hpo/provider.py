@@ -5,10 +5,40 @@ import random
 import time
 from collections.abc import Callable
 from email.utils import parsedate_to_datetime
+import re
 from typing import Any, TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
+
+
+def _extract_json_payload(raw_text: str) -> str:
+    cleaned = raw_text.strip()
+    match = re.search(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", cleaned, re.DOTALL)
+    json_str = match.group(1).strip() if match else cleaned
+    if not match:
+        match_raw = re.search(r"(\{.*\}|\[.*\])", cleaned, re.DOTALL)
+        if match_raw:
+            json_str = match_raw.group(1).strip()
+
+    try:
+        data = json.loads(json_str)
+        if isinstance(data, dict) and "phenotypes" in data and isinstance(data["phenotypes"], list):
+            new_phenotypes = []
+            for item in data["phenotypes"]:
+                if isinstance(item, str):
+                    new_phenotypes.append({"phrase": item, "category": "Abnormal"})
+                elif isinstance(item, dict):
+                    if "phrase" in item and "category" not in item:
+                        item["category"] = "Abnormal"
+                    new_phenotypes.append(item)
+            data["phenotypes"] = new_phenotypes
+            return json.dumps(data)
+    except Exception:
+        pass
+
+    return json_str
+
 
 from rag_hpo.config import ProviderConfig, ResponseMode
 from rag_hpo.models import StrictModel
@@ -81,6 +111,9 @@ class OpenAICompatibleProvider:
         response_format = self._response_format(response_model)
         if response_format is not None:
             payload["response_format"] = response_format
+            if response_format.get("type") == "json_object":
+                if "json" not in system_message.lower() and "json" not in user_message.lower():
+                    payload["messages"][0]["content"] += " Return valid JSON."
 
         response = self._post_with_retries(payload)
         try:
@@ -97,7 +130,8 @@ class OpenAICompatibleProvider:
             content = envelope["choices"][0]["message"]["content"]
             if not isinstance(content, str):
                 raise TypeError("completion content is not text")
-            return response_model.model_validate_json(content), content
+            clean_json = _extract_json_payload(content)
+            return response_model.model_validate_json(clean_json), content
         except (KeyError, IndexError, TypeError, json.JSONDecodeError, ValidationError) as exc:
             raise ProviderError(
                 "invalid_response",
@@ -154,7 +188,7 @@ class OpenAICompatibleProvider:
             if response.status_code not in RETRYABLE_STATUSES:
                 raise ProviderError(
                     "provider_rejected",
-                    f"provider rejected the request with HTTP {response.status_code}",
+                    f"provider rejected the request with HTTP {response.status_code}: {response.text}",
                     response.status_code,
                 )
             if attempt == self.config.max_attempts:

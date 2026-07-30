@@ -39,6 +39,7 @@ legacy_original_app/
 !legacy_original_app/HPO_Vectorization.ipynb
 reports_and_logs/
 sbom/
+.scratch_stage1_output/
 
 
 

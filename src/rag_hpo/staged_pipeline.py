@@ -33,7 +33,8 @@ from rag_hpo.calibration import (
 from rag_hpo.embeddings import EmbeddingBackend, create_backend
 from rag_hpo.export import export_results
 from rag_hpo.fasthpocr import FastHPORecognizer
-from rag_hpo.lexical import NativeLexicalRecognizer
+from rag_hpo.lexical import NativeLexicalRecognizer, SINGLE_TOKEN_MODIFIER_BLOCKLIST
+from rag_hpo.registry import HPORegistry, HPOTermRegistry, load_registry_bundle
 from rag_hpo.models import (
     AnnotationInput,
     AnnotationResult,
@@ -419,6 +420,7 @@ class StagedAnnotationPipeline:
         self._concepts = {
             concept.hp_id: concept for concept in self.registry.concepts if not concept.obsolete
         }
+        self.term_registry = HPOTermRegistry.from_hpo_registry(self.registry)
         self._modifier_ids = self._descendants_of(_CLINICAL_MODIFIER_ROOT)
         self.distinct_limit = 32 if mode is AnnotationMode.HIGH_RECALL else 16
         self._active_provider_cache: dict[str, tuple[Any, str]] | None = None
@@ -986,10 +988,13 @@ class StagedAnnotationPipeline:
     def _merge_mentions(mentions: list[Mention]) -> list[Mention]:
         merged: dict[tuple[int, int, str], Mention] = {}
         for mention in mentions:
+            norm = normalize_phrase(mention.phrase)
+            if norm in SINGLE_TOKEN_MODIFIER_BLOCKLIST:
+                continue
             key = (
                 mention.start,
                 mention.end,
-                normalize_phrase(mention.phrase),
+                norm,
             )
             existing = merged.get(key)
             if existing is None:
@@ -1007,6 +1012,15 @@ class StagedAnnotationPipeline:
                     if segment not in existing.evidence_segments:
                         existing.evidence_segments.append(segment)
         values = list(merged.values())
+        for m in values:
+            words = m.phrase.split()
+            if len(words) > 1 and normalize_phrase(words[0]) in SINGLE_TOKEN_MODIFIER_BLOCKLIST:
+                clean_words = [w for w in words if normalize_phrase(w) not in SINGLE_TOKEN_MODIFIER_BLOCKLIST]
+                if clean_words:
+                    head = " ".join(clean_words).strip()
+                    if head and head != m.phrase and len(head) >= 3 and normalize_phrase(head) not in SINGLE_TOKEN_MODIFIER_BLOCKLIST:
+                        m.phrase_variants.add(head)
+
         suppressed: set[int] = set()
         for broad_index, broad in enumerate(values):
             nested = [
