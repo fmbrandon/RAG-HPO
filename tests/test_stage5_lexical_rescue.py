@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
-from rag_hpo.lexical_rescue import LexicalRescueEngine, RescueVariant
+from rag_hpo.lexical_rescue import LexicalRescueEngine
 
 
 def test_lexical_rescue_allowlist_adjective_to_noun() -> None:
@@ -19,7 +17,7 @@ def test_lexical_rescue_syntactic_head_swap() -> None:
     engine = LexicalRescueEngine()
     variants = engine.generate_variants("dislocation of the crystalline lens")
     assert len(variants) >= 1
-    head_swap = [v for v in variants if v.transformation_type == "syntactic_head_swap"][0]
+    head_swap = next(v for v in variants if v.transformation_type == "syntactic_head_swap")
     assert head_swap.variant_phrase == "lens dislocation"
     assert head_swap.confidence_level == 3
 

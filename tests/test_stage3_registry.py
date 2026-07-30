@@ -1,5 +1,7 @@
 import json
+
 import pytest
+
 from rag_hpo.registry import HPOTermRegistry
 
 
@@ -28,10 +30,12 @@ def test_external_dictionary_ingestion(tmp_path: pytest.TempPathFactory) -> None
     """Verify loading from external UMLS/custom JSON files."""
     dict_file = tmp_path / "medical_acronyms.json"
     dict_file.write_text(
-        json.dumps({
-            "ESR": "Erythrocyte sedimentation rate",
-            "CRP": "C-reactive protein",
-        }),
+        json.dumps(
+            {
+                "ESR": "Erythrocyte sedimentation rate",
+                "CRP": "C-reactive protein",
+            }
+        ),
         encoding="utf-8",
     )
 

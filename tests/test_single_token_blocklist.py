@@ -1,4 +1,5 @@
 import pytest
+
 from rag_hpo.lexical import SINGLE_TOKEN_MODIFIER_BLOCKLIST
 from rag_hpo.staged_pipeline import Mention, StagedAnnotationPipeline
 

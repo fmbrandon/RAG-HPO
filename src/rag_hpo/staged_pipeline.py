@@ -33,9 +33,8 @@ from rag_hpo.calibration import (
 from rag_hpo.embeddings import EmbeddingBackend, create_backend
 from rag_hpo.export import export_results
 from rag_hpo.fasthpocr import FastHPORecognizer
-from rag_hpo.lexical import NativeLexicalRecognizer, SINGLE_TOKEN_MODIFIER_BLOCKLIST
+from rag_hpo.lexical import SINGLE_TOKEN_MODIFIER_BLOCKLIST, NativeLexicalRecognizer
 from rag_hpo.lexical_rescue import LexicalRescueEngine
-from rag_hpo.registry import HPORegistry, HPOTermRegistry, load_registry_bundle
 from rag_hpo.models import (
     AnnotationInput,
     AnnotationResult,
@@ -49,7 +48,7 @@ from rag_hpo.pipeline import _short_error, hash_inputs
 from rag_hpo.privacy import ensure_private_directory, restrict_owner
 from rag_hpo.prompts import load_prompts
 from rag_hpo.provider import ProviderError
-from rag_hpo.registry import load_registry_bundle, normalize_phrase
+from rag_hpo.registry import HPOTermRegistry, load_registry_bundle, normalize_phrase
 from rag_hpo.retrieval import RETRIEVAL_POLICY_VERSION, HybridCandidateRetriever
 from rag_hpo.state import PipelineState
 
@@ -1017,10 +1016,18 @@ class StagedAnnotationPipeline:
         for m in values:
             words = m.phrase.split()
             if len(words) > 1 and normalize_phrase(words[0]) in SINGLE_TOKEN_MODIFIER_BLOCKLIST:
-                clean_words = [w for w in words if normalize_phrase(w) not in SINGLE_TOKEN_MODIFIER_BLOCKLIST]
+                clean_words = [
+                    w for w in words if normalize_phrase(w) not in SINGLE_TOKEN_MODIFIER_BLOCKLIST
+                ]
                 if clean_words:
                     head = " ".join(clean_words).strip()
-                    if head and head != m.phrase and len(head) >= 3 and normalize_phrase(head) not in SINGLE_TOKEN_MODIFIER_BLOCKLIST:
+                    norm_head = normalize_phrase(head)
+                    if (
+                        head
+                        and head != m.phrase
+                        and len(head) >= 3
+                        and norm_head not in SINGLE_TOKEN_MODIFIER_BLOCKLIST
+                    ):
                         m.phrase_variants.add(head)
 
         suppressed: set[int] = set()

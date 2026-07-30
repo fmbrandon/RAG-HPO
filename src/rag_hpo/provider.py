@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import json
 import random
+import re
 import time
 from collections.abc import Callable
 from email.utils import parsedate_to_datetime
-import re
 from typing import Any, TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
+
+from rag_hpo.config import ProviderConfig, ResponseMode
+from rag_hpo.models import StrictModel
 
 
 def _extract_json_payload(raw_text: str) -> str:
@@ -34,14 +37,11 @@ def _extract_json_payload(raw_text: str) -> str:
                     new_phenotypes.append(item)
             data["phenotypes"] = new_phenotypes
             return json.dumps(data)
-    except Exception:
-        pass
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return json_str
 
     return json_str
 
-
-from rag_hpo.config import ProviderConfig, ResponseMode
-from rag_hpo.models import StrictModel
 
 T = TypeVar("T", bound=BaseModel)
 RETRYABLE_STATUSES = {408, 409, 429, *range(500, 600)}
@@ -188,7 +188,7 @@ class OpenAICompatibleProvider:
             if response.status_code not in RETRYABLE_STATUSES:
                 raise ProviderError(
                     "provider_rejected",
-                    f"provider rejected the request with HTTP {response.status_code}: {response.text}",
+                    f"provider rejected HTTP {response.status_code}: {response.text[:200]}",
                     response.status_code,
                 )
             if attempt == self.config.max_attempts:

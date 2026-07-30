@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from rag_hpo.models import Candidate
 from rag_hpo.reranker import CrossEncoderReranker
 

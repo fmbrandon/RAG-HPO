@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from rag_hpo.models import Candidate
 
@@ -35,7 +35,7 @@ class CrossEncoderReranker:
             label_tokens = set(label_norm.split())
             intersection = query_tokens & label_tokens
             overlap_score = (len(intersection) / len(query_tokens)) if query_tokens else 0.0
-            
+
             exact_boost = 1.0 if query_norm == label_norm else 0.0
             combined_rank_score = (cand.score or 0.0) + (overlap_score * 0.5) + (exact_boost * 2.0)
             scored_candidates.append((combined_rank_score, cand))

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
 
 from rag_hpo.lexical import normalize_phrase
 
@@ -52,7 +51,8 @@ CRITICAL_SEMANTIC_MODIFIERS: set[str] = {
 class RescueVariant:
     variant_phrase: str
     transformation_type: str
-    confidence_level: int  # 1: HPO Synonym, 2: Project Allowlist, 3: Syntactic Rewrite, 4: LLM Paraphrase
+    # 1: HPO Synonym, 2: Project Allowlist, 3: Syntactic Rewrite, 4: LLM
+    confidence_level: int
     original_phrase: str
 
 

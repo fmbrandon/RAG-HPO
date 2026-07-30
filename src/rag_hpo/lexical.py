@@ -11,30 +11,32 @@ EvidenceKind = Literal["exact", "morphological"]
 
 _TOKEN = re.compile(r"\w+(?:[\u2019']\w+)?", re.UNICODE)
 _SHORT_ACRONYM = re.compile(r"^[A-Za-z]{1,3}$")
-SINGLE_TOKEN_MODIFIER_BLOCKLIST = frozenset({
-    "all",
-    "child",
-    "adult",
-    "male",
-    "female",
-    "finding",
-    "history",
-    "normal",
-    "patient",
-    "acute",
-    "chronic",
-    "episodic",
-    "mild",
-    "moderate",
-    "onset",
-    "recurrent",
-    "severe",
-    "transient",
-    "bilateral",
-    "left",
-    "right",
-    "unilateral",
-})
+SINGLE_TOKEN_MODIFIER_BLOCKLIST = frozenset(
+    {
+        "all",
+        "child",
+        "adult",
+        "male",
+        "female",
+        "finding",
+        "history",
+        "normal",
+        "patient",
+        "acute",
+        "chronic",
+        "episodic",
+        "mild",
+        "moderate",
+        "onset",
+        "recurrent",
+        "severe",
+        "transient",
+        "bilateral",
+        "left",
+        "right",
+        "unilateral",
+    }
+)
 _SINGLE_TOKEN_BLOCKLIST = SINGLE_TOKEN_MODIFIER_BLOCKLIST
 
 
