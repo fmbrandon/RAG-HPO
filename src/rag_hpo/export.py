@@ -49,7 +49,14 @@ def _replace(path: Path, content: str) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         restrict_owner(temporary_path)
-        os.replace(temporary_path, path)
+        try:
+            os.replace(temporary_path, path)
+        except PermissionError as exc:
+            msg = (
+                f"Permission denied when writing to '{path}'. If the output file "
+                "is open in Excel or another program, please close it and try again."
+            )
+            raise PermissionError(msg) from exc
     finally:
         temporary_path.unlink(missing_ok=True)
 
