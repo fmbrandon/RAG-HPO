@@ -175,3 +175,82 @@ def test_cli_rejects_blank_manual_text(
     )
     assert code == 2
     assert "ERROR" in capsys.readouterr().err
+
+
+def test_load_inputs_txt_file_and_directory(tmp_path: Path) -> None:
+    from rag_hpo.pipeline import load_inputs
+
+    # Single .txt file
+    txt_path = tmp_path / "patient_101.txt"
+    txt_path.write_text("Patient presents with fever and cough.", encoding="utf-8")
+    rows, _errors = load_inputs(txt_path)
+    assert len(rows) == 1
+    assert rows[0].patient_id == "patient_101"
+    assert rows[0].clinical_note == "Patient presents with fever and cough."
+
+    # Directory of .txt files
+    notes_dir = tmp_path / "notes"
+    notes_dir.mkdir()
+    (notes_dir / "note1.txt").write_text("Note 1 content", encoding="utf-8")
+    (notes_dir / "note2.txt").write_text("Note 2 content", encoding="utf-8")
+
+    rows_dir, _ = load_inputs(notes_dir)
+    assert len(rows_dir) == 2
+    assert [r.patient_id for r in rows_dir] == ["note1", "note2"]
+
+
+def test_load_inputs_flexible_csv_columns(tmp_path: Path) -> None:
+    from rag_hpo.pipeline import load_inputs
+
+    # CSV with 'text' column alias instead of 'clinical_note'
+    csv_path = tmp_path / "input_alias.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["patient_id", "text"])
+        writer.writeheader()
+        writer.writerow({"patient_id": "p1", "text": "Patient has short stature."})
+
+    rows, _ = load_inputs(csv_path)
+    assert len(rows) == 1
+    assert rows[0].patient_id == "p1"
+    assert rows[0].clinical_note == "Patient has short stature."
+
+
+def test_load_inputs_docx(tmp_path: Path) -> None:
+    import zipfile
+
+    from rag_hpo.pipeline import load_inputs
+
+    docx_path = tmp_path / "patient_202.docx"
+    doc_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n'
+        "  <w:body>\n"
+        "    <w:p><w:r><w:t>Patient presents with severe microcephaly.</w:t></w:r></w:p>\n"
+        "  </w:body>\n"
+        "</w:document>"
+    )
+    with zipfile.ZipFile(docx_path, "w") as zf:
+        zf.writestr("word/document.xml", doc_xml)
+
+    rows, _errors = load_inputs(docx_path)
+    assert len(rows) == 1
+    assert rows[0].patient_id == "patient_202"
+    assert rows[0].clinical_note == "Patient presents with severe microcephaly."
+
+
+def test_load_inputs_excel(tmp_path: Path) -> None:
+    import openpyxl
+
+    from rag_hpo.pipeline import load_inputs
+
+    excel_path = tmp_path / "clinical_records.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["patient_id", "note"])
+    ws.append(["P-100", "Patient has short stature and microcephaly."])
+    wb.save(excel_path)
+
+    rows, _errors = load_inputs(excel_path)
+    assert len(rows) == 1
+    assert rows[0].patient_id == "P-100"
+    assert rows[0].clinical_note == "Patient has short stature and microcephaly."

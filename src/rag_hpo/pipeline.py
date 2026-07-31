@@ -28,19 +28,125 @@ from rag_hpo.state import PipelineState
 
 
 def load_csv_inputs(path: Path) -> tuple[list[AnnotationInput], list[AnnotationResult]]:
+    return load_inputs(path)
+
+
+def load_inputs(path: Path) -> tuple[list[AnnotationInput], list[AnnotationResult]]:
     valid: list[AnnotationInput] = []
     errors: list[AnnotationResult] = []
+
+    if path.is_dir():
+        files = sorted(
+            [
+                f
+                for f in path.iterdir()
+                if f.is_file()
+                and f.suffix.lower() in (".txt", ".docx", ".xlsx", ".xls", ".csv", ".json")
+            ]
+        )
+        if not files:
+            msg = (
+                "no supported clinical files (.txt, .docx, .xlsx, .csv, .json) "
+                f"found in directory: {path}"
+            )
+            raise ValueError(msg)
+        for file in files:
+            sub_valid, sub_errors = load_inputs(file)
+            valid.extend(sub_valid)
+            errors.extend(sub_errors)
+        return valid, errors
+
+    if path.suffix.lower() == ".txt":
+        patient_id = path.stem
+        try:
+            content = path.read_text(encoding="utf-8-sig")
+            valid.append(AnnotationInput(patient_id=patient_id, clinical_note=content))
+        except Exception as exc:
+            errors.append(
+                AnnotationResult(
+                    patient_id=patient_id,
+                    phrase="",
+                    category=None,
+                    mapping_status="error",
+                    error_code="invalid_input",
+                    error_message=_short_error(exc),
+                )
+            )
+        return valid, errors
+
+    if path.suffix.lower() == ".docx":
+        patient_id = path.stem
+        try:
+            content = _read_docx_text(path)
+            valid.append(AnnotationInput(patient_id=patient_id, clinical_note=content))
+        except Exception as exc:
+            errors.append(
+                AnnotationResult(
+                    patient_id=patient_id,
+                    phrase="",
+                    category=None,
+                    mapping_status="error",
+                    error_code="invalid_input",
+                    error_message=_short_error(exc),
+                )
+            )
+        return valid, errors
+
+    if path.suffix.lower() in (".xlsx", ".xls"):
+        return _read_excel_inputs(path)
+
+    if path.suffix.lower() == ".json":
+        try:
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            if isinstance(data, dict):
+                data = [data]
+            for index, item in enumerate(data, start=1):
+                patient_id = item.get("patient_id") or item.get("Case") or str(index)
+                note = item.get("clinical_note") or item.get("note") or item.get("text") or ""
+                try:
+                    valid.append(AnnotationInput(patient_id=str(patient_id), clinical_note=note))
+                except ValidationError as exc:
+                    errors.append(
+                        AnnotationResult(
+                            patient_id=str(patient_id),
+                            phrase="",
+                            category=None,
+                            mapping_status="error",
+                            error_code="invalid_input",
+                            error_message=_short_error(exc),
+                        )
+                    )
+        except Exception as exc:
+            raise ValueError(f"failed to parse JSON input file {path}: {exc}") from exc
+        return valid, errors
+
+    # Default CSV loader with flexible column names
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
-        if not reader.fieldnames or "clinical_note" not in reader.fieldnames:
-            raise ValueError("input CSV requires a clinical_note column")
+        if not reader.fieldnames:
+            raise ValueError("input CSV file is empty or has no header")
+
+        # Look for clinical note column aliases
+        note_col = None
+        for col_alias in ("clinical_note", "note", "text", "clinical_text", "content"):
+            if col_alias in reader.fieldnames:
+                note_col = col_alias
+                break
+
+        if not note_col:
+            msg = (
+                "input CSV requires a clinical_note (or note/text/content) column. "
+                f"Found: {reader.fieldnames}"
+            )
+            raise ValueError(msg)
+
         for index, row in enumerate(reader, start=1):
             patient_id = row.get("patient_id") or row.get("Case") or str(index)
             try:
                 valid.append(
                     AnnotationInput(
                         patient_id=str(patient_id),
-                        clinical_note=row.get("clinical_note") or "",
+                        clinical_note=row.get(note_col) or "",
                     )
                 )
             except ValidationError as exc:
@@ -259,3 +365,88 @@ class AnnotationPipeline:
             raise ValueError("embedding model does not match the vector manifest")
         if backend.revision != manifest.embedding_revision:
             raise ValueError("embedding revision does not match the vector manifest")
+
+
+def _read_docx_text(path: Path) -> str:
+    import xml.etree.ElementTree as ET  # nosec B405
+    import zipfile
+
+    with zipfile.ZipFile(path) as docx_zip:
+        xml_content = docx_zip.read("word/document.xml")
+    root = ET.fromstring(xml_content)  # noqa: S314 # nosec B314
+    paragraphs = []
+    ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    for p in root.iter(f"{ns}p"):
+        texts = [node.text for node in p.iter(f"{ns}t") if node.text]
+        if texts:
+            paragraphs.append("".join(texts))
+    return "\n".join(paragraphs)
+
+
+def _read_excel_inputs(path: Path) -> tuple[list[AnnotationInput], list[AnnotationResult]]:
+    import openpyxl  # type: ignore[import-untyped]
+
+    valid: list[AnnotationInput] = []
+    errors: list[AnnotationResult] = []
+    workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    sheet = workbook.active
+    rows = list(sheet.iter_rows(values_only=True))
+    if not rows:
+        raise ValueError("Excel file is empty")
+
+    header = [str(col).strip().lower() if col is not None else "" for col in rows[0]]
+    note_col_idx = None
+    for col_alias in ("clinical_note", "note", "text", "clinical_text", "content"):
+        if col_alias in header:
+            note_col_idx = header.index(col_alias)
+            break
+
+    if note_col_idx is None:
+        if len(header) == 1:
+            note_col_idx = 0
+        else:
+            msg = (
+                "Excel file requires a clinical_note (or note/text/content) column header. "
+                f"Found: {rows[0]}"
+            )
+            raise ValueError(msg)
+
+    patient_id_idx = None
+    for id_alias in ("patient_id", "case", "id", "patient"):
+        if id_alias in header:
+            patient_id_idx = header.index(id_alias)
+            break
+
+    start_idx = 1 if note_col_idx != 0 or len(header) > 1 else 0
+    for index, row in enumerate(rows[start_idx:], start=1):
+        if not row or all(v is None for v in row):
+            continue
+        patient_id = (
+            str(row[patient_id_idx])
+            if (
+                patient_id_idx is not None
+                and patient_id_idx < len(row)
+                and row[patient_id_idx] is not None
+            )
+            else str(index)
+        )
+        note_val = (
+            str(row[note_col_idx])
+            if (note_col_idx < len(row) and row[note_col_idx] is not None)
+            else ""
+        )
+        try:
+            valid.append(AnnotationInput(patient_id=patient_id, clinical_note=note_val))
+        except ValidationError as exc:
+            errors.append(
+                AnnotationResult(
+                    patient_id=patient_id,
+                    phrase="",
+                    category=None,
+                    mapping_status="error",
+                    error_code="invalid_input",
+                    error_message=_short_error(exc),
+                )
+            )
+    workbook.close()
+    return valid, errors

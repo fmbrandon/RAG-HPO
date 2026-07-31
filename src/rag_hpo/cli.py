@@ -16,7 +16,7 @@ from rag_hpo.demo import run_demo
 from rag_hpo.doctor import run_doctor
 from rag_hpo.models import AnnotationInput, AnnotationResult
 from rag_hpo.ontology import DEFAULT_HPO_URL, vectorize
-from rag_hpo.pipeline import AnnotationPipeline, load_csv_inputs
+from rag_hpo.pipeline import AnnotationPipeline, load_inputs
 from rag_hpo.provider import OpenAICompatibleProvider
 from rag_hpo.staged_pipeline import (
     AnnotationMode,
@@ -174,7 +174,7 @@ def _load_annotation_source(
                 clinical_note=sys.stdin.read(),
             )
         ], []
-    return load_csv_inputs(Path(args.input))
+    return load_inputs(Path(args.input))
 
 
 def _annotate(args: argparse.Namespace) -> int:
